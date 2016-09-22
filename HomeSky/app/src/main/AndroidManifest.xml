@@ -15,6 +15,11 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
+        <activity android:name=".state.StateActivity"/>
+        <activity android:name=".controller.ControllerActivity"/>
+        <activity android:name=".notification.NotificationActivity"/>
+        <activity android:name=".rule.RuleActivity"/>
+        <activity android:name=".user.UserActivity"/>
     </application>
 
 </manifest>

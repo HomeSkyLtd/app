@@ -3,4 +3,12 @@
     <string name="action_settings">Settings</string>
 
     <string name="login_title">Login</string>
+
+    <string-array name="modules_titles">
+        <item>State</item>
+        <item>Rules</item>
+        <item>Users</item>
+        <item>Controller</item>
+        <item>Notification</item>
+    </string-array>
 </resources>
