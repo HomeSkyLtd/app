@@ -8,7 +8,7 @@ import android.view.View;
 import android.view.ViewGroup;
 
 import com.homesky.homesky.R;
-import com.homesky.homesky.state.StateActivity;
+import com.homesky.homesky.activities.MenuSingleFragmentActivity;
 
 public class LoginFragment extends Fragment {
 
@@ -22,7 +22,7 @@ public class LoginFragment extends Fragment {
         view.findViewById(R.id.login_fragment_title).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(StateActivity.newIntent(getActivity()));
+                startActivity(MenuSingleFragmentActivity.newIntent(getActivity()));
             }
         });
 

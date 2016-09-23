@@ -2,7 +2,7 @@ package com.homesky.homesky.login;
 
 import android.support.v4.app.Fragment;
 
-import com.homesky.homesky.abstracts.SingleFragmentActivity;
+import com.homesky.homesky.activities.SingleFragmentActivity;
 
 public class LoginActivity extends SingleFragmentActivity {
 

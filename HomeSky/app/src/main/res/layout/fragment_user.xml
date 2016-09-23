@@ -7,7 +7,7 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/state_title"
+        android:text="@string/user_title"
         android:textSize="50sp"
         android:layout_gravity="center_horizontal"/>
 

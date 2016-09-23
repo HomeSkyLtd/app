@@ -1,13 +1,10 @@
-package com.homesky.homesky.abstracts;
+package com.homesky.homesky.activities;
 
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.AppCompatActivity;
-import android.util.Log;
 import android.view.Menu;
-import android.view.MenuItem;
 
 import com.homesky.homesky.R;
 
