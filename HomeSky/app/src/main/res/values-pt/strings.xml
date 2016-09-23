@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="action_settings">Configurações</string>
+    <string name="action_search">Buscar</string>
     <string name="controller_fragment_title">Controlador</string>
     <string name="notification_fragment_title">Notificação</string>
     <string name="rule_fragment_title">Regras</string>
