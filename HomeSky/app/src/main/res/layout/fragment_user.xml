@@ -7,8 +7,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/user_title"
-        android:textSize="50sp"
+        android:text="@string/user_fragment_title"
+        android:textSize="@dimen/title_text_size"
         android:layout_gravity="center_horizontal"/>
 
 </LinearLayout>

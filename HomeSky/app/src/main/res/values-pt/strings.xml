@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="action_settings">Configurações</string>
+    <string name="controller_fragment_title">Controlador</string>
+    <string name="notification_fragment_title">Notificação</string>
+    <string name="rule_fragment_title">Regras</string>
+    <string name="state_fragment_title">Estado</string>
+    <string name="user_fragment_title">Usuários</string>
+    <string name="login_activity_signin_button">Cadastrar</string>
+    <string name="login_activity_passwd_hint">Senha</string>
+</resources>

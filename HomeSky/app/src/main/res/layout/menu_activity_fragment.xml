@@ -7,18 +7,23 @@
     android:layout_height="match_parent">
 
     <FrameLayout
-        android:id="@+id/menu_activity_fragment_container"
+        android:id="@+id/menu_fragments_activity_container"
         android:layout_width="match_parent"
         android:layout_height="match_parent"/>
 
+    <android.support.v7.widget.Toolbar
+        android:id="@+id/menu_fragments_activity_toolbal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"/>
+
     <ListView
-        android:id="@+id/left_drawer"
-        android:layout_width="240dp"
+        android:id="@+id/menu_fragments_activity_left_drawer"
+        android:layout_width="@dimen/drawer_width"
         android:layout_height="match_parent"
         android:layout_gravity="start"
         android:choiceMode="singleChoice"
         android:divider="@android:color/transparent"
-        android:dividerHeight="16dp"
+        android:dividerHeight="@dimen/div_height"
         android:background="@color/colorPrimaryDark"/>
 
 </android.support.v4.widget.DrawerLayout>

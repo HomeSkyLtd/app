@@ -8,6 +8,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
@@ -23,31 +24,13 @@ import com.homesky.homesky.state.StateFragment;
 import com.homesky.homesky.user.UserFragment;
 
 /* AppCompatActivity already extends FragmentActivity */
-public class MenuSingleFragmentActivity extends AppCompatActivity {
+public class MenuFragmentsActivity extends AppCompatActivity {
 
     private String[] mModulesTitles;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
 
-    private class DrawerItemClickListener implements AdapterView.OnItemClickListener {
-        @Override
-        public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-            selectItem(i);
-        }
-
-        private void selectItem(int position) {
-            Fragment fragment = createFragment(position);
-            FragmentManager fragmentManager = getSupportFragmentManager();
-            fragmentManager.beginTransaction()
-                    .replace(R.id.menu_activity_fragment_container, fragment)
-                    .commit();
-            mDrawerList.setItemChecked(position, true);
-            setTitle(mModulesTitles[position]);
-            mDrawerLayout.closeDrawer(mDrawerList);
-        }
-    }
-
-
+    //TODO: Is this the best way to retrieve the right fragment?
     public Fragment createFragment(int position) {
         switch (mModulesTitles[position]) {
             case "Controller":
@@ -65,8 +48,27 @@ public class MenuSingleFragmentActivity extends AppCompatActivity {
         }
     }
 
+    private void selectFragment(int position, boolean add) {
+        Fragment fragment = createFragment(position);
+        FragmentManager fragmentManager = getSupportFragmentManager();
+
+        if (add) {
+            fragmentManager.beginTransaction()
+                    .add(R.id.menu_fragments_activity_container, fragment)
+                    .commit();
+        } else {
+            fragmentManager.beginTransaction()
+                    .replace(R.id.menu_fragments_activity_container, fragment)
+                    .commit();
+        }
+
+        mDrawerList.setItemChecked(position, true);
+        setTitle(mModulesTitles[position]);
+        mDrawerLayout.closeDrawer(mDrawerList);
+    }
+
     public static Intent newIntent(Context context) {
-        Intent intent = new Intent(context, MenuSingleFragmentActivity.class);
+        Intent intent = new Intent(context, MenuFragmentsActivity.class);
         return intent;
     }
 
@@ -77,23 +79,20 @@ public class MenuSingleFragmentActivity extends AppCompatActivity {
 
         mModulesTitles = getResources().getStringArray(R.array.modules_titles);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
-        mDrawerList = (ListView) findViewById(R.id.left_drawer);
-        mDrawerList.setAdapter(new ArrayAdapter<String>(
-                this,
-                R.layout.drawer_list_item,
-                mModulesTitles
-        ));
-        mDrawerList.setOnItemClickListener(new DrawerItemClickListener());
+        mDrawerList = (ListView) findViewById(R.id.menu_fragments_activity_left_drawer);
+        mDrawerList.setAdapter(new ArrayAdapter<String>(this, R.layout.drawer_list_item, mModulesTitles));
+        mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
+                selectFragment(i, false);
+            }
+        });
 
-        FragmentManager fm = getSupportFragmentManager();
-        Fragment fragment = fm.findFragmentById(R.id.menu_activity_fragment_container);
+        Fragment fragment = getSupportFragmentManager()
+                .findFragmentById(R.id.menu_fragments_activity_container);
 
         if (fragment == null) {
-            fragment = createFragment(0);
-            fm.beginTransaction()
-                    .add(R.id.menu_activity_fragment_container, fragment)
-                    .commit();
-            setTitle(mModulesTitles[0]);
+            selectFragment(0, true);
         }
     }
 
