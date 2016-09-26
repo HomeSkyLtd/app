@@ -14,6 +14,7 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
@@ -97,6 +98,14 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         mModulesTitles = getResources().getStringArray(R.array.modules_titles);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.menu_fragments_activity_left_drawer);
+
+        ViewGroup footer = (ViewGroup) getLayoutInflater()
+                .inflate(
+                    R.layout.drawer_footer,
+                    mDrawerList, false
+                );
+        mDrawerList.addFooterView(footer, null, false);
+
         mDrawerList.setAdapter(new DrawerLayoutAdapter(this, mModulesTitles));
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
