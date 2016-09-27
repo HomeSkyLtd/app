@@ -70,7 +70,7 @@ public class MenuFragmentsActivity extends AppCompatActivity {
 
         mDrawerList.setItemChecked(position, true);
         setTitle(mModulesTitles[position]);
-        mDrawerLayout.closeDrawer(mDrawerList);
+        mDrawerLayout.closeDrawer(Gravity.START);
     }
 
     public static Intent newIntent(Context context) {
@@ -99,12 +99,18 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.menu_fragments_activity_left_drawer);
 
-        ViewGroup footer = (ViewGroup) getLayoutInflater()
+        /*ViewGroup footer = (ViewGroup) getLayoutInflater()
                 .inflate(
                     R.layout.drawer_footer,
                     mDrawerList, false
                 );
+        ViewGroup header = (ViewGroup) getLayoutInflater()
+                .inflate(
+                        R.layout.drawer_header,
+                        mDrawerList, false
+                );
         mDrawerList.addFooterView(footer, null, false);
+        mDrawerList.addHeaderView(header, null, false);*/
 
         mDrawerList.setAdapter(new DrawerLayoutAdapter(this, mModulesTitles));
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
