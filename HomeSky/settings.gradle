@@ -1,3 +1,3 @@
 include ':app'
-//include ':homecloud-app'
-//project(':homecloud-app').projectDir = new File("./homecloud-app")
+include ':homecloud-app'
+project(':homecloud-app').projectDir = new File("../homecloud-app/homecloud-lib")
