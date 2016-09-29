@@ -36,22 +36,9 @@
             android:choiceMode="singleChoice"
             android:divider="@android:color/transparent"
             android:dividerHeight="@dimen/div_height"
-            android:background="@android:color/darker_gray"
+            android:background="@color/colorPrimary"
             android:layout_weight="1">
         </ListView>
-
-        <LinearLayout
-            android:layout_height="40dp"
-            android:layout_width="match_parent"
-            android:background="@android:color/holo_orange_light"
-            android:orientation="horizontal">
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_alignParentBottom="true"
-                android:text="TOPTOPTOPTOPTOP"
-                android:textColor="#ffffff"/>
-        </LinearLayout>
 
     </LinearLayout>
 

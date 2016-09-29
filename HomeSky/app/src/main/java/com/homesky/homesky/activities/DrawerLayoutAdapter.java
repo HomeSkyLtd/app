@@ -40,6 +40,7 @@ class DrawerLayoutAdapter extends BaseAdapter {
         mapToIcon.put("User", R.drawable.ic_person_white_24dp);
         mapToIcon.put("Controller", R.drawable.ic_router_white_24dp);
         mapToIcon.put("Notification", R.drawable.ic_message_white_24dp);
+        mapToIcon.put("Settings", R.drawable.ic_settings_white_24dp);
     }
 
     @Override

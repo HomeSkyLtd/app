@@ -9,7 +9,10 @@
         <item>User</item>
         <item>Controller</item>
         <item>Notification</item>
+        <item>Settings</item>
     </string-array>
+
+    <string name="menu_drawer_settings">Settings</string>
 
     <!-- Login fragment -->
     <string name="login_fragment_title" translatable="false">Login</string>
@@ -30,4 +33,7 @@
 
     <!-- User fragment -->
     <string name="user_fragment_title">Users</string>
+
+    <!-- Settings fragment -->
+    <string name="settings_fragment_title">Settings</string>
 </resources>

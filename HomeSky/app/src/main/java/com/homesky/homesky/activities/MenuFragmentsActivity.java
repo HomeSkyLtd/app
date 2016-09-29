@@ -17,6 +17,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
 import android.widget.ListView;
 import android.widget.Toast;
 
@@ -24,6 +25,7 @@ import com.homesky.homesky.R;
 import com.homesky.homesky.controller.ControllerFragment;
 import com.homesky.homesky.notification.NotificationFragment;
 import com.homesky.homesky.rule.RuleFragment;
+import com.homesky.homesky.settings.SettingsFragment;
 import com.homesky.homesky.state.StateFragment;
 import com.homesky.homesky.user.UserFragment;
 
@@ -47,6 +49,8 @@ public class MenuFragmentsActivity extends AppCompatActivity {
                 return new StateFragment();
             case "User":
                 return new UserFragment();
+            case "Settings":
+                return new SettingsFragment();
             default:
                 return new StateFragment();
         }
@@ -81,7 +85,7 @@ public class MenuFragmentsActivity extends AppCompatActivity {
     private void initToolbar() {
         Toolbar toolbar = (Toolbar) findViewById(R.id.menu_fragments_activity_toolbar);
         setSupportActionBar(toolbar);
-        toolbar.setNavigationIcon(R.drawable.ic_menu_black_36dp);
+        toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
         toolbar.setNavigationOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -98,19 +102,6 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         mModulesTitles = getResources().getStringArray(R.array.modules_titles);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.menu_fragments_activity_left_drawer);
-
-        /*ViewGroup footer = (ViewGroup) getLayoutInflater()
-                .inflate(
-                    R.layout.drawer_footer,
-                    mDrawerList, false
-                );
-        ViewGroup header = (ViewGroup) getLayoutInflater()
-                .inflate(
-                        R.layout.drawer_header,
-                        mDrawerList, false
-                );
-        mDrawerList.addFooterView(footer, null, false);
-        mDrawerList.addHeaderView(header, null, false);*/
 
         mDrawerList.setAdapter(new DrawerLayoutAdapter(this, mModulesTitles));
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
