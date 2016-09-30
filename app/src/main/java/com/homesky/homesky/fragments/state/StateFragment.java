@@ -59,10 +59,13 @@ public class StateFragment extends Fragment implements RequestCallback {
 
     @Override
     public void onPostRequest(SimpleResponse s) {
-        if (s == null)
-            Log.i(TAG, "Null response");
-        else
+        if (s == null) {
+            Toast.makeText(
+                    getActivity(),
+                    getResources().getText(R.string.login_fragment_server_offline),
+                    Toast.LENGTH_LONG).show();
+        } else {
             Log.i(TAG, s.toString());
-        //updateUI();
+        }
     }
 }
