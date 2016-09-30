@@ -8,15 +8,23 @@ class Node {
     private String mName;
     private int mId;
 
-    public Node(String nodeName) {
-        mName = nodeName;
-    }
+    public Node() {}
 
     public String getNodeName() {
         return mName;
     }
 
-    public void setNodeName(String nodeName) {
+    public Node setNodeName(String nodeName) {
         mName = nodeName;
+        return this;
+    }
+
+    public int getId() {
+        return mId;
+    }
+
+    public Node setId(int id) {
+        mId = id;
+        return this;
     }
 }

@@ -2,6 +2,7 @@ package com.homesky.homesky.request;
 
 import android.os.AsyncTask;
 
+import com.homesky.homecloud_lib.exceptions.NetworkException;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.command.Command;
 
@@ -19,7 +20,12 @@ public class AsyncRequest extends AsyncTask<Command, Void, SimpleResponse> {
 
     @Override
     protected SimpleResponse doInBackground(Command... params) {
-        return params[0].execute();
+        try {
+            return params[0].execute();
+        } catch (NetworkException e) {
+            e.printStackTrace();
+            return null;
+        }
     }
 
     @Override
