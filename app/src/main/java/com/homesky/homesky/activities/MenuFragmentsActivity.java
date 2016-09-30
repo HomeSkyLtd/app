@@ -14,19 +14,15 @@ import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.ViewGroup;
 import android.widget.AdapterView;
-import android.widget.ArrayAdapter;
-import android.widget.Button;
 import android.widget.ListView;
-import android.widget.Toast;
 
 import com.homesky.homesky.R;
-import com.homesky.homesky.controller.ControllerFragment;
-import com.homesky.homesky.notification.NotificationFragment;
-import com.homesky.homesky.rule.RuleFragment;
-import com.homesky.homesky.settings.SettingsFragment;
-import com.homesky.homesky.state.StateFragment;
+import com.homesky.homesky.fragments.controller.ControllerFragment;
+import com.homesky.homesky.fragments.notification.NotificationFragment;
+import com.homesky.homesky.fragments.rule.RuleFragment;
+import com.homesky.homesky.fragments.settings.SettingsFragment;
+import com.homesky.homesky.fragments.state.StateFragment;
 import com.homesky.homesky.user.UserFragment;
 
 /* AppCompatActivity already extends FragmentActivity */
@@ -45,7 +41,7 @@ public class MenuFragmentsActivity extends AppCompatActivity {
                 return new NotificationFragment();
             case "Rules":
                 return new RuleFragment();
-            case "State":
+            case "Node":
                 return new StateFragment();
             case "User":
                 return new UserFragment();
@@ -103,7 +99,7 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.menu_fragments_activity_left_drawer);
 
-        mDrawerList.setAdapter(new DrawerLayoutAdapter(this, mModulesTitles));
+        mDrawerList.setAdapter(new DrawerLayoutAdapter(getLayoutInflater(), mModulesTitles));
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {

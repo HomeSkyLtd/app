@@ -1,4 +1,4 @@
-package com.homesky.homesky.state;
+package com.homesky.homesky.fragments.state;
 
 import android.content.Context;
 import android.support.v7.widget.RecyclerView;
@@ -17,11 +17,11 @@ import java.util.List;
 class StateAdapter extends RecyclerView.Adapter<StateHolder> {
 
     private Context mContext;
-    private List<State> mStates;
+    private List<Node> mNodes;
 
-    StateAdapter(Context context, List<State> states) {
+    StateAdapter(Context context, List<Node> nodes) {
         mContext = context;
-        mStates = states;
+        mNodes = nodes;
     }
 
     @Override
@@ -34,12 +34,12 @@ class StateAdapter extends RecyclerView.Adapter<StateHolder> {
 
     @Override
     public void onBindViewHolder(StateHolder holder, int position) {
-        State state = mStates.get(position);
-        holder.bind(state);
+        Node mNode = mNodes.get(position);
+        holder.bind(mNode);
     }
 
     @Override
     public int getItemCount() {
-        return mStates.size();
+        return mNodes.size();
     }
 }

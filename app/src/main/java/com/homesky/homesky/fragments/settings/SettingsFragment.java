@@ -1,4 +1,4 @@
-package com.homesky.homesky.rule;
+package com.homesky.homesky.fragments.settings;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -10,15 +10,16 @@ import android.view.ViewGroup;
 import com.homesky.homesky.R;
 
 /**
- * Created by henrique on 9/22/16.
+ * Created by henrique on 9/27/16.
  */
-public class RuleFragment extends Fragment {
-    public RuleFragment() {}
+
+public class SettingsFragment extends Fragment {
+    public SettingsFragment() {}
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.fragment_rule, container, false);
+        View view = inflater.inflate(R.layout.fragment_settings, container, false);
         return view;
     }
 }

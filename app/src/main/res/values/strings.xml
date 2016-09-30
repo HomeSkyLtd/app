@@ -18,8 +18,11 @@
     <string name="login_fragment_title" translatable="false">Login</string>
     <string name="login_activity_passwd_hint">Password</string>
     <string name="login_activity_signin_button">Sign in</string>
+    <string name="login_fragment_empty_login">Please, type your Login</string>
+    <string name="login_fragment_empty_passwd">Please, type your Password</string>
+    <string name="login_fragment_server_offline">Server is offline…</string>
 
-    <!-- State fragment -->
+    <!-- Node fragment -->
     <string name="state_fragment_title">State</string>
 
     <!-- Rule fragment -->

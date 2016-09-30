@@ -8,4 +8,8 @@
     <string name="user_fragment_title">Usuários</string>
     <string name="login_activity_signin_button">Cadastrar</string>
     <string name="login_activity_passwd_hint">Senha</string>
+    <string name="login_fragment_empty_login">Por favor, digite seu login</string>
+    <string name="menu_drawer_settings">Configurações</string>
+    <string name="settings_fragment_title">Configurações</string>
+    <string name="login_fragment_empty_passwd">Por favor, digite sua senha</string>
 </resources>

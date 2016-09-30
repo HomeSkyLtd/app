@@ -1,4 +1,4 @@
-package com.homesky.homesky.notification;
+package com.homesky.homesky.fragments.notification;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;

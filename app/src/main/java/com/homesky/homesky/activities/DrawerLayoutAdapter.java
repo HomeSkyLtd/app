@@ -2,6 +2,7 @@ package com.homesky.homesky.activities;
 
 import android.content.Context;
 import android.graphics.drawable.Drawable;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,12 +27,14 @@ import java.util.Map;
  */
 class DrawerLayoutAdapter extends BaseAdapter {
 
-    private static LayoutInflater sInflater = null;
+    private static final String TAG = "DrawerLayoutAdapter";
+
+    private LayoutInflater mInflater = null;
     private String[] mModules;
     final private Map<String, Integer> mapToIcon;
 
-    DrawerLayoutAdapter(Context context, String[] modules) {
-        sInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    DrawerLayoutAdapter(LayoutInflater inflater, String[] modules) {
+        mInflater = inflater;
         mModules = modules;
 
         mapToIcon = new HashMap<>();
@@ -63,7 +66,7 @@ class DrawerLayoutAdapter extends BaseAdapter {
     @Override
     public View getView(int i, View view, ViewGroup viewGroup) {
         if (view == null)
-            view = sInflater.inflate(R.layout.drawer_list_item, null);
+            view = mInflater.inflate(R.layout.drawer_list_item, null);
 
         ImageView image = (ImageView) view.findViewById(R.id.drawer_list_icon);
         image.setImageResource(mapToIcon.get(mModules[i]));
