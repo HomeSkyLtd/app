@@ -103,8 +103,16 @@ public class LoginFragment extends Fragment implements RequestCallback {
                     Toast.LENGTH_LONG).show();
             mEditTextPassword.setEnabled(true);
             mEditTextLogin.setEnabled(true);
-        } else {
+        } else if (s.getStatus() == 200){
             startActivity(MenuFragmentsActivity.newIntent(getActivity()));
+        }
+        else {
+            Toast.makeText(
+                    getActivity(),
+                    getResources().getText(R.string.login_fragment_error)  + " " + s.getErrorMessage(),
+                    Toast.LENGTH_LONG).show();
+            mEditTextPassword.setEnabled(true);
+            mEditTextLogin.setEnabled(true);
         }
     }
 }

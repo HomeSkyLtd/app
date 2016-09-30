@@ -21,6 +21,7 @@
     <string name="login_fragment_empty_login">Please, type your Login</string>
     <string name="login_fragment_empty_passwd">Please, type your Password</string>
     <string name="login_fragment_server_offline">Server is offline…</string>
+    <string name="login_fragment_error">Login error: </string>
 
     <!-- Node fragment -->
     <string name="state_fragment_title">State</string>
