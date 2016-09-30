@@ -12,4 +12,5 @@
     <string name="menu_drawer_settings">Configurações</string>
     <string name="settings_fragment_title">Configurações</string>
     <string name="login_fragment_empty_passwd">Por favor, digite sua senha</string>
+    <string name="login_fragment_server_offline">O servidor está fora do ar...</string>
 </resources>

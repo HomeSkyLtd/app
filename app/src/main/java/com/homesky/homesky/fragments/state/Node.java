@@ -5,17 +5,18 @@ package com.homesky.homesky.fragments.state;
  */
 
 class Node {
-    private String mNodeName;
+    private String mName;
+    private int mId;
 
     public Node(String nodeName) {
-        mNodeName = nodeName;
+        mName = nodeName;
     }
 
     public String getNodeName() {
-        return mNodeName;
+        return mName;
     }
 
     public void setNodeName(String nodeName) {
-        mNodeName = nodeName;
+        mName = nodeName;
     }
 }

@@ -24,6 +24,7 @@ import com.homesky.homesky.user.UserActivity;
 public class LoginFragment extends Fragment implements RequestCallback {
 
     private static final String TAG = "LoginFragment";
+    private static final String URL = "http://192.168.1.111:3000";
 
     private Button mLoginButton;
     private Button mSigninButton;
@@ -45,7 +46,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
             }
         });
 
-        HomecloudHolder.setUrl("http://192.168.1.111:3000");
+        HomecloudHolder.setUrl(URL);
 
         mEditTextLogin = (EditText) view.findViewById(R.id.login_fragment_edit_login);
         mEditTextPassword = (EditText) view.findViewById(R.id.login_fragment_edit_passwd);
@@ -76,7 +77,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
                 mEditTextPassword.setEnabled(false);
                 mEditTextLogin.setEnabled(false);
 
-                Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_LONG).show();
+                Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
 
                 new AsyncRequest(LoginFragment.this).execute(new LoginCommand());
             }
@@ -103,7 +104,6 @@ public class LoginFragment extends Fragment implements RequestCallback {
             mEditTextPassword.setEnabled(true);
             mEditTextLogin.setEnabled(true);
         } else {
-            Log.d(TAG, s.toString());
             startActivity(MenuFragmentsActivity.newIntent(getActivity()));
         }
     }
