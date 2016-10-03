@@ -22,7 +22,7 @@ import com.homesky.homesky.user.UserActivity;
 public class LoginFragment extends Fragment implements RequestCallback {
 
     private static final String TAG = "LoginFragment";
-    private static final String URL = "http://192.168.1.111:3000";
+    private static final String URL = "http://192.168.1.116:3000";
 
     private Button mLoginButton;
     private Button mSigninButton;
@@ -37,6 +37,13 @@ public class LoginFragment extends Fragment implements RequestCallback {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
 
         HomecloudHolder.setUrl(URL);
+
+        view.findViewById(R.id.login_fragment_title).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                startActivity(MenuFragmentsActivity.newIntent(getActivity()));
+            }
+        });
 
         mEditTextLogin = (EditText) view.findViewById(R.id.login_fragment_edit_login);
         mEditTextPassword = (EditText) view.findViewById(R.id.login_fragment_edit_passwd);

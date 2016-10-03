@@ -2,14 +2,18 @@ package com.homesky.homesky.activities;
 
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.SparseIntArray;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,31 +29,20 @@ import com.homesky.homesky.fragments.settings.SettingsFragment;
 import com.homesky.homesky.fragments.state.StateFragment;
 import com.homesky.homesky.user.UserFragment;
 
+import java.util.HashMap;
+import java.util.Map;
+
 /* AppCompatActivity already extends FragmentActivity */
 public class MenuFragmentsActivity extends AppCompatActivity {
 
     private String[] mModulesTitles;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
+    private Map<String, Fragment> mFragments;
 
-    //TODO: Is this the best way to retrieve the right fragment?
     private Fragment createFragment(int position) {
-        switch (mModulesTitles[position]) {
-            case "Controller":
-                return new ControllerFragment();
-            case "Notification":
-                return new NotificationFragment();
-            case "Rules":
-                return new RuleFragment();
-            case "Node":
-                return new StateFragment();
-            case "User":
-                return new UserFragment();
-            case "Settings":
-                return new SettingsFragment();
-            default:
-                return new StateFragment();
-        }
+        String f = mModulesTitles[position];
+        return mFragments.get(f);
     }
 
     private void selectFragment(int position) {
@@ -70,7 +63,7 @@ public class MenuFragmentsActivity extends AppCompatActivity {
 
         mDrawerList.setItemChecked(position, true);
         setTitle(mModulesTitles[position]);
-        mDrawerLayout.closeDrawer(Gravity.START);
+        mDrawerLayout.closeDrawer(Gravity.LEFT);
     }
 
     public static Intent newIntent(Context context) {
@@ -90,10 +83,23 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         });
     }
 
+    private void initFragments() {
+        mFragments = new HashMap<>();
+
+        mFragments.put("State",         new StateFragment());
+        mFragments.put("Rules",         new RuleFragment());
+        mFragments.put("User",          new UserFragment());
+        mFragments.put("Controller",    new ControllerFragment());
+        mFragments.put("Notification",  new NotificationFragment());
+        mFragments.put("Settings",      new SettingsFragment());
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.menu_activity_fragment);
+
+        initFragments();
 
         mModulesTitles = getResources().getStringArray(R.array.modules_titles);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);

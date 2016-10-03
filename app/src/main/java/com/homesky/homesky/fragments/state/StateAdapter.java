@@ -6,6 +6,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 
 import java.util.List;
@@ -17,9 +18,9 @@ import java.util.List;
 class StateAdapter extends RecyclerView.Adapter<StateHolder> {
 
     private Context mContext;
-    private List<Node> mNodes;
+    private List<StateResponse.NodeState> mNodes;
 
-    StateAdapter(Context context, List<Node> nodes) {
+    StateAdapter(Context context, List<StateResponse.NodeState> nodes) {
         mContext = context;
         mNodes = nodes;
     }
@@ -34,7 +35,7 @@ class StateAdapter extends RecyclerView.Adapter<StateHolder> {
 
     @Override
     public void onBindViewHolder(StateHolder holder, int position) {
-        Node mNode = mNodes.get(position);
+        StateResponse.NodeState mNode = mNodes.get(position);
         holder.bind(mNode);
     }
 
@@ -43,7 +44,7 @@ class StateAdapter extends RecyclerView.Adapter<StateHolder> {
         return mNodes.size();
     }
 
-    public void add(Node node) {
+    public void add(StateResponse.NodeState node) {
         mNodes.add(node);
     }
 }
