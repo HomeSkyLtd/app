@@ -41,7 +41,7 @@ public class StateFragment extends Fragment implements RequestCallback {
         mListOfNodes = (RecyclerView) view.findViewById(R.id.state_fragment_list_nodes);
         mListOfNodes.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        new AsyncRequest(this).execute(new GetHouseStateCommand());
+        //new AsyncRequest(this).execute(new GetHouseStateCommand());
 
         updateUI(new LinkedList<Node>());
 

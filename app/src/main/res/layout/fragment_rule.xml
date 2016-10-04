@@ -18,8 +18,6 @@
         android:layout_gravity="bottom|right"
         android:layout_margin="16dp"
         android:src="@drawable/ic_plus_white_24dp"
-        app:layout_anchor="@id/fragment_rule_recycler_view"
-        app:layout_anchorGravity="bottom|right|end"
         android:background="?attr/selectableItemBackground"
         android:id="@+id/fragment_rule_fab"/>
 

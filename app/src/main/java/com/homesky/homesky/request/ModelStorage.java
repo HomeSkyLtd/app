@@ -1,5 +1,7 @@
 package com.homesky.homesky.request;
 
+import android.util.Log;
+
 import com.homesky.homecloud_lib.model.Rule;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.RuleResponse;
@@ -12,6 +14,8 @@ import com.homesky.homesky.command.GetRulesCommand;
 import java.util.List;
 
 public class ModelStorage implements RequestCallback{
+    private static String TAG = "ModelStorage";
+
     private static ModelStorage instance = null;
 
     private List<NodesResponse.Node> mNodes = null;
@@ -65,6 +69,7 @@ public class ModelStorage implements RequestCallback{
         }
         else if(s instanceof RuleResponse){
             mRules = ((RuleResponse) s).getRules();
+            Log.d(TAG, "Received " + mRules.size() + " rules");
         }
     }
 }
