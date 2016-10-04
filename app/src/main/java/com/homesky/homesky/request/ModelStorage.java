@@ -11,17 +11,17 @@ import com.homesky.homesky.command.GetRulesCommand;
 import java.util.List;
 
 public class ModelStorage {
-    private ModelStorage mInstance = null;
+    private static ModelStorage instance = null;
 
     private List<NodesResponse.Node> mNodes = null;
     private List<StateResponse.NodeState> mNodeStates = null;
     private List<Rule> mRules = null;
 
-    public ModelStorage getInstance(){
-        if(mInstance == null){
-            mInstance = new ModelStorage();
+    public static ModelStorage getInstance(){
+        if(instance == null){
+            instance = new ModelStorage();
         }
-        return mInstance;
+        return instance;
     }
 
     public List<NodesResponse.Node> getNodes(RequestCallback source){
