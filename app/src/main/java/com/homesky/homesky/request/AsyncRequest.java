@@ -15,6 +15,10 @@ public class AsyncRequest extends AsyncTask<Command, Void, SimpleResponse> {
 
     RequestCallback[] mCallback = new RequestCallback[2];
 
+    public AsyncRequest(RequestCallback callback) {
+        mCallback[0] = callback;
+    }
+
     public AsyncRequest(RequestCallback modelStorageCallback, RequestCallback fragmentCallback) {
         mCallback[0] = modelStorageCallback;
         mCallback[1] = fragmentCallback;

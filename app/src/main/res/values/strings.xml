@@ -30,6 +30,9 @@
 
     <!-- Rule fragment -->
     <string name="rule_fragment_title">Rules</string>
+    <string name="rule_item_node_id">Node id:</string>
+    <string name="rule_item_node_name">Name:</string>
+    <string name="rule_item_node_room">Room:</string>
 
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Controller</string>

@@ -86,7 +86,7 @@ public class StateFragment extends Fragment {
                         getResources().getText(R.string.login_fragment_server_already_logged),
                         Toast.LENGTH_LONG).show();
             } else {
-                int position = ModelStorage.getInstance().getNodes(null, false).size();
+                int position = mStateAdapter.getItemCount();
 
                 mStateAdapter.setNodes(ModelStorage.getInstance().getNodes(null, false));
                 mStateAdapter.notifyItemRangeChanged(position, mStateAdapter.getItemCount() - position);
