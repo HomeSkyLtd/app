@@ -7,5 +7,6 @@ import com.homesky.homecloud_lib.model.response.SimpleResponse;
  */
 
 public interface RequestCallback {
-    public void onPostRequest(SimpleResponse s);
+    void onPostRequest(SimpleResponse s);
 }
+

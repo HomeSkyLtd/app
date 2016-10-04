@@ -29,7 +29,7 @@ class StateAdapter extends RecyclerView.Adapter<StateHolder> {
         LayoutInflater layoutInflater = LayoutInflater.from(mContext);
         View view = layoutInflater.inflate(R.layout.list_item_state, parent, false);
 
-        return new StateHolder(view);
+        return new StateHolder(view, mContext);
     }
 
     @Override
@@ -41,5 +41,9 @@ class StateAdapter extends RecyclerView.Adapter<StateHolder> {
     @Override
     public int getItemCount() {
         return mNodes.size();
+    }
+
+    public void add(Node node) {
+        mNodes.add(node);
     }
 }

@@ -3,7 +3,6 @@ package com.homesky.homesky.login;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -11,7 +10,6 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import com.homesky.homecloud_lib.Homecloud;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.activities.MenuFragmentsActivity;
@@ -37,14 +35,6 @@ public class LoginFragment extends Fragment implements RequestCallback {
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
-
-        //TODO: remove this 'button', it's only for tests
-        view.findViewById(R.id.login_fragment_title).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                startActivity(MenuFragmentsActivity.newIntent(getActivity()));
-            }
-        });
 
         HomecloudHolder.setUrl(URL);
 
@@ -74,8 +64,8 @@ public class LoginFragment extends Fragment implements RequestCallback {
 
                 HomecloudHolder.getInstance().setUsername(login);
                 HomecloudHolder.getInstance().setPassword(passwd);
-                mEditTextPassword.setEnabled(false);
-                mEditTextLogin.setEnabled(false);
+                mLoginButton.setEnabled(false);
+                mSigninButton.setEnabled(false);
 
                 Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
 
@@ -96,6 +86,10 @@ public class LoginFragment extends Fragment implements RequestCallback {
 
     @Override
     public void onPostRequest(SimpleResponse s) {
+
+        mLoginButton.setEnabled(true);
+        mSigninButton.setEnabled(true);
+
         if (s == null) {
             Toast.makeText(
                     getActivity(),
@@ -105,8 +99,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
             mEditTextLogin.setEnabled(true);
         } else if (s.getStatus() == 200){
             startActivity(MenuFragmentsActivity.newIntent(getActivity()));
-        }
-        else {
+        } else {
             Toast.makeText(
                     getActivity(),
                     getResources().getText(R.string.login_fragment_error)  + " " + s.getErrorMessage(),

@@ -12,6 +12,7 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
+import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.GetHouseStateCommand;
 import com.homesky.homesky.request.AsyncRequest;
@@ -40,20 +41,15 @@ public class StateFragment extends Fragment implements RequestCallback {
         mListOfNodes = (RecyclerView) view.findViewById(R.id.state_fragment_list_nodes);
         mListOfNodes.setLayoutManager(new LinearLayoutManager(getActivity()));
 
-        updateUI();
         new AsyncRequest(this).execute(new GetHouseStateCommand());
+
+        updateUI(new LinkedList<Node>());
 
         return view;
     }
 
-    private void updateUI() {
-        List<Node> mNodes = new LinkedList<>();
-
-        /** TEST: DELETE **/
-        for (int i = 0; i < 50; i++)
-            mNodes.add(new Node(String.valueOf(i)));
-
-        mStateAdapter = new StateAdapter(getActivity(), mNodes);
+    private void updateUI(List<Node> nodes) {
+        mStateAdapter = new StateAdapter(getActivity(), nodes);
         mListOfNodes.setAdapter(mStateAdapter);
     }
 
@@ -65,7 +61,13 @@ public class StateFragment extends Fragment implements RequestCallback {
                     getResources().getText(R.string.login_fragment_server_offline),
                     Toast.LENGTH_LONG).show();
         } else {
-            Log.i(TAG, s.toString());
+            StateResponse sr = (StateResponse) s;
+
+            int position = mStateAdapter.getItemCount();
+            for (StateResponse.NodeState state : sr.getState())
+                mStateAdapter.add(new Node().setId(state.getNodeId()));
+
+            mStateAdapter.notifyItemRangeChanged(position, mStateAdapter.getItemCount() - position);
         }
     }
 }
