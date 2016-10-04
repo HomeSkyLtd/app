@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
+import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -22,6 +23,7 @@ import com.homesky.homesky.command.GetHouseStateCommand;
 import com.homesky.homesky.command.GetNodesInfoCommand;
 import com.homesky.homesky.fragments.node.NodeActivity;
 import com.homesky.homesky.request.AsyncRequest;
+import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homecloud_lib.model.response.StateResponse.NodeState;
 
@@ -39,8 +41,6 @@ public class StateFragment extends Fragment {
 
     private RecyclerView mListOfNodes;
     private StateAdapter mStateAdapter;
-    List<NodeState> mNodeStates;
-    List<NodesResponse.Node> mNodes;
 
     public StateFragment() {}
 
@@ -51,20 +51,15 @@ public class StateFragment extends Fragment {
 
         mListOfNodes = (RecyclerView) view.findViewById(R.id.state_fragment_list_nodes);
         mListOfNodes.setLayoutManager(new LinearLayoutManager(getActivity()));
+        ModelStorage.getInstance().getNodeStates(new GetHouseStateRequest(), false);
 
-        new AsyncRequest(new GetHouseStateRequest()).execute(new GetHouseStateCommand());
-        new AsyncRequest(new GetNodesInfoRequest()).execute(new GetNodesInfoCommand());
-
-        mNodeStates = new LinkedList<>();
-        mNodes = new LinkedList<>();
-
-        updateUI(mNodes);
+        updateUI();
 
         return view;
     }
 
-    private void updateUI(List<NodesResponse.Node> nodes) {
-        mStateAdapter = new StateAdapter(nodes);
+    private void updateUI() {
+        mStateAdapter = new StateAdapter();
         mListOfNodes.setAdapter(mStateAdapter);
     }
 
@@ -77,12 +72,7 @@ public class StateFragment extends Fragment {
                         getResources().getText(R.string.login_fragment_server_already_logged),
                         Toast.LENGTH_LONG).show();
             } else {
-                StateResponse sr = (StateResponse) s;
-
-                for (NodeState state : sr.getState()) {
-                    mNodeStates.add(state);
-                }
-                //TODO: call getNodeIdToValue(true)
+                ModelStorage.getInstance().getNodeIdToValue(true);
             }
         }
     }
@@ -96,19 +86,12 @@ public class StateFragment extends Fragment {
                         getResources().getText(R.string.login_fragment_server_already_logged),
                         Toast.LENGTH_LONG).show();
             } else {
-                NodesResponse nr = (NodesResponse) s;
+                int position = ModelStorage.getInstance().getNodes(null, false).size();
 
-                int position = mNodes.size();
-                for (NodesResponse.Node node : nr.getNodes()) {
-                    mNodes.add(node);
-                }
-
-                mStateAdapter.setNodes(mNodes);
+                mStateAdapter.setNodes(ModelStorage.getInstance().getNodes(null, false));
                 mStateAdapter.notifyItemRangeChanged(position, mStateAdapter.getItemCount() - position);
 
-                if (mNodeIdToValue.isEmpty() && mNodeStates != null) {
-                    new BuildMap().start();
-                }
+                ModelStorage.getInstance().getNodeIdToValue(true);
             }
         }
     }
@@ -132,8 +115,10 @@ public class StateFragment extends Fragment {
 
         private List<NodesResponse.Node> mNodes;
 
-        StateAdapter(List<NodesResponse.Node> nodes) {
-            mNodes = nodes;
+        StateAdapter() {
+            mNodes = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest(), false);
+            if (mNodes == null)
+                mNodes = new LinkedList<>();
         }
 
         @Override
@@ -182,7 +167,6 @@ public class StateFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            Log.d(TAG, "onClick: " + mNodeIdToValue.toString());
             startActivity(NodeActivity.newIntent(getActivity(), mNodeId, mControllerId));
         }
     }

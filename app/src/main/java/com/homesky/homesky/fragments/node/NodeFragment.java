@@ -16,6 +16,7 @@ import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.fragments.state.StateFragment;
+import com.homesky.homesky.request.ModelStorage;
 
 import java.math.BigDecimal;
 import java.util.HashMap;
@@ -34,7 +35,6 @@ public class NodeFragment extends Fragment {
     private NodesResponse.Node mNode;
     private StateResponse.NodeState mNodeState;
     private RecyclerView mRecyclerView;
-    private HashMap<NodesResponse.Node, StateResponse.NodeState> mNodeToValue;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -42,19 +42,14 @@ public class NodeFragment extends Fragment {
 
         int nodeId = getActivity().getIntent().getIntExtra(NodeActivity.EXTRA_NODE_ID, 0);
         String controllerId = getActivity().getIntent().getStringExtra(NodeActivity.EXTRA_CONTROLLER_ID);
-        mNodeToValue = StateFragment.getNodeIdToValue();
 
-        for (NodesResponse.Node node : mNodeToValue.keySet()) {
+        for (NodesResponse.Node node : ModelStorage.getInstance().getNodeIdToValue(false).keySet()) {
             if (node.getNodeId() == nodeId && node.getControllerId().equals(controllerId)) {
                 mNode = node;
                 break;
             }
         }
-        mNodeState = mNodeToValue.get(mNode);
-
-        Log.d(TAG, "mNode: " + (mNode == null));
-        Log.d(TAG, "mNodeState: " + (mNodeState == null));
-        Log.d(TAG, "mNodeToValue: " + mNodeToValue.toString());
+        mNodeState = ModelStorage.getInstance().getNodeIdToValue(false).get(mNode);
     }
 
     @Nullable

@@ -10,17 +10,14 @@ import com.homesky.homesky.command.Command;
 
 import java.util.Formatter;
 
-/**
- * Created by henrique on 9/30/16.
- */
-
 public class AsyncRequest extends AsyncTask<Command, Void, SimpleResponse> {
     private static final String TAG = "AsyncTask";
 
-    RequestCallback mCallback;
+    RequestCallback[] mCallback = new RequestCallback[2];
 
-    public AsyncRequest(RequestCallback callback) {
-        mCallback = callback;
+    public AsyncRequest(RequestCallback modelStorageCallback, RequestCallback fragmentCallback) {
+        mCallback[0] = modelStorageCallback;
+        mCallback[1] = fragmentCallback;
     }
 
     @Override
@@ -44,7 +41,9 @@ public class AsyncRequest extends AsyncTask<Command, Void, SimpleResponse> {
     protected void onPostExecute(SimpleResponse simpleResponse) {
         super.onPostExecute(simpleResponse);
 
-        if (mCallback != null)
-            mCallback.onPostRequest(simpleResponse);
+        for(RequestCallback cb : mCallback) {
+            if (cb != null)
+                cb.onPostRequest(simpleResponse);
+        }
     }
 }

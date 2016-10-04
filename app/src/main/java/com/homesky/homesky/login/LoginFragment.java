@@ -43,7 +43,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
             public void onClick(View v) {
                 HomecloudHolder.getInstance().setUsername("admin1");
                 HomecloudHolder.getInstance().setPassword("mypass");
-                new AsyncRequest(LoginFragment.this).execute(new LoginCommand());
+                new AsyncRequest(null, LoginFragment.this).execute(new LoginCommand());
             }
         });
 
@@ -71,14 +71,14 @@ public class LoginFragment extends Fragment implements RequestCallback {
                     return;
                 }
 
+                Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
+
                 HomecloudHolder.getInstance().setUsername(login);
                 HomecloudHolder.getInstance().setPassword(passwd);
                 mLoginButton.setEnabled(false);
                 mSigninButton.setEnabled(false);
 
-                Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
-
-                new AsyncRequest(LoginFragment.this).execute(new LoginCommand());
+                new AsyncRequest(null, LoginFragment.this).execute(new LoginCommand());
             }
         });
 
