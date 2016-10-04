@@ -10,7 +10,7 @@ import com.homesky.homesky.command.GetRulesCommand;
 
 import java.util.List;
 
-public class ModelStorage implements RequestCallback {
+public class ModelStorage {
     private ModelStorage mInstance = null;
 
     private List<NodesResponse.Node> mNodes = null;
@@ -53,5 +53,5 @@ public class ModelStorage implements RequestCallback {
             return null;
         }
     }
-    
+
 }
