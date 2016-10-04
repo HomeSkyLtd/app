@@ -42,12 +42,6 @@ public class StateFragment extends Fragment {
     List<NodeState> mNodeStates;
     List<NodesResponse.Node> mNodes;
 
-    static final HashMap<NodesResponse.Node, NodeState> mNodeIdToValue = new HashMap<>();
-
-    public static HashMap<NodesResponse.Node, NodeState> getNodeIdToValue() {
-        return mNodeIdToValue;
-    }
-
     public StateFragment() {}
 
     @Nullable
@@ -69,20 +63,6 @@ public class StateFragment extends Fragment {
         return view;
     }
 
-    class BuildMap extends Thread {
-        public void run() {
-            for (NodesResponse.Node n : mNodes) {
-                for (NodeState ns : mNodeStates) {
-                    if (ns.getNodeId() == n.getNodeId() && ns.getControllerId().equals(n.getControllerId())) {
-                        mNodeIdToValue.put(n, ns);
-                        break;
-                    }
-                }
-            }
-            Log.d(TAG, "run: Finished!");
-        }
-    }
-
     private void updateUI(List<NodesResponse.Node> nodes) {
         mStateAdapter = new StateAdapter(nodes);
         mListOfNodes.setAdapter(mStateAdapter);
@@ -102,12 +82,7 @@ public class StateFragment extends Fragment {
                 for (NodeState state : sr.getState()) {
                     mNodeStates.add(state);
                 }
-
-                synchronized (mNodeIdToValue) {
-                    if (mNodeIdToValue.isEmpty() && mNodes != null) {
-                        new BuildMap().start();
-                    }
-                }
+                //TODO: call getNodeIdToValue(true)
             }
         }
     }
@@ -131,10 +106,8 @@ public class StateFragment extends Fragment {
                 mStateAdapter.setNodes(mNodes);
                 mStateAdapter.notifyItemRangeChanged(position, mStateAdapter.getItemCount() - position);
 
-                synchronized (mNodeIdToValue) {
-                    if (mNodeIdToValue.isEmpty() && mNodeStates != null) {
-                        new BuildMap().start();
-                    }
+                if (mNodeIdToValue.isEmpty() && mNodeStates != null) {
+                    new BuildMap().start();
                 }
             }
         }

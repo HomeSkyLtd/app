@@ -8,7 +8,9 @@ import com.homesky.homesky.command.GetHouseStateCommand;
 import com.homesky.homesky.command.GetNodesInfoCommand;
 import com.homesky.homesky.command.GetRulesCommand;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class ModelStorage {
     private ModelStorage mInstance = null;
@@ -16,6 +18,7 @@ public class ModelStorage {
     private List<NodesResponse.Node> mNodes = null;
     private List<StateResponse.NodeState> mNodeStates = null;
     private List<Rule> mRules = null;
+    private Map<NodesResponse.Node, StateResponse.NodeState> mNodeIdToValue;
 
     public ModelStorage getInstance(){
         if(mInstance == null){
@@ -52,6 +55,21 @@ public class ModelStorage {
             new AsyncRequest(source).execute(new GetRulesCommand());
             return null;
         }
+    }
+
+    public Map<NodesResponse.Node, StateResponse.NodeState> getNodeIdToValue(boolean update) {
+        if (update) {
+            for (NodesResponse.Node n : mNodes) {
+                for (StateResponse.NodeState ns : mNodeStates) {
+                    if (ns.getNodeId() == n.getNodeId() && ns.getControllerId().equals(n.getControllerId())) {
+                        mNodeIdToValue.put(n, ns);
+                        break;
+                    }
+                }
+            }
+        }
+
+        return mNodeIdToValue;
     }
 
 }
