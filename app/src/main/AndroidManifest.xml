@@ -22,6 +22,7 @@
         </activity>
         <activity android:name=".activities.MenuFragmentsActivity"/>
         <activity android:name=".user.UserActivity" android:theme="@style/LoginTheme"/>
+        <activity android:name=".fragments.node.NodeActivity"/>
     </application>
 
 </manifest>

@@ -22,10 +22,11 @@
     <string name="login_fragment_empty_passwd">Please, type your Password</string>
     <string name="login_fragment_server_offline">Server is offline…</string>
     <string name="login_fragment_error">Login error: </string>
+    <string name="login_fragment_server_already_logged">Already logged</string>
 
     <!-- State fragment -->
     <string name="state_fragment_title">State</string>
-    <string name="state_fragment_item_row">Node %1$d</string>
+    <string name="state_fragment_item_row">Node %1$d from Controller %2$d</string>
 
     <!-- Rule fragment -->
     <string name="rule_fragment_title">Rules</string>

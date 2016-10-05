@@ -37,7 +37,8 @@
             android:divider="@android:color/transparent"
             android:dividerHeight="@dimen/div_height"
             android:background="@color/colorPrimary"
-            android:layout_weight="1">
+            android:layout_weight="1"
+            android:listSelector="@color/colorPrimaryDark">
         </ListView>
 
     </LinearLayout>

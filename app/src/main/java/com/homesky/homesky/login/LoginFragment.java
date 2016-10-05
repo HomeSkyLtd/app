@@ -22,7 +22,7 @@ import com.homesky.homesky.user.UserActivity;
 public class LoginFragment extends Fragment implements RequestCallback {
 
     private static final String TAG = "LoginFragment";
-    private static final String URL = "http://ec2-52-67-3-31.sa-east-1.compute.amazonaws.com:3000";
+    private static final String URL = "http://10.144.38.149:3000";
 
     private Button mLoginButton;
     private Button mSigninButton;
@@ -37,6 +37,15 @@ public class LoginFragment extends Fragment implements RequestCallback {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
 
         HomecloudHolder.setUrl(URL);
+
+        view.findViewById(R.id.login_fragment_title).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                HomecloudHolder.getInstance().setUsername("admin1");
+                HomecloudHolder.getInstance().setPassword("mypass");
+                new AsyncRequest(null, LoginFragment.this).execute(new LoginCommand());
+            }
+        });
 
         mEditTextLogin = (EditText) view.findViewById(R.id.login_fragment_edit_login);
         mEditTextPassword = (EditText) view.findViewById(R.id.login_fragment_edit_passwd);
@@ -62,14 +71,14 @@ public class LoginFragment extends Fragment implements RequestCallback {
                     return;
                 }
 
+                Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
+
                 HomecloudHolder.getInstance().setUsername(login);
                 HomecloudHolder.getInstance().setPassword(passwd);
                 mLoginButton.setEnabled(false);
                 mSigninButton.setEnabled(false);
 
-                Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
-
-                new AsyncRequest(LoginFragment.this).execute(new LoginCommand());
+                new AsyncRequest(null, LoginFragment.this).execute(new LoginCommand());
             }
         });
 
