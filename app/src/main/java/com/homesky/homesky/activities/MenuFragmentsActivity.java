@@ -10,6 +10,7 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.content.ContextCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
+import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
@@ -39,6 +40,7 @@ public class MenuFragmentsActivity extends AppCompatActivity {
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private Map<String, Fragment> mFragments;
+    private ActionBarDrawerToggle mDrawerToggle;
 
     private Fragment createFragment(int position) {
         String f = mModulesTitles[position];
@@ -69,18 +71,6 @@ public class MenuFragmentsActivity extends AppCompatActivity {
     public static Intent newIntent(Context context) {
         Intent intent = new Intent(context, MenuFragmentsActivity.class);
         return intent;
-    }
-
-    private void initToolbar() {
-        Toolbar toolbar = (Toolbar) findViewById(R.id.menu_fragments_activity_toolbar);
-        setSupportActionBar(toolbar);
-        toolbar.setNavigationIcon(R.drawable.ic_menu_black_24dp);
-        toolbar.setNavigationOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                mDrawerLayout.openDrawer(Gravity.LEFT, true);
-            }
-        });
     }
 
     private void initFragments() {
@@ -114,7 +104,27 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         });
 
         selectFragment(0);
-        initToolbar();
+        //initToolbar();
+
+        mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, 0, 0) {
+            @Override
+            public void onDrawerOpened(View drawerView) {
+                super.onDrawerOpened(drawerView);
+
+                invalidateOptionsMenu();
+            }
+
+            @Override
+            public void onDrawerClosed(View drawerView) {
+                super.onDrawerClosed(drawerView);
+
+                invalidateOptionsMenu();
+            }
+        };
+
+        mDrawerLayout.addDrawerListener(mDrawerToggle);
+
+        getSupportActionBar().setDisplayHomeAsUpEnabled(true);
     }
 
     @Override
@@ -136,6 +146,10 @@ public class MenuFragmentsActivity extends AppCompatActivity {
     public boolean onOptionsItemSelected(MenuItem item) {
         int id = item.getItemId();
 
+        if (mDrawerToggle.onOptionsItemSelected(item)) {
+            return true;
+        }
+
         if (id == R.id.search_button) {
             Snackbar.make(
                             findViewById(R.id.menu_fragments_activity_container),
@@ -146,5 +160,11 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onPostCreate(Bundle savedInstanceState) {
+        super.onPostCreate(savedInstanceState);
+        mDrawerToggle.syncState();
     }
 }
