@@ -1,5 +1,6 @@
 package com.homesky.homesky.fragments.rule;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
@@ -21,6 +22,7 @@ import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.GetHouseStateCommand;
+import com.homesky.homesky.fragments.ruleList.RuleListActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
@@ -30,6 +32,9 @@ import java.util.List;
 
 public class RuleFragment extends Fragment implements RequestCallback {
     private static final String TAG = "RuleFragment";
+
+    private final String NODE_EXTRA_NAME = "name";
+    private final String NODE_EXTRA_ROOM = "room";
 
     private RecyclerView mRecyclerView;
     private RuleAdapter mAdapter;
@@ -149,7 +154,7 @@ public class RuleFragment extends Fragment implements RequestCallback {
         }
     }
 
-    class RuleActuatorHolder extends RecyclerView.ViewHolder {
+    class RuleActuatorHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         NodesResponse.Node mActuator;
 
         TextView mId, mName, mRoom;
@@ -159,13 +164,22 @@ public class RuleFragment extends Fragment implements RequestCallback {
             mId = (TextView)itemView.findViewById(R.id.rule_node_id_text_view);
             mName = (TextView)itemView.findViewById(R.id.rule_node_name_text_view);
             mRoom = (TextView)itemView.findViewById(R.id.rule_node_room_text_view);
+
+            itemView.setOnClickListener(this);
         }
 
         public void bindRuleActuator(NodesResponse.Node n){
             mActuator = n;
             mId.setText(Integer.toString(n.getNodeId()));
-            mName.setText(mActuator.getExtra().get("name"));
-            mRoom.setText(mActuator.getExtra().get("room"));
+            mName.setText(mActuator.getExtra().get(NODE_EXTRA_NAME));
+            mRoom.setText(mActuator.getExtra().get(NODE_EXTRA_ROOM));
+
+        }
+
+        @Override
+        public void onClick(View view) {
+            Intent i = RuleListActivity.newIntent(getActivity(), mActuator);
+            startActivity(i);
         }
     }
 }
