@@ -23,10 +23,15 @@
     <string name="login_fragment_server_offline">Server is offline…</string>
     <string name="login_fragment_error">Login error: </string>
     <string name="login_fragment_server_already_logged">Already logged</string>
+    <string name="login_fragment_remember_me">Remember me</string>
+    <string name="login_fragment_remember_me_key" translatable="false">com.homesky.homesky.login.remembermekey</string>
+    <string name="login_fragment_remember_me_user" translatable="false">com.homesky.homesky.login.remembermekey</string>
+    <string name="login_fragment_remember_me_passwd" translatable="false">com.homesky.homesky.login.remembermekey</string>
 
     <!-- State fragment -->
     <string name="state_fragment_title">State</string>
     <string name="state_fragment_item_row">Node %1$d from Controller %2$d</string>
+    <string name="state_fragment_error">Error. Try again.</string>
 
     <!-- Rule fragment -->
     <string name="rule_fragment_title">Rules</string>
@@ -45,4 +50,12 @@
 
     <!-- Settings fragment -->
     <string name="settings_fragment_title">Settings</string>
+
+    <!-- Node fragment -->
+    <string name="node_fragment_title">Node information and values</string>
+    <string name="node_fragment_node_title">Node ID</string>
+    <string name="node_fragment_node_value">Value</string>
+    <string name="node_fragment_list_div_sensor">Sensors</string>
+    <string name="node_fragment_list_div_actuator">Actuators</string>
+    <string name="node_fragment_list_div_nothing">No sensor nor actuator</string>
 </resources>

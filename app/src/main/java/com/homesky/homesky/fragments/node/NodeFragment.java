@@ -1,12 +1,10 @@
 package com.homesky.homesky.fragments.node;
 
-import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,11 +13,9 @@ import android.widget.TextView;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
-import com.homesky.homesky.fragments.state.StateFragment;
 import com.homesky.homesky.request.ModelStorage;
 
 import java.math.BigDecimal;
-import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -78,47 +74,84 @@ public class NodeFragment extends Fragment {
 
     /* ITEM ADAPTER */
 
-    class ItemAdapter extends RecyclerView.Adapter<ItemHolder> {
+    class ItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+
+        private static final int ITEM_TYPE_NODE = 0;
+        private static final int ITEM_TYPE_HEADER = 1;
 
         private List<Map.Entry<Integer, BigDecimal>> mNodeData;
         private List<Map.Entry<Integer, BigDecimal>> mNodeCommand;
+        private List<Object> mNodes;
         private NodesResponse.Node mNode;
+        private int mMiddle;
 
         ItemAdapter(StateResponse.NodeState nodeState, NodesResponse.Node node) {
-            mNodeData = new LinkedList<>();
-            mNodeCommand = new LinkedList<>();
+            //mNodeData = new LinkedList<>();
+            //mNodeCommand = new LinkedList<>();
+            mNodes = new LinkedList<>();
 
             if (nodeState != null) {
-                mNodeData.addAll(nodeState.getData().entrySet());
-                mNodeCommand.addAll(nodeState.getCommand().entrySet());
+                //mNodeData.addAll(nodeState.getData().entrySet());
+                //mNodeCommand.addAll(nodeState.getCommand().entrySet());
+                mMiddle = 1;
+
+                if (!nodeState.getData().isEmpty()) {
+                    mNodes.add(getActivity().getResources().getString(R.string.node_fragment_list_div_sensor));
+                    mNodes.addAll(nodeState.getData().entrySet());
+                    mMiddle = 1 + mNodeData.size();
+                }
+
+                if (!nodeState.getCommand().isEmpty()) {
+                    mNodes.add(getActivity().getResources().getString(R.string.node_fragment_list_div_actuator));
+                    mNodes.addAll(nodeState.getCommand().entrySet());
+                }
             }
 
             mNode = node;
         }
 
         @Override
-        public ItemHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
-            return new ItemHolder(view);
+
+            if (viewType == ITEM_TYPE_NODE) {
+                View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
+                return new NodeHolder(view);
+            } else if (viewType == ITEM_TYPE_HEADER) {
+                View view = layoutInflater.inflate(R.layout.node_list_item_header, parent, false);
+                return new HeaderHolder(view);
+            }
+
+            return null;
         }
 
         @Override
-        public void onBindViewHolder(ItemHolder holder, int position) {
-            if (position < mNodeData.size()) {
-                Map.Entry<Integer, BigDecimal> node = mNodeData.get(position);
-                for (NodesResponse.DataType dataType : mNode.getDataType()) {
-                    if (dataType.getId() == node.getKey()) {
-                        holder.bind(node.getKey(), node.getValue(), dataType.getUnit());
-                        break;
-                    }
-                }
+        public int getItemViewType(int position) {
+            if (mNodes.get(position) instanceof String)
+                return ITEM_TYPE_HEADER;
+            else
+                return ITEM_TYPE_NODE;
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            int itemType = getItemViewType(position);
+
+            if (itemType == ITEM_TYPE_HEADER) {
+                ((HeaderHolder) holder).bind((String) mNodes.get(position));
             } else {
-                Map.Entry<Integer, BigDecimal> node = mNodeCommand.get(position - mNodeData.size());
-                for (NodesResponse.CommandType commandType : mNode.getCommandType()) {
-                    if (commandType.getId() == node.getKey()) {
-                        holder.bind(node.getKey(), node.getValue(), commandType.getUnit());
-                        break;
+                Map.Entry<Integer, BigDecimal> node = (Map.Entry<Integer, BigDecimal>) mNodes.get(position);
+                if (position < mMiddle) {
+                    for (NodesResponse.DataType dataType : mNode.getDataType()) {
+                        if (dataType.getId() == node.getKey()) {
+                            ((NodeHolder) holder).bind(node.getKey(), node.getValue(), dataType.getUnit());
+                        }
+                    }
+                } else {
+                    for (NodesResponse.CommandType commandType : mNode.getCommandType()) {
+                        if (commandType.getId() == node.getKey()) {
+                            ((NodeHolder) holder).bind(node.getKey(), node.getValue(), commandType.getUnit());
+                        }
                     }
                 }
             }
@@ -126,27 +159,42 @@ public class NodeFragment extends Fragment {
 
         @Override
         public int getItemCount() {
-            return mNodeData.size() + mNodeCommand.size();
+            return mNodes.size();
         }
     }
 
-    class ItemHolder extends RecyclerView.ViewHolder {
+    class NodeHolder extends RecyclerView.ViewHolder {
 
         private TextView mId;
         private TextView mValue;
 
-        ItemHolder(View itemView) {
+        NodeHolder(View itemView) {
             super(itemView);
 
             mId = (TextView) itemView.findViewById(R.id.node_list_item_id);
             mValue = (TextView) itemView.findViewById(R.id.node_list_item_value);
         }
 
-        void bind(Integer nodeId, BigDecimal value, String unit) {
-            mId.setText(nodeId);
+        void bind(int nodeId, BigDecimal value, String unit) {
+            mId.setText(String.valueOf(nodeId));
 
-            String str_value = value.toEngineeringString() + unit;
+            String str_value = value.toEngineeringString() + " " + unit;
             mValue.setText(str_value);
+        }
+    }
+
+    class HeaderHolder extends RecyclerView.ViewHolder {
+
+        private TextView mTitle;
+
+        HeaderHolder(View itemView) {
+            super(itemView);
+
+            mTitle = (TextView) itemView.findViewById(R.id.node_list_item_header);
+        }
+
+        void bind(String title) {
+            mTitle.setText(title);
         }
     }
 

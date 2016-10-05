@@ -14,4 +14,17 @@
     <string name="login_fragment_empty_passwd">Por favor, digite sua senha</string>
     <string name="login_fragment_server_offline">O servidor está fora do ar...</string>
     <string name="state_fragment_item_row">Nó %1$d</string>
+    <string name="login_fragment_error">Erro de login</string>
+    <string name="login_fragment_server_already_logged">Usuário já logado</string>
+    <string name="node_fragment_node_title">Nó</string>
+    <string name="node_fragment_node_value">Valor</string>
+    <string name="node_fragment_title">Informações de nó e valores</string>
+    <string name="rule_item_node_id">ID do nó:</string>
+    <string name="rule_item_node_name">\"Nome: \"</string>
+    <string name="rule_item_node_room">"Sala: "</string>
+    <string name="node_fragment_list_div_actuator">Atuadores</string>
+    <string name="node_fragment_list_div_sensor">Sensores</string>
+    <string name="login_fragment_remember_me">Lembrar-me</string>
+    <string name="state_fragment_error">Erro. Tente novamente.</string>
+    <string name="node_fragment_list_div_nothing">Sem sensores ou atuadores</string>
 </resources>

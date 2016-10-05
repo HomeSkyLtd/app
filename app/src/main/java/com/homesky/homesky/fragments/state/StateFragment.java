@@ -12,6 +12,7 @@ import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -32,6 +33,8 @@ import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 
+import static android.view.View.GONE;
+
 /**
  * Created by henrique on 9/22/16.
  */
@@ -41,6 +44,7 @@ public class StateFragment extends Fragment {
 
     private RecyclerView mListOfNodes;
     private StateAdapter mStateAdapter;
+    private RelativeLayout mLoadingPanel;
 
     public StateFragment() {}
 
@@ -49,6 +53,7 @@ public class StateFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_state, container, false);
 
+        mLoadingPanel = (RelativeLayout) view.findViewById(R.id.state_fragment_loading_panel);
         mListOfNodes = (RecyclerView) view.findViewById(R.id.state_fragment_list_nodes);
         mListOfNodes.setLayoutManager(new LinearLayoutManager(getActivity()));
         ModelStorage.getInstance().getNodeStates(new GetHouseStateRequest(), false);
@@ -69,7 +74,7 @@ public class StateFragment extends Fragment {
             if (s == null) {
                 Toast.makeText(
                         getActivity(),
-                        getResources().getText(R.string.login_fragment_server_already_logged),
+                        getResources().getText(R.string.state_fragment_error),
                         Toast.LENGTH_LONG).show();
             } else {
                 ModelStorage.getInstance().getNodeIdToValue(true);
@@ -83,7 +88,7 @@ public class StateFragment extends Fragment {
             if (s == null) {
                 Toast.makeText(
                         getActivity(),
-                        getResources().getText(R.string.login_fragment_server_already_logged),
+                        getResources().getText(R.string.state_fragment_error),
                         Toast.LENGTH_LONG).show();
             } else {
                 int position = mStateAdapter.getItemCount();
@@ -93,6 +98,9 @@ public class StateFragment extends Fragment {
 
                 ModelStorage.getInstance().getNodeIdToValue(true);
             }
+
+            mLoadingPanel.setVisibility(View.GONE);
+            mListOfNodes.setVisibility(View.VISIBLE);
         }
     }
 
@@ -119,6 +127,11 @@ public class StateFragment extends Fragment {
             mNodes = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest(), false);
             if (mNodes == null)
                 mNodes = new LinkedList<>();
+            else {
+                mLoadingPanel.setVisibility(View.GONE);
+                mListOfNodes.setVisibility(View.VISIBLE);
+            }
+
         }
 
         @Override
@@ -132,7 +145,7 @@ public class StateFragment extends Fragment {
         @Override
         public void onBindViewHolder(StateHolder holder, int position) {
             NodesResponse.Node node = mNodes.get(position);
-            holder.bind(node.getNodeId(), node.getControllerId());
+            holder.bind(node);
         }
 
         @Override
@@ -157,11 +170,11 @@ public class StateFragment extends Fragment {
             itemView.setOnClickListener(this);
         }
 
-        void bind (int nodeId, String controllerId) {
-            mNodeId = nodeId;
-            mControllerId = controllerId;
+        void bind (NodesResponse.Node node) {
+            mNodeId = node.getNodeId();
+            mControllerId = node.getControllerId();
 
-            String str = "Node " + nodeId + " from Controller " + controllerId;
+            String str = "Controller " + mControllerId + " - Node " + mNodeId;
             mNodeName.setText(str);
         }
 

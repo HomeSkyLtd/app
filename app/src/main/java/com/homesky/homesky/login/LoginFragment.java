@@ -1,15 +1,22 @@
 package com.homesky.homesky.login;
 
+import android.content.Context;
+import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.content.ContextCompat;
+import android.support.v4.content.SharedPreferencesCompat;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.homesky.homecloud_lib.Homecloud;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.activities.MenuFragmentsActivity;
@@ -28,21 +35,27 @@ public class LoginFragment extends Fragment implements RequestCallback {
     private Button mSigninButton;
     private EditText mEditTextLogin;
     private EditText mEditTextPassword;
+    private CheckBox mRememberMe;
 
-    public LoginFragment() {}
+    public LoginFragment() {
+        HomecloudHolder.setUrl(URL);
+    }
 
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_login, container, false);
 
-        HomecloudHolder.setUrl(URL);
+        if (HomecloudHolder.getInstance().isLogged()) {
+            startActivity(MenuFragmentsActivity.newIntent(getActivity()));
+        }
 
         view.findViewById(R.id.login_fragment_title).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 HomecloudHolder.getInstance().setUsername("admin1");
                 HomecloudHolder.getInstance().setPassword("mypass");
+                Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
                 new AsyncRequest(null, LoginFragment.this).execute(new LoginCommand());
             }
         });
@@ -89,6 +102,8 @@ public class LoginFragment extends Fragment implements RequestCallback {
                 startActivity(UserActivity.newIntent(getActivity()));
             }
         });
+
+        mRememberMe = (CheckBox) view.findViewById(R.id.login_fragment_check_box);
 
         return view;
     }
