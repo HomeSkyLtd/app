@@ -32,8 +32,8 @@ public class ModelStorage implements RequestCallback{
         return instance;
     }
 
-    public List<NodesResponse.Node> getNodes(RequestCallback source, boolean forceSync){
-        if(!forceSync && mNodes != null){
+    public List<NodesResponse.Node> getNodes(RequestCallback source){
+        if(mNodes != null){
             return mNodes;
         }
         else{
@@ -42,8 +42,9 @@ public class ModelStorage implements RequestCallback{
         }
     }
 
-    public List<StateResponse.NodeState> getNodeStates(RequestCallback source, boolean forceSync){
-        if(!forceSync && mNodeStates != null){
+    public List<StateResponse.NodeState> getNodeStates(RequestCallback source){
+
+        if(mNodeStates != null){
             return mNodeStates;
         }
         else{
@@ -52,14 +53,26 @@ public class ModelStorage implements RequestCallback{
         }
     }
 
-    public List<Rule> getRules(RequestCallback source, boolean forceSync){
-        if(!forceSync && mRules != null){
+    public List<Rule> getRules(RequestCallback source){
+        if(mRules != null){
             return mRules;
         }
         else{
             new AsyncRequest(this, source).execute(new GetRulesCommand());
             return null;
         }
+    }
+
+    public void invalidateNodesCache(){
+        mNodes = null;
+    }
+
+    public void invalidateNodeStatesCache(){
+        mNodeStates = null;
+    }
+
+    public void invalidateRulesCache(){
+        mRules = null;
     }
 
     public Map<NodesResponse.Node, StateResponse.NodeState> getNodeIdToValue(boolean forceSync) {
