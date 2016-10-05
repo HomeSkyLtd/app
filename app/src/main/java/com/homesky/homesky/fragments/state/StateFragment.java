@@ -51,7 +51,7 @@ public class StateFragment extends Fragment {
 
         mListOfNodes = (RecyclerView) view.findViewById(R.id.state_fragment_list_nodes);
         mListOfNodes.setLayoutManager(new LinearLayoutManager(getActivity()));
-        ModelStorage.getInstance().getNodeStates(new GetHouseStateRequest(), false);
+        ModelStorage.getInstance().getNodeStates(new GetHouseStateRequest());
 
         updateUI();
 
@@ -88,7 +88,7 @@ public class StateFragment extends Fragment {
             } else {
                 int position = mStateAdapter.getItemCount();
 
-                mStateAdapter.setNodes(ModelStorage.getInstance().getNodes(null, false));
+                mStateAdapter.setNodes(ModelStorage.getInstance().getNodes(null));
                 mStateAdapter.notifyItemRangeChanged(position, mStateAdapter.getItemCount() - position);
 
                 ModelStorage.getInstance().getNodeIdToValue(true);
@@ -116,7 +116,7 @@ public class StateFragment extends Fragment {
         private List<NodesResponse.Node> mNodes;
 
         StateAdapter() {
-            mNodes = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest(), false);
+            mNodes = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest());
             if (mNodes == null)
                 mNodes = new LinkedList<>();
         }

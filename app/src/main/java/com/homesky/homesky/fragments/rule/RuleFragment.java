@@ -14,6 +14,7 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import com.homesky.homecloud_lib.model.Rule;
+import com.homesky.homecloud_lib.model.enums.NodeClassEnum;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.RuleResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
@@ -62,7 +63,8 @@ public class RuleFragment extends Fragment implements RequestCallback {
             nodes = ModelStorage.getInstance().getNodes(this);
 
         if(rules != null && nodes != null) {
-            List<NodesResponse.Node> actuators = getActuatorsWithRules(nodes, rules);
+//            List<NodesResponse.Node> actuators = getActuatorsWithRules(nodes, rules);
+            List<NodesResponse.Node> actuators = getActuators(nodes);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(actuators);
                 mRecyclerView.setAdapter(mAdapter);
@@ -71,6 +73,15 @@ public class RuleFragment extends Fragment implements RequestCallback {
                 mAdapter.notifyDataSetChanged();
             }
         }
+    }
+
+    private List<NodesResponse.Node> getActuators(List<NodesResponse.Node> nodes){
+        List<NodesResponse.Node> actuators = new ArrayList<>();
+        for(NodesResponse.Node n : nodes){
+            if(n.getNodeClass().contains(NodeClassEnum.ACTUATOR))
+                actuators.add(n);
+        }
+        return actuators;
     }
 
     private List<NodesResponse.Node> getActuatorsWithRules(
