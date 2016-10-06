@@ -29,7 +29,8 @@ import com.homesky.homesky.user.UserActivity;
 public class LoginFragment extends Fragment implements RequestCallback {
 
     private static final String TAG = "LoginFragment";
-    private static final String URL = "http://10.144.38.149:3000";
+    //private static final String URL = "http://10.144.38.149:3000";
+    private static final String URL = "http://192.168.1.111:3000";
 
     private Button mLoginButton;
     private Button mSigninButton;
@@ -126,7 +127,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
         } else {
             Toast.makeText(
                     getActivity(),
-                    getResources().getText(R.string.login_fragment_error)  + " " + s.getErrorMessage(),
+                    s.getErrorMessage(),
                     Toast.LENGTH_LONG).show();
             mEditTextPassword.setEnabled(true);
             mEditTextLogin.setEnabled(true);
