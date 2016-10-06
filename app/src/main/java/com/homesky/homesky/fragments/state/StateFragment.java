@@ -83,14 +83,23 @@ public class StateFragment extends Fragment {
     }
 
     private void updateUI() {
+        Log.d(TAG, "updateUI: " + mStateAdapter);
+
         if (mStateAdapter == null) {
             mStateAdapter = new StateAdapter();
-            mListOfNodes.setAdapter(mStateAdapter);
         } else {
-            //int position = mStateAdapter.getItemCount();
-            mStateAdapter.setNodes(ModelStorage.getInstance().getNodes(new GetNodesInfoRequest()));
+            List<NodesResponse.Node> list = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest());
+
+            if (list != null) {
+                mLoadingPanel.setVisibility(View.GONE);
+                mListOfNodes.setVisibility(View.VISIBLE);
+            }
+
+            mStateAdapter.setNodes(list);
             mStateAdapter.notifyDataSetChanged();
         }
+
+        mListOfNodes.setAdapter(mStateAdapter);
     }
 
     class GetNodesInfoRequest implements RequestCallback {

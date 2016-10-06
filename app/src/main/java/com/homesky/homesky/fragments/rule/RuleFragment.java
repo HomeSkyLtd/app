@@ -72,11 +72,11 @@ public class RuleFragment extends Fragment implements RequestCallback {
             List<NodesResponse.Node> actuators = getActuators(nodes);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(actuators);
-                mRecyclerView.setAdapter(mAdapter);
             } else {
                 mAdapter.setRules(actuators);
                 mAdapter.notifyDataSetChanged();
             }
+            mRecyclerView.setAdapter(mAdapter);
         }
     }
 
