@@ -39,6 +39,13 @@
     <string name="rule_item_node_name">Name:</string>
     <string name="rule_item_node_room">Room:</string>
 
+    <!-- Rule list fragment -->
+    <string name="or">or</string>
+    <string name="and">and</string>
+    <string name="set">set</string>
+    <string name="condition">condition:</string>
+    <string name="effect">effect:</string>
+
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Controller</string>
 
@@ -58,4 +65,28 @@
     <string name="node_fragment_list_div_sensor">Sensors</string>
     <string name="node_fragment_list_div_actuator">Actuators</string>
     <string name="node_fragment_list_div_nothing">No sensor nor actuator</string>
+
+    <!-- Enum utils -->
+    <string name="EQ">is equal to</string>
+    <string name="NE">is not equal to</string>
+    <string name="LT">is less than</string>
+    <string name="LE">is less than or equal to</string>
+    <string name="GT">is greater than</string>
+    <string name="GE">is greater than or equal to</string>
+
+    <string name="HUMIDITY">humidity</string>
+    <string name="LUMINANCE">luminance</string>
+    <string name="PRESSURE">pressure</string>
+    <string name="PRESENCE">presence</string>
+    <string name="SMOKE">smoke</string>
+    <string name="WIND_SPEED">wind speed</string>
+
+    <string name="AC_MODE">ac mode</string>
+    <string name="FAN">fan speed</string>
+    <string name="LIGHT_COLOR">light color</string>
+    <string name="LIGHT_INTENSITY">light intensity</string>
+    <string name="LIGHT_SWITCH">light switch</string>
+    <string name="TEMPERATURE">temperature</string>
+    <string name="TOGGLE">toggle</string>
+
 </resources>

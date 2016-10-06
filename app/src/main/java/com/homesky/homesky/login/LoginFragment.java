@@ -30,7 +30,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
 
     private static final String TAG = "LoginFragment";
     //private static final String URL = "http://10.144.38.149:3000";
-    private static final String URL = "http://192.168.1.111:3000";
+    private static final String URL = "http://ec2-52-67-3-31.sa-east-1.compute.amazonaws.com:3000";
 
     private Button mLoginButton;
     private Button mSigninButton;

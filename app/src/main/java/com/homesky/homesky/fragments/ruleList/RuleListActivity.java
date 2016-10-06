@@ -24,8 +24,8 @@ public class RuleListActivity extends SingleFragmentActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
         mNodeId = getIntent().getIntExtra(EXTRA_NODE_ID, -1);
+        super.onCreate(savedInstanceState);
     }
 
     @Override

@@ -68,7 +68,6 @@ public class RuleFragment extends Fragment implements RequestCallback {
             nodes = ModelStorage.getInstance().getNodes(this);
 
         if(rules != null && nodes != null) {
-//            List<NodesResponse.Node> actuators = getActuatorsWithRules(nodes, rules);
             List<NodesResponse.Node> actuators = getActuators(nodes);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(actuators);
@@ -179,6 +178,7 @@ public class RuleFragment extends Fragment implements RequestCallback {
         @Override
         public void onClick(View view) {
             Intent i = RuleListActivity.newIntent(getActivity(), mActuator);
+            Log.d(TAG, "Node id: " + mActuator.getNodeId());
             startActivity(i);
         }
     }
