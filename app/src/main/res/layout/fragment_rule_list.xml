@@ -17,7 +17,7 @@
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textSize="@dimen/subtitle_text_size"
+            android:textSize="@dimen/subtitle_2_text_size"
             android:id="@+id/rule_list_actuator_text_view"
             tools:text="Title"/>
 

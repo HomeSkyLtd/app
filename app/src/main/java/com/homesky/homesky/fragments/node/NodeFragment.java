@@ -1,9 +1,14 @@
 package com.homesky.homesky.fragments.node;
 
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -168,12 +173,6 @@ public class NodeFragment extends Fragment {
                 }
             }
 
-            for (Object o : mNodeList) {
-                Log.d(TAG, "setStateAndNode: " + o.toString());
-            }
-
-            Log.d(TAG, "setStateAndNode: mMiddle " + mMiddle);
-
             mNode = node;
         }
 
@@ -234,7 +233,6 @@ public class NodeFragment extends Fragment {
                         }
                     }
                 } else {
-                    Log.d(TAG, "onBindViewHolder: commandID" + node.getKey());
                     for (NodesResponse.CommandType commandType : mNode.getCommandType()) {
                         if (commandType.getId() == node.getKey()) {
                             ((NodeHolder) holder).bind(
@@ -286,7 +284,6 @@ public class NodeFragment extends Fragment {
                 NodesResponse.CommandType commandType = (NodesResponse.CommandType) type;
 
                 mTypeId = commandType.getId();
-                Log.d(TAG, "bind: command category " + commandType.getCommandCategory().name());
                 mCategory.setText(EnumUtil.getEnumPrettyName(
                         commandType.getCommandCategory().getId(), CommandCategoryEnum.class));
 
@@ -307,21 +304,29 @@ public class NodeFragment extends Fragment {
         }
     }
 
-    class ValueHolder extends NodeHolder {
+    class ValueHolder extends NodeHolder implements View.OnClickListener {
 
         private TextView mValue;
+        private static final String DIALOG_TAG = "value_holder_dialog_tag";
 
         ValueHolder(View itemView, int nodeId, String controllerId) {
             super(itemView, nodeId, controllerId);
 
             mValue = (TextView) itemView.findViewById(R.id.node_list_item_value);
             mValue.setVisibility(View.VISIBLE);
+
+            itemView.setOnClickListener(this);
         }
 
         @Override
         protected void setValue(BigDecimal value, String unit) {
             String str_value = value.toEngineeringString() + " " + unit;
             mValue.setText(str_value);
+        }
+
+        @Override
+        public void onClick(View v) {
+            NewActionDialogFragment.newInstance(TypeEnum.INT).show(getFragmentManager(), DIALOG_TAG);
         }
     }
 
@@ -366,6 +371,39 @@ public class NodeFragment extends Fragment {
 
     public static class NewActionDialogFragment extends DialogFragment {
 
+        private static final String BUNDLE_KEY = "layout_type";
+        private long typeId;
+
+        static NewActionDialogFragment newInstance(TypeEnum type) {
+            NewActionDialogFragment fragment = new NewActionDialogFragment();
+
+            Bundle args = new Bundle();
+            args.putLong(BUNDLE_KEY, type.getId());
+            fragment.setArguments(args);
+
+            return fragment;
+        }
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            typeId = getArguments().getLong(BUNDLE_KEY);
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            setStyle(DialogFragment.STYLE_NORMAL, R.style.CustomDialog);
+            return super.onCreateDialog(savedInstanceState);
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.node_dialog_fragment, container, false);
+            getDialog().setCanceledOnTouchOutside(true);
+            return view;
+        }
     }
 
 }

@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+        android:orientation="vertical"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="@dimen/activity_horizontal_margin">
+    <TextView
+        android:id="@+id/node_dialog_fragment_title"
+        android:text="@string/node_dialog_fragment_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal|top"
+        android:gravity="center_horizontal|top"
+        android:textSize="@dimen/subtitle_1_title_text_size"
+        android:background="@color/colorPrimary"
+        android:textColor="@android:color/white"
+        android:padding="@dimen/activity_horizontal_margin"/>
+
+    <LinearLayout
+        android:orientation="horizontal"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:gravity="center_horizontal|bottom">
+        <TextView
+            android:text="@string/node_dialog_fragment_name"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+        <EditText
+            android:id="@+id/node_dialog_fragment_edit_text"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"/>
+        <ImageButton
+            android:id="@+id/node_dialog_fragment_button"
+            android:layout_width="@dimen/title_text_size"
+            android:layout_height="@dimen/title_text_size"
+            android:layout_gravity="center_vertical"
+            android:src="@drawable/ic_send_black_24dp"/>
+    </LinearLayout>
+</LinearLayout>
