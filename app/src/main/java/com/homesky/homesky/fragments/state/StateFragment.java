@@ -83,8 +83,6 @@ public class StateFragment extends Fragment {
     }
 
     private void updateUI() {
-        Log.d(TAG, "updateUI: " + mStateAdapter);
-
         if (mStateAdapter == null) {
             mStateAdapter = new StateAdapter();
         } else {
@@ -158,7 +156,7 @@ public class StateFragment extends Fragment {
                 View view = layoutInflater.inflate(R.layout.list_item_state, parent, false);
                 return new StateHolder(view);
             } else if (viewType == ITEM_HEADER) {
-                View view = layoutInflater.inflate(R.layout.list_item_state_header, parent, false);
+                View view = layoutInflater.inflate(R.layout.list_header, parent, false);
                 return new HeaderHolder(view);
             }
 
@@ -177,8 +175,6 @@ public class StateFragment extends Fragment {
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
             int itemType = getItemViewType(position);
-
-            Log.d(TAG, "onBindViewHolder: " + position + " " + mNodes.get(position));
 
             if (itemType == ITEM_HEADER) {
                 ((HeaderHolder) holder).bind((String) mNodes.get(position));
@@ -253,7 +249,7 @@ public class StateFragment extends Fragment {
 
         HeaderHolder(View itemView) {
             super(itemView);
-            mHeaderName = (TextView) itemView.findViewById(R.id.state_fragment_list_header);
+            mHeaderName = (TextView) itemView.findViewById(R.id.list_item_header);
         }
 
         void bind(String header) {

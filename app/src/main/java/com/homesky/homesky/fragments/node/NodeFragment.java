@@ -6,6 +6,7 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,12 +16,12 @@ import android.widget.Toast;
 import com.homesky.homecloud_lib.model.enums.CommandCategoryEnum;
 import com.homesky.homecloud_lib.model.enums.DataCategoryEnum;
 import com.homesky.homecloud_lib.model.enums.EnumUtil;
-import com.homesky.homecloud_lib.model.enums.SingleValueEnum;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
-import com.homesky.homesky.fragments.state.StateFragment;
+import com.homesky.homesky.command.NewActionCommand;
+import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 
@@ -170,9 +171,9 @@ public class NodeFragment extends Fragment {
 
             if (viewType == ITEM_TYPE_NODE) {
                 View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
-                return new NodeHolder(view);
+                return new NodeHolder(view, mNode.getNodeId(), mNode.getControllerId());
             } else if (viewType == ITEM_TYPE_HEADER) {
-                View view = layoutInflater.inflate(R.layout.node_list_item_header, parent, false);
+                View view = layoutInflater.inflate(R.layout.list_header, parent, false);
                 return new HeaderHolder(view);
             }
 
@@ -198,13 +199,21 @@ public class NodeFragment extends Fragment {
                 if (position < mMiddle) {
                     for (NodesResponse.DataType dataType : mNode.getDataType()) {
                         if (dataType.getId() == node.getKey()) {
-                            ((NodeHolder) holder).bind(dataType, node.getValue(), dataType.getUnit());
+                            ((NodeHolder) holder).bind(
+                                    dataType,
+                                    node.getValue(),
+                                    dataType.getUnit()
+                            );
                         }
                     }
                 } else {
                     for (NodesResponse.CommandType commandType : mNode.getCommandType()) {
                         if (commandType.getId() == node.getKey()) {
-                            ((NodeHolder) holder).bind(commandType, node.getValue(), commandType.getUnit());
+                            ((NodeHolder) holder).bind(
+                                    commandType,
+                                    node.getValue(),
+                                    commandType.getUnit()
+                            );
                         }
                     }
                 }
@@ -217,38 +226,61 @@ public class NodeFragment extends Fragment {
         }
     }
 
-    class NodeHolder extends RecyclerView.ViewHolder {
+    class NodeHolder extends RecyclerView.ViewHolder implements View.OnClickListener, RequestCallback {
 
-        private TextView mId;
+        private TextView mTypeIdTextView;
         private TextView mCategory;
         private TextView mValue;
 
-        NodeHolder(View itemView) {
+        private int mNodeId;
+        private String mControllerId;
+        private int mTypeId;
+
+        NodeHolder(View itemView, int nodeId, String controllerId) {
             super(itemView);
 
+            mNodeId = nodeId;
+            mControllerId = controllerId;
+
             mCategory = (TextView) itemView.findViewById(R.id.node_list_item_category);
-            mId = (TextView) itemView.findViewById(R.id.node_list_item_id);
+            mTypeIdTextView = (TextView) itemView.findViewById(R.id.node_list_item_id);
             mValue = (TextView) itemView.findViewById(R.id.node_list_item_value);
+
+            itemView.setOnClickListener(this);
         }
 
         void bind(Object type, BigDecimal value, String unit) {
-            int id = 0;
-
             if (type instanceof NodesResponse.DataType) {
                 NodesResponse.DataType dataType = (NodesResponse.DataType) type;
-                id = dataType.getId();
-                mCategory.setText(EnumUtil.getEnumPrettyName(id, DataCategoryEnum.class));
+
+                mTypeId = dataType.getId();
+                mCategory.setText(EnumUtil.getEnumPrettyName(mTypeId, DataCategoryEnum.class));
+
+
             } else if (type instanceof NodesResponse.CommandType) {
                 NodesResponse.CommandType commandType = (NodesResponse.CommandType) type;
-                id = commandType.getId();
-                mCategory.setText(EnumUtil.getEnumPrettyName(id, CommandCategoryEnum.class));
+                mTypeId = commandType.getId();
+                mCategory.setText(EnumUtil.getEnumPrettyName(mTypeId, CommandCategoryEnum.class));
             }
 
-            String str_id = "id " + id;
-            mId.setText(str_id);
+            String str_id = "id " + mTypeId;
+            mTypeIdTextView.setText(str_id);
 
             String str_value = value.toEngineeringString() + " " + unit;
             mValue.setText(str_value);
+        }
+
+        @Override
+        public void onClick(View v) {
+            new AsyncRequest(null, this).execute(
+                    new NewActionCommand(mNodeId, mControllerId, mTypeId, new BigDecimal(1))
+            );
+        }
+
+        @Override
+        public void onPostRequest(SimpleResponse s) {
+            ModelStorage.getInstance().invalidateNodeStatesCache();
+            updateUI();
         }
     }
 
@@ -259,7 +291,7 @@ public class NodeFragment extends Fragment {
         HeaderHolder(View itemView) {
             super(itemView);
 
-            mTitle = (TextView) itemView.findViewById(R.id.node_list_item_header);
+            mTitle = (TextView) itemView.findViewById(R.id.list_item_header);
         }
 
         void bind(String title) {
