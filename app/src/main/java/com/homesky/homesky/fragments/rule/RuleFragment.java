@@ -17,18 +17,18 @@ import android.widget.Toast;
 import com.homesky.homecloud_lib.model.Rule;
 import com.homesky.homecloud_lib.model.enums.NodeClassEnum;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
-import com.homesky.homecloud_lib.model.response.RuleResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
-import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
-import com.homesky.homesky.command.GetHouseStateCommand;
 import com.homesky.homesky.fragments.ruleList.RuleListActivity;
-import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.LinkedList;
 import java.util.List;
+import java.util.Map;
 
 public class RuleFragment extends Fragment implements RequestCallback {
     private static final String TAG = "RuleFragment";
@@ -72,7 +72,7 @@ public class RuleFragment extends Fragment implements RequestCallback {
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(actuators);
             } else {
-                mAdapter.setRules(actuators);
+                mAdapter.setActuators(actuators);
                 mAdapter.notifyDataSetChanged();
             }
             mRecyclerView.setAdapter(mAdapter);
@@ -123,28 +123,70 @@ public class RuleFragment extends Fragment implements RequestCallback {
     }
 
 
-    class RuleAdapter extends RecyclerView.Adapter<RuleActuatorHolder> {
-        private List<NodesResponse.Node> mActuators;
+    class RuleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private List<Object> mActuators;
+        private static final int ITEM_ACTUATOR = 0;
+        private static final int ITEM_HEADER = 1;
 
         public RuleAdapter(List<NodesResponse.Node> actuators) {
-            mActuators = actuators;
+            setActuators(actuators);
         }
 
-        public void setRules(List<NodesResponse.Node> actuators){
-            mActuators = actuators;
+        public void setActuators(List<NodesResponse.Node> actuators){
+            if (actuators == null || actuators.isEmpty()) return;
+
+            Map<String, List<NodesResponse.Node>> nodesPerRoom = new HashMap<>();
+
+            for (NodesResponse.Node n : actuators) {
+                String room = n.getExtra().get(NODE_EXTRA_ROOM);
+                if (nodesPerRoom.containsKey(room)) {
+                    nodesPerRoom.get(room).add(n);
+                } else {
+                    List<NodesResponse.Node> list = new LinkedList<>();
+                    list.add(n);
+                    nodesPerRoom.put(room, list);
+                }
+            }
+            mActuators = new ArrayList<>();
+            for (Map.Entry entry : nodesPerRoom.entrySet()) {
+                mActuators.add(entry.getKey());
+                mActuators.addAll((Collection<?>) entry.getValue());
+            }
         }
 
         @Override
-        public RuleActuatorHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+        public int getItemViewType(int position) {
+            if (mActuators.get(position) instanceof String) {
+                return ITEM_HEADER;
+            } else {
+                return ITEM_ACTUATOR;
+            }
+        }
+
+        @Override
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            View view = layoutInflater.inflate(R.layout.list_rule_actuator_item, parent, false);
 
-            return new RuleActuatorHolder(view);
+            if (viewType == ITEM_ACTUATOR) {
+                View view = layoutInflater.inflate(R.layout.list_item_state, parent, false);
+                return new RuleActuatorHolder(view);
+            } else if (viewType == ITEM_HEADER) {
+                View view = layoutInflater.inflate(R.layout.list_header, parent, false);
+                return new HeaderHolder(view);
+            }
+            return null;
         }
 
         @Override
-        public void onBindViewHolder(RuleActuatorHolder holder, int position) {
-            holder.bindRuleActuator(mActuators.get(position));
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            int itemType = getItemViewType(position);
+
+            if(itemType == ITEM_ACTUATOR){
+                ((RuleActuatorHolder)holder).bindRuleActuator((NodesResponse.Node) mActuators.get(position));
+            }
+            else if (itemType == ITEM_HEADER) {
+                ((HeaderHolder) holder).bind((String) mActuators.get(position));
+            }
         }
 
         @Override
@@ -156,22 +198,22 @@ public class RuleFragment extends Fragment implements RequestCallback {
     class RuleActuatorHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         NodesResponse.Node mActuator;
 
-        TextView mId, mName, mRoom;
+        private TextView mNodeIdTextView;
+        private TextView mNodeName;
 
         public RuleActuatorHolder(View itemView) {
             super(itemView);
-            mId = (TextView)itemView.findViewById(R.id.rule_node_id_text_view);
-            mName = (TextView)itemView.findViewById(R.id.rule_node_name_text_view);
-            mRoom = (TextView)itemView.findViewById(R.id.rule_node_room_text_view);
+            mNodeIdTextView = (TextView) itemView.findViewById(R.id.state_fragment_node_id);
+            mNodeName = (TextView) itemView.findViewById(R.id.state_fragment_node_name);
 
             itemView.setOnClickListener(this);
         }
 
         public void bindRuleActuator(NodesResponse.Node n){
             mActuator = n;
-            mId.setText(Integer.toString(n.getNodeId()));
-            mName.setText(mActuator.getExtra().get(NODE_EXTRA_NAME));
-            mRoom.setText(mActuator.getExtra().get(NODE_EXTRA_ROOM));
+            String nodeTextView = "id " + mActuator.getNodeId();
+            mNodeIdTextView.setText(nodeTextView);
+            mNodeName.setText(mActuator.getExtra().get(NODE_EXTRA_NAME));
 
         }
 
@@ -180,6 +222,20 @@ public class RuleFragment extends Fragment implements RequestCallback {
             Intent i = RuleListActivity.newIntent(getActivity(), mActuator);
             Log.d(TAG, "Node id: " + mActuator.getNodeId());
             startActivity(i);
+        }
+    }
+
+    class HeaderHolder extends RecyclerView.ViewHolder {
+
+        private TextView mHeaderName;
+
+        HeaderHolder(View itemView) {
+            super(itemView);
+            mHeaderName = (TextView) itemView.findViewById(R.id.list_item_header);
+        }
+
+        void bind(String header) {
+            mHeaderName.setText(header);
         }
     }
 }

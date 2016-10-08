@@ -75,6 +75,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 ModelStorage.getInstance().invalidateNodesCache();
                 ModelStorage.getInstance().invalidateRulesCache();
                 updateUI();
+                mRuleListSwipeRefresh.setRefreshing(false);
             }
         });
 
