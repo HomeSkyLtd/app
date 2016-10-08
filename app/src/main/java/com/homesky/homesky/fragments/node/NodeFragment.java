@@ -1,26 +1,36 @@
 package com.homesky.homesky.fragments.node;
 
+import android.app.Dialog;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
+import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.homesky.homecloud_lib.model.enums.CommandCategoryEnum;
 import com.homesky.homecloud_lib.model.enums.DataCategoryEnum;
 import com.homesky.homecloud_lib.model.enums.EnumUtil;
-import com.homesky.homecloud_lib.model.enums.SingleValueEnum;
+import com.homesky.homecloud_lib.model.enums.TypeEnum;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
-import com.homesky.homesky.fragments.state.StateFragment;
+import com.homesky.homesky.command.NewActionCommand;
+import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 
@@ -28,6 +38,7 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 
 /**
  * Created by henrique on 10/3/16.
@@ -131,8 +142,9 @@ public class NodeFragment extends Fragment {
 
     class ItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-        private static final int ITEM_TYPE_NODE = 0;
-        private static final int ITEM_TYPE_HEADER = 1;
+        private static final int ITEM_TYPE_NODE_VALUE = 0;
+        private static final int ITEM_TYPE_NODE_TOGGLE = 1;
+        private static final int ITEM_TYPE_HEADER = 2;
 
         private List<Object> mNodeList;
         private NodesResponse.Node mNode;
@@ -168,11 +180,14 @@ public class NodeFragment extends Fragment {
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
 
-            if (viewType == ITEM_TYPE_NODE) {
+            if (viewType == ITEM_TYPE_NODE_VALUE) {
                 View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
-                return new NodeHolder(view);
+                return new ValueHolder(view, mNode.getNodeId(), mNode.getControllerId());
+            } else if (viewType == ITEM_TYPE_NODE_TOGGLE) {
+                View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
+                return new SwitchHolder(view, mNode.getNodeId(), mNode.getControllerId());
             } else if (viewType == ITEM_TYPE_HEADER) {
-                View view = layoutInflater.inflate(R.layout.node_list_item_header, parent, false);
+                View view = layoutInflater.inflate(R.layout.list_header, parent, false);
                 return new HeaderHolder(view);
             }
 
@@ -183,8 +198,20 @@ public class NodeFragment extends Fragment {
         public int getItemViewType(int position) {
             if (mNodeList.get(position) instanceof String)
                 return ITEM_TYPE_HEADER;
-            else
-                return ITEM_TYPE_NODE;
+            else if (position < mMiddle){
+                return ITEM_TYPE_NODE_VALUE;
+            } else {
+                Map.Entry<Integer, BigDecimal> node = (Map.Entry<Integer, BigDecimal>) mNodeList.get(position);
+                for (NodesResponse.CommandType commandType : mNode.getCommandType()) {
+                    if (commandType.getId() == node.getKey()) {
+                        if (commandType.getType() == TypeEnum.BOOL) {
+                            return ITEM_TYPE_NODE_TOGGLE;
+                        } else break;
+                    }
+                }
+            }
+
+            return ITEM_TYPE_NODE_VALUE;
         }
 
         @Override
@@ -198,13 +225,21 @@ public class NodeFragment extends Fragment {
                 if (position < mMiddle) {
                     for (NodesResponse.DataType dataType : mNode.getDataType()) {
                         if (dataType.getId() == node.getKey()) {
-                            ((NodeHolder) holder).bind(dataType, node.getValue(), dataType.getUnit());
+                            ((NodeHolder) holder).bind(
+                                    dataType,
+                                    node.getValue(),
+                                    dataType.getUnit()
+                            );
                         }
                     }
                 } else {
                     for (NodesResponse.CommandType commandType : mNode.getCommandType()) {
                         if (commandType.getId() == node.getKey()) {
-                            ((NodeHolder) holder).bind(commandType, node.getValue(), commandType.getUnit());
+                            ((NodeHolder) holder).bind(
+                                    commandType,
+                                    node.getValue(),
+                                    commandType.getUnit()
+                            );
                         }
                     }
                 }
@@ -217,38 +252,105 @@ public class NodeFragment extends Fragment {
         }
     }
 
-    class NodeHolder extends RecyclerView.ViewHolder {
+    abstract class NodeHolder extends RecyclerView.ViewHolder implements RequestCallback {
 
-        private TextView mId;
+        private TextView mTypeIdTextView;
         private TextView mCategory;
-        private TextView mValue;
 
-        NodeHolder(View itemView) {
+        protected int mNodeId;
+        protected String mControllerId;
+        protected int mTypeId;
+
+        NodeHolder(View itemView, int nodeId, String controllerId) {
             super(itemView);
 
+            mNodeId = nodeId;
+            mControllerId = controllerId;
+
             mCategory = (TextView) itemView.findViewById(R.id.node_list_item_category);
-            mId = (TextView) itemView.findViewById(R.id.node_list_item_id);
-            mValue = (TextView) itemView.findViewById(R.id.node_list_item_value);
+            mTypeIdTextView = (TextView) itemView.findViewById(R.id.node_list_item_id);
         }
 
         void bind(Object type, BigDecimal value, String unit) {
-            int id = 0;
-
             if (type instanceof NodesResponse.DataType) {
                 NodesResponse.DataType dataType = (NodesResponse.DataType) type;
-                id = dataType.getId();
-                mCategory.setText(EnumUtil.getEnumPrettyName(id, DataCategoryEnum.class));
+
+                mTypeId = dataType.getId();
+                mCategory.setText(EnumUtil.getEnumPrettyName(
+                        dataType.getDataCategory().getId(), DataCategoryEnum.class));
+
+
             } else if (type instanceof NodesResponse.CommandType) {
                 NodesResponse.CommandType commandType = (NodesResponse.CommandType) type;
-                id = commandType.getId();
-                mCategory.setText(EnumUtil.getEnumPrettyName(id, CommandCategoryEnum.class));
+
+                mTypeId = commandType.getId();
+                mCategory.setText(EnumUtil.getEnumPrettyName(
+                        commandType.getCommandCategory().getId(), CommandCategoryEnum.class));
+
             }
 
-            String str_id = "id " + id;
-            mId.setText(str_id);
+            String str_id = "id " + mTypeId;
+            mTypeIdTextView.setText(str_id);
 
+            setValue(value, unit);
+        }
+
+        protected abstract void setValue(BigDecimal value, String unit);
+
+        @Override
+        public void onPostRequest(SimpleResponse s) {
+            ModelStorage.getInstance().invalidateNodeStatesCache();
+            updateUI();
+        }
+    }
+
+    class ValueHolder extends NodeHolder implements View.OnClickListener {
+
+        private TextView mValue;
+        private static final String DIALOG_TAG = "value_holder_dialog_tag";
+
+        ValueHolder(View itemView, int nodeId, String controllerId) {
+            super(itemView, nodeId, controllerId);
+
+            mValue = (TextView) itemView.findViewById(R.id.node_list_item_value);
+            mValue.setVisibility(View.VISIBLE);
+
+            itemView.setOnClickListener(this);
+        }
+
+        @Override
+        protected void setValue(BigDecimal value, String unit) {
             String str_value = value.toEngineeringString() + " " + unit;
             mValue.setText(str_value);
+        }
+
+        @Override
+        public void onClick(View v) {
+            NewActionDialogFragment.newInstance(TypeEnum.INT).show(getFragmentManager(), DIALOG_TAG);
+        }
+    }
+
+    class SwitchHolder extends NodeHolder implements CompoundButton.OnCheckedChangeListener {
+
+        private Switch mSwitch;
+
+        SwitchHolder(View itemView, int nodeId, String controllerId) {
+            super(itemView, nodeId, controllerId);
+
+            mSwitch = (Switch) itemView.findViewById(R.id.node_list_switch);
+            mSwitch.setVisibility(View.VISIBLE);
+            mSwitch.setOnCheckedChangeListener(this);
+        }
+
+        @Override
+        protected void setValue(BigDecimal value, String unit) {
+            mSwitch.setChecked(value.intValue() == 1);
+        }
+
+        @Override
+        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+            BigDecimal value = new BigDecimal(isChecked ? 1 : 0);
+            new AsyncRequest(this).execute(new NewActionCommand(mNodeId, mControllerId, mTypeId, value));
         }
     }
 
@@ -259,11 +361,48 @@ public class NodeFragment extends Fragment {
         HeaderHolder(View itemView) {
             super(itemView);
 
-            mTitle = (TextView) itemView.findViewById(R.id.node_list_item_header);
+            mTitle = (TextView) itemView.findViewById(R.id.list_item_header);
         }
 
         void bind(String title) {
             mTitle.setText(title);
+        }
+    }
+
+    public static class NewActionDialogFragment extends DialogFragment {
+
+        private static final String BUNDLE_KEY = "layout_type";
+        private long typeId;
+
+        static NewActionDialogFragment newInstance(TypeEnum type) {
+            NewActionDialogFragment fragment = new NewActionDialogFragment();
+
+            Bundle args = new Bundle();
+            args.putLong(BUNDLE_KEY, type.getId());
+            fragment.setArguments(args);
+
+            return fragment;
+        }
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+            typeId = getArguments().getLong(BUNDLE_KEY);
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            setStyle(DialogFragment.STYLE_NORMAL, R.style.CustomDialog);
+            return super.onCreateDialog(savedInstanceState);
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.node_dialog_fragment, container, false);
+            getDialog().setCanceledOnTouchOutside(true);
+            return view;
         }
     }
 
