@@ -70,7 +70,12 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mRuleListSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-
+                mNodes = null;
+                mRules = null;
+                ModelStorage.getInstance().invalidateNodesCache();
+                ModelStorage.getInstance().invalidateRulesCache();
+                updateUI();
+                mRuleListSwipeRefresh.setRefreshing(false);
             }
         });
 
