@@ -10,6 +10,8 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -36,10 +38,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-
-/**
- * Created by henrique on 10/3/16.
- */
 
 public class NodeFragment extends Fragment {
 
@@ -180,10 +178,10 @@ public class NodeFragment extends Fragment {
 
             if (viewType == ITEM_TYPE_DATA_VALUE || viewType == ITEM_TYPE_COMMAND_VALUE) {
                 View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
-                return new ValueHolder(view, mNode.getNodeId(), mNode.getControllerId(), viewType);
+                return new ValueHolder(view, mNode, viewType);
             } else if (viewType == ITEM_TYPE_NODE_TOGGLE) {
                 View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
-                return new SwitchHolder(view, mNode.getNodeId(), mNode.getControllerId());
+                return new SwitchHolder(view, mNode);
             } else if (viewType == ITEM_TYPE_HEADER) {
                 View view = layoutInflater.inflate(R.layout.list_header, parent, false);
                 return new HeaderHolder(view);
@@ -255,15 +253,13 @@ public class NodeFragment extends Fragment {
         private TextView mTypeIdTextView;
         private TextView mCategory;
 
-        protected int mNodeId;
-        protected String mControllerId;
-        protected int mTypeId;
+        NodesResponse.Node mNode;
+        int mTypeId;
 
-        NodeHolder(View itemView, int nodeId, String controllerId) {
+        NodeHolder(View itemView, NodesResponse.Node node) {
             super(itemView);
 
-            mNodeId = nodeId;
-            mControllerId = controllerId;
+            mNode = node;
 
             mCategory = (TextView) itemView.findViewById(R.id.node_list_item_category);
             mTypeIdTextView = (TextView) itemView.findViewById(R.id.node_list_item_id);
@@ -307,8 +303,8 @@ public class NodeFragment extends Fragment {
         private TextView mValue;
         private static final String DIALOG_TAG = "value_holder_dialog_tag";
 
-        ValueHolder(View itemView, int nodeId, String controllerId, int viewType) {
-            super(itemView, nodeId, controllerId);
+        ValueHolder(View itemView, NodesResponse.Node node, int viewType) {
+            super(itemView, node);
 
             mValue = (TextView) itemView.findViewById(R.id.node_list_item_value);
             mValue.setVisibility(View.VISIBLE);
@@ -326,7 +322,7 @@ public class NodeFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            NewActionDialogFragment.newInstance(TypeEnum.INT, this).show(getFragmentManager(), DIALOG_TAG);
+            NewActionDialogFragment.newInstance(this).show(getFragmentManager(), DIALOG_TAG);
         }
     }
 
@@ -334,8 +330,8 @@ public class NodeFragment extends Fragment {
 
         private Switch mSwitch;
 
-        SwitchHolder(View itemView, int nodeId, String controllerId) {
-            super(itemView, nodeId, controllerId);
+        SwitchHolder(View itemView, NodesResponse.Node node) {
+            super(itemView, node);
 
             mSwitch = (Switch) itemView.findViewById(R.id.node_list_switch);
             mSwitch.setVisibility(View.VISIBLE);
@@ -372,23 +368,16 @@ public class NodeFragment extends Fragment {
     public static class NewActionDialogFragment extends DialogFragment implements View.OnClickListener {
 
         private TextView mValueTextView;
-
-        private long mTypeId;
         private NodeHolder mNodeHolder;
 
         void setNodeHolder(NodeHolder nodeHolder) {
             this.mNodeHolder = nodeHolder;
         }
 
-        public void setTypeId(long typeId) {
-            mTypeId = typeId;
-        }
-
-        static NewActionDialogFragment newInstance(TypeEnum type, NodeHolder nodeHolder) {
+        static NewActionDialogFragment newInstance(NodeHolder nodeHolder) {
             NewActionDialogFragment fragment = new NewActionDialogFragment();
 
             fragment.setNodeHolder(nodeHolder);
-            fragment.setTypeId(type.getId());
 
             return fragment;
         }
@@ -416,6 +405,13 @@ public class NodeFragment extends Fragment {
 
             mValueTextView = (TextView) view.findViewById(R.id.node_dialog_fragment_edit_text);
 
+            //TODO: buscar id em dataType ou commandType e setar teclado de acordo
+
+            if (mNodeHolder.mTypeId == TypeEnum.INT.getId())
+                mValueTextView.setInputType(InputType.TYPE_CLASS_NUMBER);
+            else if (mNodeHolder.mTypeId == TypeEnum.REAL.getId())
+                mValueTextView.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
+
             return view;
         }
 
@@ -434,10 +430,11 @@ public class NodeFragment extends Fragment {
                 BigDecimal value =  new BigDecimal(str_value);
                 new AsyncRequest(mNodeHolder)
                         .execute(new NewActionCommand(
-                                    mNodeHolder.mNodeId,
-                                    mNodeHolder.mControllerId,
+                                    mNodeHolder.mNode.getNodeId(),
+                                    mNodeHolder.mNode.getControllerId(),
                                     mNodeHolder.mTypeId,
                                     value));
+                getDialog().cancel();
             }
         }
     }

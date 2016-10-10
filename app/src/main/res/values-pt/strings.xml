@@ -28,4 +28,6 @@
     <string name="state_fragment_error">Erro. Tente novamente.</string>
     <string name="node_fragment_list_div_nothing">Sem sensores ou atuadores</string>
     <string name="node_dialog_fragment_title">Enviar ação</string>
+    <string name="send_action_dialog_null_value">Por favor, digite um valor para enviar</string>
+    <string name="node_dialog_fragment_name">Novo valor</string>
 </resources>
