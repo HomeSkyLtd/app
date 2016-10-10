@@ -27,5 +27,5 @@
     <string name="login_fragment_remember_me">Lembrar-me</string>
     <string name="state_fragment_error">Erro. Tente novamente.</string>
     <string name="node_fragment_list_div_nothing">Sem sensores ou atuadores</string>
-    <string name="node_dialog_fragment_title">Novo valor</string>
+    <string name="node_dialog_fragment_title">Enviar ação</string>
 </resources>
