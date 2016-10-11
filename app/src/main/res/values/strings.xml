@@ -70,6 +70,7 @@
 
     <!-- Send Action Dialog Fragment -->
     <string name="send_action_dialog_null_value">Please, type a value to send</string>
+    <string name="send_action_dialog_out_of_bounds_value">The value must be between %1$s and %2$s</string>
 
     <!-- Enum utils -->
     <string name="EQ">is equal to</string>
