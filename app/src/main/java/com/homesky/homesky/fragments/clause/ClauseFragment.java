@@ -13,6 +13,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
+import com.homesky.homecloud_lib.model.Rule;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
@@ -30,6 +31,8 @@ public class ClauseFragment extends Fragment implements RequestCallback {
     private static final String ARG_NODE_ID = "nodeId";
 
     private int mNodeId;
+    private NodesResponse.Node mNode;
+    private List<Rule> mRules;
 
     private Spinner mActionCommandSpinner;
     private EditText mActionValueEditText;
@@ -56,9 +59,9 @@ public class ClauseFragment extends Fragment implements RequestCallback {
 
         mActionCommandSpinner = (Spinner)view.findViewById(R.id.fragment_clause_action_command_spinner);
         List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(this);
-        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, nodes);
+        mNode = AppFindElementUtils.findNodeFromId(mNodeId, nodes);
         HashMap<String, Integer> commandNameToId = new HashMap<>();
-        for(NodesResponse.CommandType ct : node.getCommandType())
+        for(NodesResponse.CommandType ct : mNode.getCommandType())
             commandNameToId.put(
                     AppEnumUtils.commandCategoryToString(getActivity(), ct.getCommandCategory()),
                     ct.getId()
@@ -70,11 +73,13 @@ public class ClauseFragment extends Fragment implements RequestCallback {
         mActionValueEditText = (EditText)view.findViewById(R.id.fragment_clause_action_value_edit_text);
 
         mViewPager = (ViewPager)view.findViewById(R.id.fragment_clause_view_pager);
+        mRules = AppFindElementUtils.findRulesFromNodeId(mNodeId, ModelStorage.getInstance().getRules(this));
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         mViewPager.setAdapter(new FragmentStatePagerAdapter(fragmentManager) {
 
             @Override
             public Fragment getItem(int position) {
+
                 return OrStatementFragment.newInstance(0);
             }
 
