@@ -15,7 +15,7 @@
         android:padding="@dimen/activity_horizontal_margin">
 
         <TextView
-            style="@style/ClauseTextViewStyle"
+            style="@style/HeaderTextViewStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/clause_action_command"/>
@@ -26,7 +26,7 @@
             android:layout_height="wrap_content"/>
 
         <TextView
-            style="@style/ClauseTextViewStyle"
+            style="@style/HeaderTextViewStyle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/clause_action_value"/>

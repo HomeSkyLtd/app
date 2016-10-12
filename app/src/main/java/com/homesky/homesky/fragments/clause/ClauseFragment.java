@@ -2,6 +2,7 @@ package com.homesky.homesky.fragments.clause;
 
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
@@ -13,30 +14,34 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.homesky.homecloud_lib.model.Rule;
+import com.homesky.homecloud_lib.model.Proposition;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
-import com.homesky.homesky.fragments.orStatement.OrStatementFragment;
+import com.homesky.homesky.fragments.andStatement.AndStatementFragment;
+import com.homesky.homesky.fragments.andStatement.AndStatementFragmentEmpty;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.AppEnumUtils;
 import com.homesky.homesky.utils.AppFindElementUtils;
+import com.homesky.homesky.utils.AppStringUtils;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-public class ClauseFragment extends Fragment implements RequestCallback {
+public class ClauseFragment extends Fragment implements RequestCallback, PropositionDialog.PropositionDialogCallback {
     private static final String TAG = "ClauseFragment";
     private static final String ARG_NODE_ID = "nodeId";
 
     private int mNodeId;
     private NodesResponse.Node mNode;
-    private List<Rule> mRules;
+    private List<List<Proposition>> mClause;
 
     private Spinner mActionCommandSpinner;
     private EditText mActionValueEditText;
     private ViewPager mViewPager;
+    private FloatingActionButton mFloatingActionButton;
 
     public static Fragment newInstance(int nodeId){
         Bundle args = new Bundle();
@@ -50,6 +55,7 @@ public class ClauseFragment extends Fragment implements RequestCallback {
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mNodeId = getArguments().getInt(ARG_NODE_ID);
+        mClause = new ArrayList<>();
     }
 
     @Nullable
@@ -73,21 +79,39 @@ public class ClauseFragment extends Fragment implements RequestCallback {
         mActionValueEditText = (EditText)view.findViewById(R.id.fragment_clause_action_value_edit_text);
 
         mViewPager = (ViewPager)view.findViewById(R.id.fragment_clause_view_pager);
-        mRules = AppFindElementUtils.findRulesFromNodeId(mNodeId, ModelStorage.getInstance().getRules(this));
         FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
         mViewPager.setAdapter(new FragmentStatePagerAdapter(fragmentManager) {
 
             @Override
             public Fragment getItem(int position) {
-
-                return OrStatementFragment.newInstance(0);
+                if(position == mClause.size())
+                    return AndStatementFragmentEmpty.newInstance();
+                else{
+                    List<String> andStatement = new ArrayList<>(mClause.get(position).size());
+                    for(Proposition p : mClause.get(position)){
+                        andStatement.add(AppStringUtils.getPropositionLegibleText(
+                                getActivity(), p, ModelStorage.getInstance().getNodes(ClauseFragment.this)));
+                    }
+                    return AndStatementFragment.newInstance(andStatement);
+                }
             }
 
             @Override
             public int getCount() {
-                return 5;
+                return mClause.size() + 1;
+            }
+
+        });
+
+        mFloatingActionButton = (FloatingActionButton)view.findViewById(R.id.fragment_clause_fab);
+        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                PropositionDialog dialog = new PropositionDialog();
+                dialog.show(getActivity().getSupportFragmentManager(), "a");
             }
         });
+
         return view;
     }
 
@@ -97,4 +121,15 @@ public class ClauseFragment extends Fragment implements RequestCallback {
     }
 
 
+    @Override
+    public void onPropositionResult(Proposition p, int orStatementIndex) {
+        if(mClause.size() <= orStatementIndex){
+            mClause.add(new ArrayList<Proposition>());
+            mClause.get(orStatementIndex).add(p);
+        }
+        else{
+            mClause.get(orStatementIndex).add(p);
+        }
+        mViewPager.getAdapter().notifyDataSetChanged();
+    }
 }
