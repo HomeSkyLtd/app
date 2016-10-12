@@ -3,6 +3,9 @@ package com.homesky.homesky.fragments.clause;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
+import android.support.v4.app.FragmentManager;
+import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,9 +16,11 @@ import android.widget.Spinner;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.fragments.orStatement.OrStatementFragment;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.AppEnumUtils;
+import com.homesky.homesky.utils.AppFindElementUtils;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,6 +33,7 @@ public class ClauseFragment extends Fragment implements RequestCallback {
 
     private Spinner mActionCommandSpinner;
     private EditText mActionValueEditText;
+    private ViewPager mViewPager;
 
     public static Fragment newInstance(int nodeId){
         Bundle args = new Bundle();
@@ -50,7 +56,7 @@ public class ClauseFragment extends Fragment implements RequestCallback {
 
         mActionCommandSpinner = (Spinner)view.findViewById(R.id.fragment_clause_action_command_spinner);
         List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(this);
-        NodesResponse.Node node = findNodeFromId(mNodeId, nodes);
+        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, nodes);
         HashMap<String, Integer> commandNameToId = new HashMap<>();
         for(NodesResponse.CommandType ct : node.getCommandType())
             commandNameToId.put(
@@ -61,8 +67,22 @@ public class ClauseFragment extends Fragment implements RequestCallback {
         mActionCommandSpinner.setAdapter(new ArrayAdapter<String>(
                 getActivity(), android.R.layout.simple_spinner_item, commandNames));
 
-        mActionValueEditText = (EditText) view.findViewById(R.id.fragment_clause_action_value_edit_text);
+        mActionValueEditText = (EditText)view.findViewById(R.id.fragment_clause_action_value_edit_text);
 
+        mViewPager = (ViewPager)view.findViewById(R.id.fragment_clause_view_pager);
+        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+        mViewPager.setAdapter(new FragmentStatePagerAdapter(fragmentManager) {
+
+            @Override
+            public Fragment getItem(int position) {
+                return OrStatementFragment.newInstance(0);
+            }
+
+            @Override
+            public int getCount() {
+                return 5;
+            }
+        });
         return view;
     }
 
@@ -71,11 +91,5 @@ public class ClauseFragment extends Fragment implements RequestCallback {
 
     }
 
-    private NodesResponse.Node findNodeFromId(int id, List<NodesResponse.Node> nodes) {
-        for (NodesResponse.Node n : nodes) {
-            if (n.getNodeId() == id)
-                return n;
-        }
-        return null;
-    }
+
 }
