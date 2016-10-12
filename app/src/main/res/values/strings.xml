@@ -40,11 +40,15 @@
     <string name="rule_item_node_room">Room:</string>
 
     <!-- Rule list fragment -->
-    <string name="or">or</string>
-    <string name="and">and</string>
-    <string name="set">set</string>
-    <string name="condition">condition:</string>
-    <string name="effect">effect:</string>
+    <string name="rule_list_or">or</string>
+    <string name="rule_list_and">and</string>
+    <string name="rule_list_set">set</string>
+    <string name="rule_list_condition">condition:</string>
+    <string name="rule_list_effect">effect:</string>
+
+    <!-- Clause fragment -->
+    <string name="clause_action_command">Action command</string>
+    <string name="clause_action_value">Action value</string>
 
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Controller</string>

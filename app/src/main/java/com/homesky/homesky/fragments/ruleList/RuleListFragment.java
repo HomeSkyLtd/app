@@ -1,13 +1,14 @@
 package com.homesky.homesky.fragments.ruleList;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,6 +20,7 @@ import com.homesky.homecloud_lib.model.Rule;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.fragments.clause.ClauseActivity;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.AppEnumUtils;
@@ -40,6 +42,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     private TextView mActuatorTextView;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mRuleListSwipeRefresh;
+    private FloatingActionButton mFloatingActionButton;
 
     public static Fragment newInstance(int nodeId){
         Bundle args = new Bundle();
@@ -76,6 +79,15 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 ModelStorage.getInstance().invalidateRulesCache();
                 updateUI();
                 mRuleListSwipeRefresh.setRefreshing(false);
+            }
+        });
+
+        mFloatingActionButton = (FloatingActionButton)view.findViewById(R.id.fragment_rule_list_fab);
+        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = ClauseActivity.newIntent(getActivity(), mNodeId);
+                startActivity(i);
             }
         });
 
@@ -141,14 +153,14 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             List<String> andParts = new ArrayList<>();
             for(Proposition p : andStatement)
                 andParts.add(getPropositionLegibleText(p, nodes));
-            orParts.add(TextUtils.join(" " + getString(R.string.and) + " ", andParts));
+            orParts.add(TextUtils.join(" " + getString(R.string.rule_list_and) + " ", andParts));
         }
-        return TextUtils.join(" " + getString(R.string.and) + " ", orParts);
+        return TextUtils.join(" " + getString(R.string.rule_list_or) + " ", orParts);
     }
 
     private String getRuleEffectLegibleText(Rule r, List<NodesResponse.Node> nodes){
         StringBuilder sb = new StringBuilder();
-        sb.append(getString(R.string.set));
+        sb.append(getString(R.string.rule_list_set));
         sb.append(" ");
         NodesResponse.Node node = findNodeFromId(r.getCommand().getNodeId(), nodes);
         sb.append(node.getExtra().get(NODE_EXTRA_NAME));

@@ -24,8 +24,10 @@
         <activity android:name=".user.UserActivity" android:theme="@style/LoginTheme"/>
         <activity android:name=".fragments.node.NodeActivity"/>
         <activity android:name=".fragments.ruleList.RuleListActivity"
-                  android:parentActivityName=".activities.MenuFragmentsActivity"
-                  android:theme="@style/LoginTheme"/>
+                  android:launchMode="singleTop"
+                  android:parentActivityName=".activities.MenuFragmentsActivity"/>
+        <activity android:name=".fragments.clause.ClauseActivity"
+                  android:parentActivityName=".fragments.ruleList.RuleListActivity"/>
     </application>
 
 </manifest>

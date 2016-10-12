@@ -11,7 +11,7 @@
         android:layout_column="0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/condition"
+        android:text="@string/rule_list_condition"
         android:layout_marginRight="8dp"/>
     <TextView
         android:layout_row="0"
@@ -25,7 +25,7 @@
         android:layout_column="0"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/effect"/>
+        android:text="@string/rule_list_effect"/>
     <TextView
         android:layout_row="1"
         android:layout_column="1"
