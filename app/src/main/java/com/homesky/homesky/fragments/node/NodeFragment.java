@@ -1,22 +1,26 @@
 package com.homesky.homesky.fragments.node;
 
 import android.app.Dialog;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
+import android.renderscript.ScriptGroup;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
-import android.support.v4.app.FragmentTransaction;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageButton;
+import android.widget.ProgressBar;
+import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -38,11 +42,6 @@ import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
-
-/**
- * Created by henrique on 10/3/16.
- */
 
 public class NodeFragment extends Fragment {
 
@@ -53,9 +52,10 @@ public class NodeFragment extends Fragment {
     private RecyclerView mRecyclerView;
     private ItemAdapter mAdapter;
 
-    private int mNodeId;
-    private String mControllerId;
-    private SwipeRefreshLayout mNodeSwipeRefresh;
+    protected int mNodeId;
+    protected String mControllerId;
+    protected SwipeRefreshLayout mNodeSwipeRefresh;
+    private RelativeLayout mLoadingPanel;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -70,6 +70,7 @@ public class NodeFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_node, container, false);
 
+        mLoadingPanel = (RelativeLayout) view.findViewById(R.id.node_fragment_loading_panel);
         mRecyclerView = (RecyclerView) view.findViewById(R.id.fragment_node_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
         mNodeSwipeRefresh = (SwipeRefreshLayout) view.findViewById(R.id.node_fragment_swipe_refresh_layout);
@@ -99,7 +100,10 @@ public class NodeFragment extends Fragment {
     private void updateUI() {
         List<StateResponse.NodeState> list = ModelStorage.getInstance().getNodeStates(new GetHouseStateRequest());
         if (list != null) {
+            mLoadingPanel.setVisibility(View.GONE);
             setNodeAndState(false);
+        } else {
+            mLoadingPanel.setVisibility(View.VISIBLE);
         }
 
         if (mAdapter == null) {
@@ -142,9 +146,10 @@ public class NodeFragment extends Fragment {
 
     class ItemAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
-        private static final int ITEM_TYPE_NODE_VALUE = 0;
-        private static final int ITEM_TYPE_NODE_TOGGLE = 1;
-        private static final int ITEM_TYPE_HEADER = 2;
+        private static final int ITEM_TYPE_DATA_VALUE = 0;
+        private static final int ITEM_TYPE_COMMAND_VALUE = 1;
+        private static final int ITEM_TYPE_NODE_TOGGLE = 2;
+        private static final int ITEM_TYPE_HEADER = 3;
 
         private List<Object> mNodeList;
         private NodesResponse.Node mNode;
@@ -180,12 +185,12 @@ public class NodeFragment extends Fragment {
         public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
             LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
 
-            if (viewType == ITEM_TYPE_NODE_VALUE) {
+            if (viewType == ITEM_TYPE_DATA_VALUE || viewType == ITEM_TYPE_COMMAND_VALUE) {
                 View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
-                return new ValueHolder(view, mNode.getNodeId(), mNode.getControllerId());
+                return new ValueHolder(view, mNode, viewType);
             } else if (viewType == ITEM_TYPE_NODE_TOGGLE) {
                 View view = layoutInflater.inflate(R.layout.node_list_item, parent, false);
-                return new SwitchHolder(view, mNode.getNodeId(), mNode.getControllerId());
+                return new SwitchHolder(view, mNode);
             } else if (viewType == ITEM_TYPE_HEADER) {
                 View view = layoutInflater.inflate(R.layout.list_header, parent, false);
                 return new HeaderHolder(view);
@@ -199,7 +204,7 @@ public class NodeFragment extends Fragment {
             if (mNodeList.get(position) instanceof String)
                 return ITEM_TYPE_HEADER;
             else if (position < mMiddle){
-                return ITEM_TYPE_NODE_VALUE;
+                return ITEM_TYPE_DATA_VALUE;
             } else {
                 Map.Entry<Integer, BigDecimal> node = (Map.Entry<Integer, BigDecimal>) mNodeList.get(position);
                 for (NodesResponse.CommandType commandType : mNode.getCommandType()) {
@@ -211,7 +216,7 @@ public class NodeFragment extends Fragment {
                 }
             }
 
-            return ITEM_TYPE_NODE_VALUE;
+            return ITEM_TYPE_COMMAND_VALUE;
         }
 
         @Override
@@ -256,26 +261,27 @@ public class NodeFragment extends Fragment {
 
         private TextView mTypeIdTextView;
         private TextView mCategory;
+        protected RelativeLayout mProgressBar;
 
-        protected int mNodeId;
-        protected String mControllerId;
-        protected int mTypeId;
+        NodesResponse.Node mNode;
+        NodesResponse.Type mType;
 
-        NodeHolder(View itemView, int nodeId, String controllerId) {
+        NodeHolder(View itemView, NodesResponse.Node node) {
             super(itemView);
 
-            mNodeId = nodeId;
-            mControllerId = controllerId;
+            mNode = node;
 
             mCategory = (TextView) itemView.findViewById(R.id.node_list_item_category);
             mTypeIdTextView = (TextView) itemView.findViewById(R.id.node_list_item_id);
+            mProgressBar = (RelativeLayout) itemView.findViewById(R.id.node_list_item_loading_panel);
         }
 
-        void bind(Object type, BigDecimal value, String unit) {
+        void bind(NodesResponse.Type type, BigDecimal value, String unit) {
+            mType = type;
+
             if (type instanceof NodesResponse.DataType) {
                 NodesResponse.DataType dataType = (NodesResponse.DataType) type;
 
-                mTypeId = dataType.getId();
                 mCategory.setText(EnumUtil.getEnumPrettyName(
                         dataType.getDataCategory().getId(), DataCategoryEnum.class));
 
@@ -283,22 +289,23 @@ public class NodeFragment extends Fragment {
             } else if (type instanceof NodesResponse.CommandType) {
                 NodesResponse.CommandType commandType = (NodesResponse.CommandType) type;
 
-                mTypeId = commandType.getId();
                 mCategory.setText(EnumUtil.getEnumPrettyName(
                         commandType.getCommandCategory().getId(), CommandCategoryEnum.class));
 
             }
 
-            String str_id = "id " + mTypeId;
+            String str_id = "id " + mType.getId();
             mTypeIdTextView.setText(str_id);
 
-            setValue(value, unit);
+            setValue(value, unit, mType);
         }
 
-        protected abstract void setValue(BigDecimal value, String unit);
+        protected abstract void setValue(BigDecimal value, String unit, NodesResponse.Type type);
+        protected abstract void setValueEmpty();
 
         @Override
         public void onPostRequest(SimpleResponse s) {
+            mProgressBar.setVisibility(View.GONE);
             ModelStorage.getInstance().invalidateNodeStatesCache();
             updateUI();
         }
@@ -308,25 +315,40 @@ public class NodeFragment extends Fragment {
 
         private TextView mValue;
         private static final String DIALOG_TAG = "value_holder_dialog_tag";
+        private NodesResponse.Type mType;
 
-        ValueHolder(View itemView, int nodeId, String controllerId) {
-            super(itemView, nodeId, controllerId);
+        ValueHolder(View itemView, NodesResponse.Node node, int viewType) {
+            super(itemView, node);
 
             mValue = (TextView) itemView.findViewById(R.id.node_list_item_value);
             mValue.setVisibility(View.VISIBLE);
+            mProgressBar.setVisibility(View.GONE);
 
-            itemView.setOnClickListener(this);
+            if (viewType == ItemAdapter.ITEM_TYPE_COMMAND_VALUE) {
+                itemView.setOnClickListener(this);
+            }
         }
 
         @Override
-        protected void setValue(BigDecimal value, String unit) {
+        protected void setValue(BigDecimal value, String unit, NodesResponse.Type type) {
             String str_value = value.toEngineeringString() + " " + unit;
             mValue.setText(str_value);
+            mType = type;
         }
+
+        @Override
+        protected void setValueEmpty() {
+            mProgressBar.setVisibility(View.GONE);
+            mType = null;
+        }
+
 
         @Override
         public void onClick(View v) {
-            NewActionDialogFragment.newInstance(TypeEnum.INT).show(getFragmentManager(), DIALOG_TAG);
+            if (mType != null) {
+                NewActionDialogFragment.newInstance(this, mType)
+                        .show(getFragmentManager(), DIALOG_TAG);
+            }
         }
     }
 
@@ -334,8 +356,8 @@ public class NodeFragment extends Fragment {
 
         private Switch mSwitch;
 
-        SwitchHolder(View itemView, int nodeId, String controllerId) {
-            super(itemView, nodeId, controllerId);
+        SwitchHolder(View itemView, NodesResponse.Node node) {
+            super(itemView, node);
 
             mSwitch = (Switch) itemView.findViewById(R.id.node_list_switch);
             mSwitch.setVisibility(View.VISIBLE);
@@ -343,14 +365,20 @@ public class NodeFragment extends Fragment {
         }
 
         @Override
-        protected void setValue(BigDecimal value, String unit) {
+        protected void setValue(BigDecimal value, String unit, NodesResponse.Type type) {
             mSwitch.setChecked(value.intValue() == 1);
+        }
+
+        @Override
+        protected void setValueEmpty() {
+            mProgressBar.setVisibility(View.VISIBLE);
+            mSwitch.setVisibility(View.GONE);
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             BigDecimal value = new BigDecimal(isChecked ? 1 : 0);
-            new AsyncRequest(this).execute(new NewActionCommand(mNodeId, mControllerId, mTypeId, value));
+            new AsyncRequest(this).execute(new NewActionCommand(mNodeId, mControllerId, mType.getId(), value));
         }
     }
 
@@ -369,17 +397,27 @@ public class NodeFragment extends Fragment {
         }
     }
 
-    public static class NewActionDialogFragment extends DialogFragment {
+    public static class NewActionDialogFragment extends DialogFragment implements View.OnClickListener {
 
-        private static final String BUNDLE_KEY = "layout_type";
-        private long typeId;
+        private TextView mValueTextView;
+        private NodeHolder mNodeHolder;
+        private NodesResponse.Type mType;
 
-        static NewActionDialogFragment newInstance(TypeEnum type) {
+        void setNodeHolder(NodeHolder nodeHolder) {
+            this.mNodeHolder = nodeHolder;
+        }
+
+        public void setType(NodesResponse.Type type) {
+            mType = type;
+        }
+
+
+
+        static NewActionDialogFragment newInstance(NodeHolder nodeHolder, NodesResponse.Type type) {
             NewActionDialogFragment fragment = new NewActionDialogFragment();
 
-            Bundle args = new Bundle();
-            args.putLong(BUNDLE_KEY, type.getId());
-            fragment.setArguments(args);
+            fragment.setNodeHolder(nodeHolder);
+            fragment.setType(type);
 
             return fragment;
         }
@@ -387,7 +425,6 @@ public class NodeFragment extends Fragment {
         @Override
         public void onCreate(@Nullable Bundle savedInstanceState) {
             super.onCreate(savedInstanceState);
-            typeId = getArguments().getLong(BUNDLE_KEY);
         }
 
         @NonNull
@@ -401,8 +438,54 @@ public class NodeFragment extends Fragment {
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
             View view = inflater.inflate(R.layout.node_dialog_fragment, container, false);
+
             getDialog().setCanceledOnTouchOutside(true);
+            getDialog().getWindow().setBackgroundDrawableResource(R.drawable.round_dialog);
+
+            Button sendValue = (Button) view.findViewById(R.id.node_dialog_fragment_button);
+            sendValue.setOnClickListener(this);
+
+            mValueTextView = (TextView) view.findViewById(R.id.node_dialog_fragment_edit_text);
+
+            if (mType.getType() == TypeEnum.INT)
+                mValueTextView.setInputType(InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_SIGNED);
+            else if (mType.getType() == TypeEnum.REAL)
+                mValueTextView.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL|InputType.TYPE_CLASS_NUMBER|InputType.TYPE_NUMBER_FLAG_SIGNED);
+
             return view;
+        }
+
+
+        @Override
+        public void onClick(View v) {
+            String str_value = mValueTextView.getText().toString();
+
+            if (str_value.isEmpty()) {
+                Snackbar.make(
+                        getActivity().findViewById(R.id.fragment_container),
+                        getResources().getString(R.string.send_action_dialog_null_value),
+                        Snackbar.LENGTH_SHORT)
+                        .show();
+            } else {
+                BigDecimal value =  new BigDecimal(str_value);
+
+                if (value.compareTo(mType.getRange()[0]) < 0 || value.compareTo(mType.getRange()[1]) > 0) {
+                    Toast.makeText(getActivity(),
+                            getResources().getString(
+                                    R.string.send_action_dialog_out_of_bounds_value,
+                                    mType.getRange()[0].toString(),
+                                    mType.getRange()[1].toString()), Toast.LENGTH_LONG).show();
+                } else {
+                    mNodeHolder.setValueEmpty();
+                    new AsyncRequest(mNodeHolder)
+                            .execute(new NewActionCommand(
+                                    mNodeHolder.mNode.getNodeId(),
+                                    mNodeHolder.mNode.getControllerId(),
+                                    mType.getId(),
+                                    value));
+                    getDialog().cancel();
+                }
+            }
         }
     }
 

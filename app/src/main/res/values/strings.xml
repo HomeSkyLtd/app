@@ -72,6 +72,10 @@
     <string name="node_dialog_fragment_title">Send Action</string>
     <string name="node_dialog_fragment_name">New value </string>
 
+    <!-- Send Action Dialog Fragment -->
+    <string name="send_action_dialog_null_value">Please, type a value to send</string>
+    <string name="send_action_dialog_out_of_bounds_value">The value must be between %1$s and %2$s</string>
+
     <!-- Enum utils -->
     <string name="EQ">is equal to</string>
     <string name="NE">is not equal to</string>
