@@ -3,6 +3,7 @@ package com.homesky.homesky.fragments.node;
 import android.content.Context;
 import android.content.Intent;
 import android.support.v4.app.Fragment;
+import android.widget.Toast;
 
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
@@ -21,6 +22,9 @@ public class NodeActivity extends SingleFragmentActivity {
     static final String EXTRA_NODE_ID = "com.homesky.homesky.fragments.node.node_id";
     static final String EXTRA_CONTROLLER_ID = "com.homesky.homesky.fragments.node.controller_id";
 
+    private boolean mLockActivity = false;
+    private String mMessage;
+
     public static Intent newIntent(Context context, int nodeId, String controllerId) {
         Intent intent = new Intent(context, NodeActivity.class);
         intent.putExtra(EXTRA_NODE_ID, nodeId);
@@ -31,5 +35,19 @@ public class NodeActivity extends SingleFragmentActivity {
     @Override
     public Fragment createFragment() {
         return new NodeFragment();
+    }
+
+    @Override
+    public void onBackPressed() {
+        if (mLockActivity) {
+            Toast.makeText(this, mMessage, Toast.LENGTH_SHORT).show();
+        } else {
+            super.onBackPressed();
+        }
+    }
+
+    void lockActivity(boolean lock, String message) {
+        mLockActivity = lock;
+        mMessage = message;
     }
 }
