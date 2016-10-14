@@ -27,6 +27,24 @@ public class AppEnumUtils {
         return "Not found";
     }
 
+    public static OperatorEnum stringToOperator(Context c, String s){
+
+        if(s.equals(c.getString(R.string.EQ)))
+            return OperatorEnum.EQ;
+        else if(s.equals(c.getString(R.string.NE)))
+            return OperatorEnum.NE;
+        else if(s.equals(c.getString(R.string.GT)))
+            return OperatorEnum.GT;
+        else if(s.equals(c.getString(R.string.GE)))
+            return OperatorEnum.GE;
+        else if(s.equals(c.getString(R.string.LT)))
+            return OperatorEnum.LT;
+        else if(s.equals(c.getString(R.string.LE)))
+            return OperatorEnum.LE;
+        else
+            return null;
+    }
+
     public static String dataCategoryToString(Context c, DataCategoryEnum dc){
         switch (dc){
             case HUMIDITY:

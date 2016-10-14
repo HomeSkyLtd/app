@@ -25,7 +25,8 @@
             android:layout_row="0"
             android:text="@string/proposition_dialog_node"/>
 
-        <EditText
+        <Spinner
+            android:id="@+id/fragment_prop_dialog_lhs_node_spinner"
             style="@style/GridItemStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -41,7 +42,8 @@
             android:layout_row="1"
             android:text="@string/proposition_dialog_command"/>
 
-        <EditText
+        <Spinner
+            android:id="@+id/fragment_prop_dialog_lhs_command_spinner"
             style="@style/GridItemStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -57,8 +59,10 @@
         android:text="@string/proposition_dialog_operator"/>
 
     <Spinner
+        android:id="@+id/fragment_prop_dialog_operator_spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"/>
+        android:layout_height="wrap_content"
+        />
 
     <TextView
         style="@style/HeaderTextViewStyle"
@@ -81,6 +85,7 @@
             android:text="@string/proposition_dialog_rhs_type"/>
 
         <RadioGroup
+            android:id="@+id/fragment_prop_dialog_rhs_radiogroup"
             style="@style/GridItemStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -90,12 +95,14 @@
             android:orientation="horizontal">
 
             <RadioButton
+                android:id="@+id/fragment_prop_dialog_rhs_node_radio_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/proposition_dialog_type_node"
                 android:layout_marginRight="16dp"/>
 
             <RadioButton
+                android:id="@+id/fragment_prop_dialog_rhs_value_radio_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/proposition_dialog_type_value"/>
@@ -106,6 +113,7 @@
 
 
     <GridLayout
+        android:id="@+id/fragment_prop_dialog_rhs_node_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="2"
@@ -119,7 +127,8 @@
             android:layout_row="0"
             android:text="@string/proposition_dialog_node"/>
 
-        <EditText
+        <Spinner
+            android:id="@+id/fragment_prop_dialog_rhs_node_spinner"
             style="@style/GridItemStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -135,7 +144,8 @@
             android:layout_row="1"
             android:text="@string/proposition_dialog_command"/>
 
-        <EditText
+        <Spinner
+            android:id="@+id/fragment_prop_dialog_rhs_command_spinner"
             style="@style/GridItemStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
@@ -145,6 +155,7 @@
     </GridLayout>
 
     <GridLayout
+        android:id="@+id/fragment_prop_dialog_rhs_value_grid"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:columnCount="2"
@@ -158,12 +169,42 @@
             android:layout_row="0"
             android:text="@string/proposition_dialog_value"/>
 
-        <EditText
+        <LinearLayout
             style="@style/GridItemStyle"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_column="1"
             android:layout_gravity="fill_horizontal"
-            android:layout_row="0"/>
+            android:layout_column="1"
+            android:layout_row="0">
+
+            <EditText
+                android:id="@+id/fragment_prop_dialog_rhs_value_edit_text"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"/>
+            <Switch
+                android:id="@+id/fragment_prop_dialog_rhs_value_switch"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_margin="4dp"/>
+        </LinearLayout>
     </GridLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <Button
+            android:id="@+id/fragment_prop_dialog_ok_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/proposition_dialog_ok"
+            android:layout_margin="4dp"/>
+        <Button
+            android:id="@+id/fragment_prop_dialog_cancel_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/proposition_dialog_cancel"
+            android:layout_margin="4dp"/>
+
+    </LinearLayout>
 </LinearLayout>

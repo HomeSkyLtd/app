@@ -65,7 +65,7 @@
     <string name="proposition_dialog_value">Value:</string>
     <string name="proposition_dialog_ok">OK</string>
     <string name="proposition_dialog_cancel">Cancel</string>
-
+    <string name="proposition_dialog_value_error_msg">Value field cannot be empty</string>
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Controller</string>
 
@@ -99,6 +99,15 @@
     <string name="LE">is less than or equal to</string>
     <string name="GT">is greater than</string>
     <string name="GE">is greater than or equal to</string>
+
+    <string-array name="operators">
+        <item>@string/EQ</item>
+        <item>@string/NE</item>
+        <item>@string/LT</item>
+        <item>@string/LE</item>
+        <item>@string/GT</item>
+        <item>@string/GE</item>
+    </string-array>
 
     <string name="HUMIDITY">humidity</string>
     <string name="LUMINANCE">luminance</string>

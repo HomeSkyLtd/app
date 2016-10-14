@@ -35,6 +35,11 @@
             android:id="@+id/fragment_clause_action_value_edit_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"/>
+        <Switch
+            android:id="@+id/fragment_clause_action_value_switch"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_margin="4dp"/>
 
         <android.support.v4.view.ViewPager
             android:id="@+id/fragment_clause_view_pager"

@@ -35,6 +35,6 @@ public class ClauseActivity extends SingleFragmentActivity implements Propositio
 
     @Override
     public void onPropositionResult(Proposition p, int orStatementIndex) {
-
+        ((PropositionDialog.PropositionDialogCallback)mFragment).onPropositionResult(p, orStatementIndex);
     }
 }

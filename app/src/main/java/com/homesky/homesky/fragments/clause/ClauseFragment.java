@@ -7,14 +7,19 @@ import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
 import android.support.v4.view.ViewPager;
+import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Switch;
 
 import com.homesky.homecloud_lib.model.Proposition;
+import com.homesky.homecloud_lib.model.enums.EnumUtil;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
@@ -30,6 +35,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import static com.homesky.homecloud_lib.model.enums.TypeEnum.BOOL;
+import static com.homesky.homecloud_lib.model.enums.TypeEnum.INT;
+import static com.homesky.homecloud_lib.model.enums.TypeEnum.REAL;
+import static com.homesky.homecloud_lib.model.enums.TypeEnum.STRING;
+
 public class ClauseFragment extends Fragment implements RequestCallback, PropositionDialog.PropositionDialogCallback {
     private static final String TAG = "ClauseFragment";
     private static final String ARG_NODE_ID = "nodeId";
@@ -37,9 +47,11 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
     private int mNodeId;
     private NodesResponse.Node mNode;
     private List<List<Proposition>> mClause;
+    ArrayList<NodesResponse.CommandType> mCommandSpinnerIndexToCommandType = new ArrayList<>();
 
     private Spinner mActionCommandSpinner;
     private EditText mActionValueEditText;
+    private Switch mActionValueSwitch;
     private ViewPager mViewPager;
     private FloatingActionButton mFloatingActionButton;
 
@@ -66,15 +78,50 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
         mActionCommandSpinner = (Spinner)view.findViewById(R.id.fragment_clause_action_command_spinner);
         List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(this);
         mNode = AppFindElementUtils.findNodeFromId(mNodeId, nodes);
-        HashMap<String, Integer> commandNameToId = new HashMap<>();
-        for(NodesResponse.CommandType ct : mNode.getCommandType())
-            commandNameToId.put(
-                    AppEnumUtils.commandCategoryToString(getActivity(), ct.getCommandCategory()),
-                    ct.getId()
-            );
-        String[] commandNames = commandNameToId.keySet().toArray(new String[commandNameToId.size()]);
+
+        List<String> commandNames = new ArrayList<>();
+        for(NodesResponse.CommandType ct : mNode.getCommandType()){
+            mCommandSpinnerIndexToCommandType.add(ct);
+            commandNames.add(AppEnumUtils.commandCategoryToString(getActivity(), ct.getCommandCategory()));
+        }
         mActionCommandSpinner.setAdapter(new ArrayAdapter<String>(
-                getActivity(), android.R.layout.simple_spinner_item, commandNames));
+                getActivity(), android.R.layout.simple_spinner_dropdown_item, commandNames));
+
+        mActionValueEditText = (EditText)view.findViewById(R.id.fragment_clause_action_value_edit_text);
+        mActionValueSwitch = (Switch)view.findViewById(R.id.fragment_clause_action_value_switch);
+        mActionCommandSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
+                NodesResponse.CommandType ct = mCommandSpinnerIndexToCommandType.get(i);
+                switch (ct.getType()){
+                    case INT:
+                        mActionValueEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
+                        mActionValueEditText.setVisibility(View.VISIBLE);
+                        mActionValueSwitch.setVisibility(View.GONE);
+                        break;
+                    case REAL:
+                        mActionValueEditText.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                        mActionValueEditText.setVisibility(View.VISIBLE);
+                        mActionValueSwitch.setVisibility(View.GONE);
+                        break;
+                    case STRING:
+                        mActionValueEditText.setInputType(InputType.TYPE_CLASS_TEXT);
+                        mActionValueEditText.setVisibility(View.VISIBLE);
+                        mActionValueSwitch.setVisibility(View.GONE);
+                        break;
+                    case BOOL:
+                        mActionValueEditText.setVisibility(View.GONE);
+                        mActionValueSwitch.setVisibility(View.VISIBLE);
+                        break;
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> adapterView) {
+
+            }
+        });
+
 
         mActionValueEditText = (EditText)view.findViewById(R.id.fragment_clause_action_value_edit_text);
 
@@ -92,6 +139,7 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
                         andStatement.add(AppStringUtils.getPropositionLegibleText(
                                 getActivity(), p, ModelStorage.getInstance().getNodes(ClauseFragment.this)));
                     }
+                    Log.d(TAG, "Ran this");
                     return AndStatementFragment.newInstance(andStatement);
                 }
             }
@@ -101,13 +149,18 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
                 return mClause.size() + 1;
             }
 
+            @Override
+            public int getItemPosition(Object object) {
+                return POSITION_NONE;
+            }
+
         });
 
         mFloatingActionButton = (FloatingActionButton)view.findViewById(R.id.fragment_clause_fab);
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                PropositionDialog dialog = new PropositionDialog();
+                PropositionDialog dialog = PropositionDialog.newInstance(mViewPager.getCurrentItem());
                 dialog.show(getActivity().getSupportFragmentManager(), "a");
             }
         });
