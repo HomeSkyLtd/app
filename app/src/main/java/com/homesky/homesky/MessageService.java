@@ -17,8 +17,8 @@ import org.json.JSONObject;
 
 public class MessageService extends FirebaseMessagingService {
     private static final String TAG = "FirebaseMessagingSvc";
-    public static final String NOTIF_RESULT = "com.homesky.homecloud_lib.NOTIF_RESULT";
-    public static final String NOTIF_MESSAGE = "com.homesky.homecloud_lib.NOTIF_MESSAGE";
+    public static final String NOTIF_RESULT = "com.homesky.homesky.NOTIF_RESULT";
+    public static final String NOTIF_MESSAGE = "com.homesky.homesky.NOTIF_MESSAGE";
 
     private LocalBroadcastManager broadcaster;
 
@@ -32,6 +32,7 @@ public class MessageService extends FirebaseMessagingService {
     public void onMessageReceived(RemoteMessage remoteMessage) {
 //      super.onMessageReceived(remoteMessage);
         String jsonStr = remoteMessage.getData().get("data");
+        Log.d(TAG, "onMessageReceived: " + jsonStr);
 
         if (jsonStr != null)
         try {
