@@ -1,13 +1,14 @@
 package com.homesky.homesky.fragments.ruleList;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
+import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,9 +20,12 @@ import com.homesky.homecloud_lib.model.Rule;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.fragments.clause.ClauseActivity;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.AppEnumUtils;
+import com.homesky.homesky.utils.AppFindElementUtils;
+import com.homesky.homesky.utils.AppStringUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +44,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     private TextView mActuatorTextView;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mRuleListSwipeRefresh;
+    private FloatingActionButton mFloatingActionButton;
 
     public static Fragment newInstance(int nodeId){
         Bundle args = new Bundle();
@@ -63,7 +68,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         mActuatorTextView = (TextView)view.findViewById(R.id.rule_list_actuator_text_view);
-        NodesResponse.Node node = findNodeFromId(mNodeId, ModelStorage.getInstance().getNodes(this));
+        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, ModelStorage.getInstance().getNodes(this));
         mActuatorTextView.setText(node.getExtra().get(NODE_EXTRA_NAME));
 
         mRuleListSwipeRefresh = (SwipeRefreshLayout)view.findViewById(R.id.rule_list_swipe_refresh_layout);
@@ -79,6 +84,15 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             }
         });
 
+        mFloatingActionButton = (FloatingActionButton)view.findViewById(R.id.fragment_rule_list_fab);
+        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                Intent i = ClauseActivity.newIntent(getActivity(), mNodeId);
+                startActivity(i);
+            }
+        });
+
         updateUI();
         return view;
     }
@@ -89,7 +103,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             mNodes = ModelStorage.getInstance().getNodes(this);
 
         if(mRules != null && mNodes != null) {
-            List<Rule> filtered = findRulesFromNodeId(mNodeId, mRules);
+            List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mRules);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(filtered);
             } else {
@@ -98,103 +112,6 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             }
             mRecyclerView.setAdapter(mAdapter);
         }
-    }
-
-    private NodesResponse.Node findNodeFromId(int id, List<NodesResponse.Node> nodes) {
-        for (NodesResponse.Node n : nodes) {
-            if (n.getNodeId() == id)
-                return n;
-        }
-        return null;
-    }
-
-    private List<Rule> findRulesFromNodeId(int id, List<Rule> rules){
-        List<Rule> filteredRules = new ArrayList<>();
-        for(Rule r : rules){
-            if(r.getCommand().getNodeId() == id)
-                filteredRules.add(r);
-        }
-        return filteredRules;
-    }
-
-    private NodesResponse.DataType findDatatypeFromId(int id, List<NodesResponse.DataType> types){
-        for(NodesResponse.DataType type : types){
-            if(type.getId() == id)
-                return type;
-        }
-        return null;
-    }
-
-    private NodesResponse.CommandType findCommandtypeFromId(int id, List<NodesResponse.CommandType> types){
-        for(NodesResponse.CommandType type : types){
-            if(type.getId() == id)
-                return type;
-        }
-        return null;
-    }
-
-    private String getRuleConditionLegibleText(Rule r, List<NodesResponse.Node> nodes){
-        List<List<Proposition>> clause = r.getClause();
-
-        List<String> orParts = new ArrayList<>();
-        for(List<Proposition> andStatement : clause){
-            List<String> andParts = new ArrayList<>();
-            for(Proposition p : andStatement)
-                andParts.add(getPropositionLegibleText(p, nodes));
-            orParts.add(TextUtils.join(" " + getString(R.string.and) + " ", andParts));
-        }
-        return TextUtils.join(" " + getString(R.string.and) + " ", orParts);
-    }
-
-    private String getRuleEffectLegibleText(Rule r, List<NodesResponse.Node> nodes){
-        StringBuilder sb = new StringBuilder();
-        sb.append(getString(R.string.set));
-        sb.append(" ");
-        NodesResponse.Node node = findNodeFromId(r.getCommand().getNodeId(), nodes);
-        sb.append(node.getExtra().get(NODE_EXTRA_NAME));
-        sb.append("'s ");
-        sb.append(AppEnumUtils.commandCategoryToString(getActivity(),
-            findCommandtypeFromId(r.getCommand().getCommandId(), node.getCommandType()).getCommandCategory()
-        ));
-        sb.append(" to ");
-        sb.append(r.getCommand().getValue());
-
-        return sb.toString();
-    }
-
-    private String getPropositionLegibleText(Proposition p, List<NodesResponse.Node> nodes){
-        StringBuilder sb = new StringBuilder();
-
-        if(p.isLhsValue())
-            sb.append(p.getLhs());
-        else{
-            String[] nodeAndCommand = p.getLhs().split("\\.");
-            int nodeId = Integer.parseInt(nodeAndCommand[0]);
-            int dataTypeId = Integer.parseInt(nodeAndCommand[1]);
-            NodesResponse.Node node = findNodeFromId(nodeId, nodes);
-            sb.append(node.getExtra().get(NODE_EXTRA_NAME));
-            sb.append("'s ");
-            sb.append(AppEnumUtils.dataCategoryToString(getActivity(),
-                    findDatatypeFromId(dataTypeId, node.getDataType()).getDataCategory()));
-        }
-
-        sb.append(" ");
-        sb.append(AppEnumUtils.operatorToString(getActivity(), p.getOperator()));
-        sb.append(" ");
-
-        if(p.isRhsValue())
-            sb.append(p.getRhs());
-        else{
-            String[] nodeAndCommand = p.getRhs().split("\\.");
-            int nodeId = Integer.parseInt(nodeAndCommand[0]);
-            int dataTypeId = Integer.parseInt(nodeAndCommand[1]);
-            NodesResponse.Node node = findNodeFromId(nodeId, nodes);
-            sb.append(node.getExtra().get(NODE_EXTRA_NAME));
-            sb.append("'s ");
-            sb.append(AppEnumUtils.dataCategoryToString(getActivity(),
-                    findDatatypeFromId(dataTypeId, node.getDataType()).getDataCategory()));
-        }
-        return sb.toString();
     }
 
     @Override
@@ -254,8 +171,8 @@ public class RuleListFragment extends Fragment implements RequestCallback{
 
         public void bindRule(Rule r){
             mRule = r;
-            mRuleEffect.setText(getRuleEffectLegibleText(mRule, mNodes));
-            mRuleCondition.setText(getRuleConditionLegibleText(mRule, mNodes));
+            mRuleEffect.setText(AppStringUtils.getRuleEffectLegibleText(getActivity(), mRule, mNodes));
+            mRuleCondition.setText(AppStringUtils.getRuleConditionLegibleText(getActivity(), mRule, mNodes));
         }
 
         @Override

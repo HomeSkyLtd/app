@@ -40,11 +40,31 @@
     <string name="rule_item_node_room">Room:</string>
 
     <!-- Rule list fragment -->
-    <string name="or">or</string>
-    <string name="and">and</string>
-    <string name="set">set</string>
-    <string name="condition">condition:</string>
-    <string name="effect">effect:</string>
+    <string name="rule_list_or">or</string>
+    <string name="rule_list_and">and</string>
+    <string name="rule_list_set">set</string>
+    <string name="rule_list_condition">condition:</string>
+    <string name="rule_list_effect">effect:</string>
+
+    <!-- Clause fragment -->
+    <string name="clause_action_command">Action command</string>
+    <string name="clause_action_value">Action value</string>
+
+    <!-- And statement fragment -->
+    <string name="and_statement_empty_message">Add a new OR statement</string>
+
+    <!-- Proposition dialog fragment -->
+    <string name="proposition_dialog_lhs">LHS</string>
+    <string name="proposition_dialog_node">Node:</string>
+    <string name="proposition_dialog_command">Command:</string>
+    <string name="proposition_dialog_operator">Operator</string>
+    <string name="proposition_dialog_rhs">RHS</string>
+    <string name="proposition_dialog_rhs_type">Type:</string>
+    <string name="proposition_dialog_type_value">Value</string>
+    <string name="proposition_dialog_type_node">Node</string>
+    <string name="proposition_dialog_value">Value:</string>
+    <string name="proposition_dialog_ok">OK</string>
+    <string name="proposition_dialog_cancel">Cancel</string>
 
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Controller</string>

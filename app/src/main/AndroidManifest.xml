@@ -20,12 +20,16 @@
                 <category android:name="android.intent.category.LAUNCHER"/>
             </intent-filter>
         </activity>
-        <activity android:name=".activities.MenuFragmentsActivity"/>
-        <activity android:name=".user.UserActivity" android:theme="@style/LoginTheme"/>
-        <activity android:name=".fragments.node.NodeActivity"/>
+        <activity android:name=".activities.MenuFragmentsActivity"
+                  android:launchMode="singleTop"/>
+        <activity android:name=".user.UserActivity"/>
+        <activity android:name=".fragments.node.NodeActivity"
+                  android:parentActivityName=".activities.MenuFragmentsActivity"/>
         <activity android:name=".fragments.ruleList.RuleListActivity"
-                  android:parentActivityName=".activities.MenuFragmentsActivity"
-                  android:theme="@style/LoginTheme"/>
+                  android:launchMode="singleTop"
+                  android:parentActivityName=".activities.MenuFragmentsActivity"/>
+        <activity android:name=".fragments.clause.ClauseActivity"
+                  android:parentActivityName=".fragments.ruleList.RuleListActivity"/>
     </application>
 
 </manifest>
