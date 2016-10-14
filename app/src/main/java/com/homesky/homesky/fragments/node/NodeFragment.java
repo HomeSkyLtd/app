@@ -2,7 +2,6 @@ package com.homesky.homesky.fragments.node;
 
 import android.app.Dialog;
 import android.os.Bundle;
-import android.renderscript.ScriptGroup;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
@@ -12,14 +11,11 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
-import android.widget.ImageButton;
-import android.widget.ProgressBar;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -57,6 +53,9 @@ public class NodeFragment extends Fragment {
     protected SwipeRefreshLayout mNodeSwipeRefresh;
     private RelativeLayout mLoadingPanel;
 
+    private int mAttemptsCounter = 0;
+    private static final int sNumberOfAttempts = 5;
+
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -77,7 +76,9 @@ public class NodeFragment extends Fragment {
         mNodeSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
+                ((NodeActivity) getActivity()).lockActivity(true, "Wait a second, fetching state...");
                 ModelStorage.getInstance().invalidateNodeStatesCache();
+                mAttemptsCounter = 0;
                 updateUI();
             }
         });
@@ -88,7 +89,12 @@ public class NodeFragment extends Fragment {
     }
 
     private void setNodeAndState (boolean forceSync) {
-        for (NodesResponse.Node node : ModelStorage.getInstance().getNodeIdToValue(forceSync).keySet()) {
+        if (ModelStorage.getInstance().getNodeIdToValue(forceSync) == null) {
+            mAttemptsCounter++;
+            return;
+        }
+
+        for (NodesResponse.Node node : ModelStorage.getInstance().getNodeIdToValue(false).keySet()) {
             if (node.getNodeId() == mNodeId && node.getControllerId().equals(mControllerId)) {
                 mNode = node;
                 break;
@@ -98,6 +104,18 @@ public class NodeFragment extends Fragment {
     }
 
     private void updateUI() {
+        if (mAttemptsCounter > sNumberOfAttempts) {
+            mAttemptsCounter = 0;
+            mLoadingPanel.setVisibility(View.GONE);
+            mNodeSwipeRefresh.setRefreshing(false);
+            ((NodeActivity) getActivity()).lockActivity(false, null);
+            Snackbar.make(
+                    getActivity().findViewById(R.id.fragment_container),
+                    getActivity().getResources().getText(R.string.node_fragment_no_connection),
+                    Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
         List<StateResponse.NodeState> list = ModelStorage.getInstance().getNodeStates(new GetHouseStateRequest());
         if (list != null) {
             mLoadingPanel.setVisibility(View.GONE);
@@ -127,6 +145,7 @@ public class NodeFragment extends Fragment {
                 setNodeAndState(true);
                 updateUI();
                 mNodeSwipeRefresh.setRefreshing(false);
+                ((NodeActivity) getActivity()).lockActivity(false, null);
             }
         }
     }
@@ -232,8 +251,7 @@ public class NodeFragment extends Fragment {
                         if (dataType.getId() == node.getKey()) {
                             ((NodeHolder) holder).bind(
                                     dataType,
-                                    node.getValue(),
-                                    dataType.getUnit()
+                                    node.getValue()
                             );
                         }
                     }
@@ -242,8 +260,7 @@ public class NodeFragment extends Fragment {
                         if (commandType.getId() == node.getKey()) {
                             ((NodeHolder) holder).bind(
                                     commandType,
-                                    node.getValue(),
-                                    commandType.getUnit()
+                                    node.getValue()
                             );
                         }
                     }
@@ -261,7 +278,11 @@ public class NodeFragment extends Fragment {
 
         private TextView mTypeIdTextView;
         private TextView mCategory;
-        protected RelativeLayout mProgressBar;
+        RelativeLayout mProgressBar;
+
+        private View mItemView;
+        protected BigDecimal mValue;
+        protected BigDecimal mOldValue;
 
         NodesResponse.Node mNode;
         NodesResponse.Type mType;
@@ -274,9 +295,15 @@ public class NodeFragment extends Fragment {
             mCategory = (TextView) itemView.findViewById(R.id.node_list_item_category);
             mTypeIdTextView = (TextView) itemView.findViewById(R.id.node_list_item_id);
             mProgressBar = (RelativeLayout) itemView.findViewById(R.id.node_list_item_loading_panel);
+
+            mItemView = itemView;
         }
 
-        void bind(NodesResponse.Type type, BigDecimal value, String unit) {
+        void setClickable(boolean clickable) {
+            mItemView.setClickable(clickable);
+        }
+
+        void bind(NodesResponse.Type type, BigDecimal value) {
             mType = type;
 
             if (type instanceof NodesResponse.DataType) {
@@ -297,31 +324,52 @@ public class NodeFragment extends Fragment {
             String str_id = "id " + mType.getId();
             mTypeIdTextView.setText(str_id);
 
-            setValue(value, unit, mType);
+            setValue(value);
         }
 
-        protected abstract void setValue(BigDecimal value, String unit, NodesResponse.Type type);
-        protected abstract void setValueEmpty();
+        protected abstract void setValue(BigDecimal valueTextView);
+        protected abstract void setLoading(boolean loading, boolean success);
+
+        protected void setValueLoading(BigDecimal value) {
+            mValue = value;
+            mProgressBar.setVisibility(View.VISIBLE);
+            setValue(value);
+            setLoading(true, true);
+        }
 
         @Override
         public void onPostRequest(SimpleResponse s) {
+            if (s.getStatus() != 200) {
+                String msg = getActivity().getResources().getString(R.string.login_fragment_server_offline);
+
+                if (s.getStatus() == 403) {
+                    msg = getActivity().getResources().getString(R.string.node_fragment_not_logged);
+                }
+
+                Snackbar.make(
+                        getActivity().findViewById(R.id.fragment_container),
+                        msg,
+                        Snackbar.LENGTH_LONG).show();
+            }
+
+            setLoading(false, s.getStatus() == 200);
             mProgressBar.setVisibility(View.GONE);
-            ModelStorage.getInstance().invalidateNodeStatesCache();
-            updateUI();
+            setClickable(true);
+            ((NodeActivity) getActivity()).lockActivity(false, null);
         }
     }
 
     class ValueHolder extends NodeHolder implements View.OnClickListener {
 
-        private TextView mValue;
+        private TextView mValueTextView;
+
         private static final String DIALOG_TAG = "value_holder_dialog_tag";
-        private NodesResponse.Type mType;
 
         ValueHolder(View itemView, NodesResponse.Node node, int viewType) {
             super(itemView, node);
 
-            mValue = (TextView) itemView.findViewById(R.id.node_list_item_value);
-            mValue.setVisibility(View.VISIBLE);
+            mValueTextView = (TextView) itemView.findViewById(R.id.node_list_item_value);
+            mValueTextView.setVisibility(View.VISIBLE);
             mProgressBar.setVisibility(View.GONE);
 
             if (viewType == ItemAdapter.ITEM_TYPE_COMMAND_VALUE) {
@@ -329,26 +377,38 @@ public class NodeFragment extends Fragment {
             }
         }
 
-        @Override
-        protected void setValue(BigDecimal value, String unit, NodesResponse.Type type) {
-            String str_value = value.toEngineeringString() + " " + unit;
-            mValue.setText(str_value);
-            mType = type;
+        protected void setValue(BigDecimal value) {
+            String str_value = value.toEngineeringString() + " " + mType.getUnit();
+            mValueTextView.setText(str_value);
+            mValue = value;
         }
 
         @Override
-        protected void setValueEmpty() {
-            mProgressBar.setVisibility(View.GONE);
-            mType = null;
+        protected void setValueLoading(BigDecimal value) {
+            mOldValue = mValue;
+            super.setValueLoading(value);
+        }
+
+        @Override
+        public void setLoading(boolean loading, boolean success) {
+            if (loading) {
+                mValueTextView.setVisibility(View.GONE);
+            } else {
+                mValueTextView.setVisibility(View.VISIBLE);
+
+                if (success) {
+                    mNodeState.getCommand().put(mType.getId(), mValue);
+                } else {
+                    mValue = mOldValue;
+                    setValue(mValue);
+                }
+            }
         }
 
 
         @Override
         public void onClick(View v) {
-            if (mType != null) {
-                NewActionDialogFragment.newInstance(this, mType)
-                        .show(getFragmentManager(), DIALOG_TAG);
-            }
+            NewActionDialogFragment.newInstance(this, mType).show(getFragmentManager(), DIALOG_TAG);
         }
     }
 
@@ -364,15 +424,33 @@ public class NodeFragment extends Fragment {
             mSwitch.setOnCheckedChangeListener(this);
         }
 
-        @Override
-        protected void setValue(BigDecimal value, String unit, NodesResponse.Type type) {
-            mSwitch.setChecked(value.intValue() == 1);
+        protected void setValue(BigDecimal valueTextView) {
+            mSwitch.setChecked(valueTextView.intValue() == 1);
         }
 
         @Override
-        protected void setValueEmpty() {
-            mProgressBar.setVisibility(View.VISIBLE);
-            mSwitch.setVisibility(View.GONE);
+        protected void setValueLoading(BigDecimal value) {
+            mOldValue = mValue;
+            super.setValueLoading(value);
+        }
+
+        @Override
+        protected void setLoading(boolean loading, boolean success) {
+
+
+            //TODO: SALVAR NOVO VALOR NA LISTA DO MODELSTORAGE, OU SEJA, ATUALIZAR O NODESTATE
+
+            if (loading) {
+                mSwitch.setVisibility(View.GONE);
+            } else {
+                mSwitch.setVisibility(View.VISIBLE);
+                if (success) {
+                    mNodeState.getCommand().put(mType.getId(), mValue);
+                } else {
+                    mValue = mOldValue;
+                    setValue(mValue);
+                }
+            }
         }
 
         @Override
@@ -476,7 +554,9 @@ public class NodeFragment extends Fragment {
                                     mType.getRange()[0].toString(),
                                     mType.getRange()[1].toString()), Toast.LENGTH_LONG).show();
                 } else {
-                    mNodeHolder.setValueEmpty();
+                    mNodeHolder.setValueLoading(value);
+                    mNodeHolder.setClickable(false);
+                    ((NodeActivity) getActivity()).lockActivity(true, "Wait a second, sending action...");
                     new AsyncRequest(mNodeHolder)
                             .execute(new NewActionCommand(
                                     mNodeHolder.mNode.getNodeId(),

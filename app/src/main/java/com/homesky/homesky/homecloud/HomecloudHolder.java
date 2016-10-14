@@ -3,9 +3,10 @@ package com.homesky.homesky.homecloud;
 import android.content.Context;
 
 import com.homesky.homecloud_lib.Homecloud;
+import com.homesky.homecloud_lib.HomecloudWrapper;
 
 public class HomecloudHolder {
-    private static Homecloud instance = null;
+    private static HomecloudWrapper instance = null;
 
     private static String url;
     private static String username;
@@ -34,15 +35,9 @@ public class HomecloudHolder {
             instance.setToken(token);
     }
 
-    public static Homecloud getInstance(){
+    public static HomecloudWrapper getInstance(){
         if(instance == null) {
-            instance = new Homecloud.Builder()
-                    .url(url)
-                    .username(username)
-                    .password(password)
-                    .token(token)
-                    .build();
-
+            instance = new HomecloudWrapper(url);
         }
         return instance;
     }
