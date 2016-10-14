@@ -43,8 +43,11 @@ import static com.homesky.homecloud_lib.model.enums.TypeEnum.STRING;
 public class ClauseFragment extends Fragment implements RequestCallback, PropositionDialog.PropositionDialogCallback {
     private static final String TAG = "ClauseFragment";
     private static final String ARG_NODE_ID = "nodeId";
+    private static final String ARG_CONTROLLER_ID = "controllerId";
+    private static final String DIALOG_TAG = "ClauseFragmentTag";
 
     private int mNodeId;
+    private String mControllerId;
     private NodesResponse.Node mNode;
     private List<List<Proposition>> mClause;
     ArrayList<NodesResponse.CommandType> mCommandSpinnerIndexToCommandType = new ArrayList<>();
@@ -55,9 +58,10 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
     private ViewPager mViewPager;
     private FloatingActionButton mFloatingActionButton;
 
-    public static Fragment newInstance(int nodeId){
+    public static Fragment newInstance(int nodeId, String controllerId){
         Bundle args = new Bundle();
         args.putInt(ARG_NODE_ID, nodeId);
+        args.putString(ARG_CONTROLLER_ID, controllerId);
         Fragment fragment = new ClauseFragment();
         fragment.setArguments(args);
         return fragment;
@@ -67,6 +71,7 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mNodeId = getArguments().getInt(ARG_NODE_ID);
+        mControllerId = getArguments().getString(ARG_CONTROLLER_ID);
         mClause = new ArrayList<>();
     }
 
@@ -77,7 +82,7 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
 
         mActionCommandSpinner = (Spinner)view.findViewById(R.id.fragment_clause_action_command_spinner);
         List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(this);
-        mNode = AppFindElementUtils.findNodeFromId(mNodeId, nodes);
+        mNode = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, nodes);
 
         List<String> commandNames = new ArrayList<>();
         for(NodesResponse.CommandType ct : mNode.getCommandType()){
@@ -137,7 +142,7 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
                     List<String> andStatement = new ArrayList<>(mClause.get(position).size());
                     for(Proposition p : mClause.get(position)){
                         andStatement.add(AppStringUtils.getPropositionLegibleText(
-                                getActivity(), p, ModelStorage.getInstance().getNodes(ClauseFragment.this)));
+                                getActivity(), p, ModelStorage.getInstance().getNodes(ClauseFragment.this), mControllerId));
                     }
                     Log.d(TAG, "Ran this");
                     return AndStatementFragment.newInstance(andStatement);
@@ -160,8 +165,8 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                PropositionDialog dialog = PropositionDialog.newInstance(mViewPager.getCurrentItem());
-                dialog.show(getActivity().getSupportFragmentManager(), "a");
+                PropositionDialog dialog = PropositionDialog.newInstance(mViewPager.getCurrentItem(), mControllerId);
+                dialog.show(getActivity().getSupportFragmentManager(), DIALOG_TAG);
             }
         });
 

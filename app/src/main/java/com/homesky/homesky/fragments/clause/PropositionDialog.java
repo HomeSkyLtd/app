@@ -44,13 +44,15 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
     private static final String TAG = "PropositionDialog";
     private static final String NODE_EXTRA_NAME = "name";
     private static final String ARG_OR_STATEMENT_INDEX = "orStatementIndex";
+    private static final String ARG_CONTROLLER_ID = "controllerId";
 
     private int mOrStatementIndex;
+    private String mControllerId;
 
     private List<NodesResponse.Node> mNodes;
-    private Map<Integer, Integer> mSpinnerIndexToNodeId;
-    private Map<Integer, Integer> mLhsCommandSpinnerIndexToCommandId = new HashMap<>();
-    private Map<Integer, Integer> mRhsCommandSpinnerIndexToCommandId = new HashMap<>();
+    private List<Integer> mSpinnerIndexToNodeUId;
+    private List<Integer> mLhsCommandSpinnerIndexToCommandId = new ArrayList<>();
+    private List<Integer> mRhsCommandSpinnerIndexToCommandId = new ArrayList<>();
 
     private PropositionDialogCallback mCallback;
     private RadioGroup mRhsRadioGroup;
@@ -64,9 +66,10 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
         void onPropositionResult(Proposition p, int orStatementIndex);
     }
 
-    public static PropositionDialog newInstance(int orStatementIndex){
+    public static PropositionDialog newInstance(int orStatementIndex, String controllerId){
         Bundle args = new Bundle();
         args.putInt(ARG_OR_STATEMENT_INDEX, orStatementIndex);
+        args.putString(ARG_CONTROLLER_ID, controllerId);
         PropositionDialog fragment = new PropositionDialog();
         fragment.setArguments(args);
         return fragment;
@@ -76,6 +79,7 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mOrStatementIndex = getArguments().getInt(ARG_OR_STATEMENT_INDEX);
+        mControllerId = getArguments().getString(ARG_CONTROLLER_ID);
     }
 
     @Override
@@ -97,10 +101,10 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
 
         mNodes = ModelStorage.getInstance().getNodes(this);
         List<String> sensors = new ArrayList<>();
-        mSpinnerIndexToNodeId = new HashMap<>();
+        mSpinnerIndexToNodeUId = new ArrayList<>();
         for(NodesResponse.Node n : mNodes){
-            if(n.getNodeClass().contains(NodeClassEnum.SENSOR)) {
-                mSpinnerIndexToNodeId.put(sensors.size(), n.getNodeId());
+            if(n.getNodeClass().contains(NodeClassEnum.SENSOR) && n.getControllerId().equals(mControllerId)) {
+                mSpinnerIndexToNodeUId.add(n.getNodeId());
                 sensors.add(n.getExtra().get(NODE_EXTRA_NAME));
             }
         }
@@ -136,11 +140,12 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
         mLhsNodeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                NodesResponse.Node sensor = AppFindElementUtils.findNodeFromId(mSpinnerIndexToNodeId.get(i), mNodes);
+                NodesResponse.Node sensor = AppFindElementUtils.findNodeFromId(
+                        mSpinnerIndexToNodeUId.get(i), mControllerId, mNodes);
                 List<String> dataTypes = new ArrayList<>();
                 mLhsCommandSpinnerIndexToCommandId.clear();
                 for(NodesResponse.DataType dt : sensor.getDataType()){
-                    mLhsCommandSpinnerIndexToCommandId.put(dataTypes.size(), dt.getId());
+                    mLhsCommandSpinnerIndexToCommandId.add(dt.getId());
                     dataTypes.add(AppEnumUtils.dataCategoryToString(getActivity(), dt.getDataCategory()));
                 }
                 mLhsCommandSpinner.setAdapter(new ArrayAdapter<String>(
@@ -161,11 +166,12 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
         mRhsNodeSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
-                NodesResponse.Node sensor = AppFindElementUtils.findNodeFromId(mSpinnerIndexToNodeId.get(i), mNodes);
+                NodesResponse.Node sensor = AppFindElementUtils.findNodeFromId(
+                        mSpinnerIndexToNodeUId.get(i), mControllerId, mNodes);
                 List<String> dataTypes = new ArrayList<>();
                 mRhsCommandSpinnerIndexToCommandId.clear();
                 for(NodesResponse.DataType dt : sensor.getDataType()){
-                    mRhsCommandSpinnerIndexToCommandId.put(dataTypes.size(), dt.getId());
+                    mRhsCommandSpinnerIndexToCommandId.add(dataTypes.size(), dt.getId());
                     dataTypes.add(AppEnumUtils.dataCategoryToString(getActivity(), dt.getDataCategory()));
                 }
                 mRhsCommandSpinner.setAdapter(new ArrayAdapter<String>(
@@ -184,7 +190,9 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 NodesResponse.Node sensor = AppFindElementUtils.findNodeFromId(
-                        mSpinnerIndexToNodeId.get(mLhsNodeSpinner.getSelectedItemPosition()), mNodes);
+                        mSpinnerIndexToNodeUId.get(mLhsNodeSpinner.getSelectedItemPosition()),
+                        mControllerId,
+                        mNodes);
                 NodesResponse.DataType dt = AppFindElementUtils.findDatatypeFromId(
                         mRhsCommandSpinnerIndexToCommandId.get(i), sensor.getDataType());
                 switch (dt.getType()){
@@ -223,10 +231,10 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
                 if(validateFields()){
                     OperatorEnum operator = AppEnumUtils.stringToOperator(
                             getActivity(), (String)mOperatorSpinner.getSelectedItem());
-                    int lhsNode = mSpinnerIndexToNodeId.get(mLhsNodeSpinner.getSelectedItemPosition());
+                    int lhsNode = mSpinnerIndexToNodeUId.get(mLhsNodeSpinner.getSelectedItemPosition());
                     int lhsCommand = mLhsCommandSpinnerIndexToCommandId.get(mLhsCommandSpinner.getSelectedItemPosition());
                     if(mRhsRadioGroup.getCheckedRadioButtonId() == R.id.fragment_prop_dialog_rhs_node_radio_button){
-                        int rhsNode = mSpinnerIndexToNodeId.get(mRhsNodeSpinner.getSelectedItemPosition());
+                        int rhsNode = mSpinnerIndexToNodeUId.get(mRhsNodeSpinner.getSelectedItemPosition());
                         int rhsCommand = mRhsCommandSpinnerIndexToCommandId.get(mRhsCommandSpinner.getSelectedItemPosition());
                         Proposition prop = new Proposition(operator, lhsNode + "." + lhsCommand, rhsNode + "." + rhsCommand);
                         mCallback.onPropositionResult(prop, mOrStatementIndex);
@@ -276,4 +284,5 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
         else
             return true;
     }
+
 }
