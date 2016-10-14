@@ -109,7 +109,10 @@ public class NodeFragment extends Fragment {
             mLoadingPanel.setVisibility(View.GONE);
             mNodeSwipeRefresh.setRefreshing(false);
             ((NodeActivity) getActivity()).lockActivity(false, null);
-            Snackbar.make(getActivity().findViewById(R.id.fragment_container), "Oops, try again", Snackbar.LENGTH_LONG).show();
+            Snackbar.make(
+                    getActivity().findViewById(R.id.fragment_container),
+                    getActivity().getResources().getText(R.string.node_fragment_no_connection),
+                    Snackbar.LENGTH_LONG).show();
             return;
         }
 
@@ -337,8 +340,16 @@ public class NodeFragment extends Fragment {
         @Override
         public void onPostRequest(SimpleResponse s) {
             if (s.getStatus() != 200) {
-                Snackbar.make(getActivity().findViewById(R.id.fragment_container),
-                                "Couldn't send action, try again.", Snackbar.LENGTH_LONG).show();
+                String msg = getActivity().getResources().getString(R.string.login_fragment_server_offline);
+
+                if (s.getStatus() == 403) {
+                    msg = getActivity().getResources().getString(R.string.node_fragment_not_logged);
+                }
+
+                Snackbar.make(
+                        getActivity().findViewById(R.id.fragment_container),
+                        msg,
+                        Snackbar.LENGTH_LONG).show();
             }
 
             setLoading(false, s.getStatus() == 200);
@@ -386,7 +397,7 @@ public class NodeFragment extends Fragment {
                 mValueTextView.setVisibility(View.VISIBLE);
 
                 if (success) {
-                    mNodeState.getData().put(mType.getId(), mValue);
+                    mNodeState.getCommand().put(mType.getId(), mValue);
                 } else {
                     mValue = mOldValue;
                     setValue(mValue);
@@ -434,7 +445,7 @@ public class NodeFragment extends Fragment {
             } else {
                 mSwitch.setVisibility(View.VISIBLE);
                 if (success) {
-                    mNodeState.getData().put(mType.getId(), mValue);
+                    mNodeState.getCommand().put(mType.getId(), mValue);
                 } else {
                     mValue = mOldValue;
                     setValue(mValue);

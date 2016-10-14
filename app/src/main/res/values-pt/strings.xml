@@ -12,7 +12,7 @@
     <string name="menu_drawer_settings">Configurações</string>
     <string name="settings_fragment_title">Configurações</string>
     <string name="login_fragment_empty_passwd">Por favor, digite sua senha</string>
-    <string name="login_fragment_server_offline">O servidor está fora do ar…</string>
+    <string name="login_fragment_server_offline">Isto é embaraçoso… O servidor está fora do ar =(</string>
     <string name="state_fragment_item_row">Nó %1$d</string>
     <string name="login_fragment_error">Erro de login</string>
     <string name="login_fragment_server_already_logged">Usuário já logado</string>
@@ -30,4 +30,7 @@
     <string name="node_dialog_fragment_title">Enviar ação</string>
     <string name="send_action_dialog_null_value">Por favor, digite um valor para enviar</string>
     <string name="node_dialog_fragment_name">Novo valor</string>
+    <string name="send_action_dialog_out_of_bounds_value">O valor deve ser entre %1$s e %2$s</string>
+    <string name="node_fragment_not_logged">Você não está logado</string>
+    <string name="node_fragment_no_connection">Sem conexão com internet</string>
 </resources>

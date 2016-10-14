@@ -20,7 +20,7 @@
     <string name="login_activity_signin_button">Sign in</string>
     <string name="login_fragment_empty_login">Please, type your Login</string>
     <string name="login_fragment_empty_passwd">Please, type your Password</string>
-    <string name="login_fragment_server_offline">Server is offline…</string>
+    <string name="login_fragment_server_offline">This is embarrassing…Server is offline =(</string>
     <string name="login_fragment_error">Login error: </string>
     <string name="login_fragment_server_already_logged">Already logged</string>
     <string name="login_fragment_remember_me">Remember me</string>
@@ -66,11 +66,13 @@
     <string name="node_fragment_list_div_actuator">Actuators</string>
     <string name="node_fragment_list_div_nothing">No sensor nor actuator</string>
     <string name="node_dialog_fragment_title">Send Action</string>
-    <string name="node_dialog_fragment_name">New valueTextView </string>
+    <string name="node_dialog_fragment_name">New value</string>
+    <string name="node_fragment_no_connection">No internet connection</string>
+    <string name="node_fragment_not_logged">You are not logged</string>
 
     <!-- Send Action Dialog Fragment -->
-    <string name="send_action_dialog_null_value">Please, type a valueTextView to send</string>
-    <string name="send_action_dialog_out_of_bounds_value">The valueTextView must be between %1$s and %2$s</string>
+    <string name="send_action_dialog_null_value">Please, type a value to send</string>
+    <string name="send_action_dialog_out_of_bounds_value">The value must be between %1$s and %2$s</string>
 
     <!-- Enum utils -->
     <string name="EQ">is equal to</string>
