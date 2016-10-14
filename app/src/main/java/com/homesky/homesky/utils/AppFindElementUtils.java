@@ -8,18 +8,18 @@ import java.util.List;
 
 public class AppFindElementUtils {
 
-    public static NodesResponse.Node findNodeFromId(int id, List<NodesResponse.Node> nodes) {
+    public static NodesResponse.Node findNodeFromId(int id, String controllerId, List<NodesResponse.Node> nodes) {
         for (NodesResponse.Node n : nodes) {
-            if (n.getNodeId() == id)
+            if (n.getNodeId() == id && n.getControllerId().equals(controllerId))
                 return n;
         }
         return null;
     }
 
-    public static List<Rule> findRulesFromNodeId(int id, List<Rule> rules){
+    public static List<Rule> findRulesFromNodeId(int id, String controllerId, List<Rule> rules){
         List<Rule> filteredRules = new ArrayList<>();
         for(Rule r : rules){
-            if(r.getCommand().getNodeId() == id)
+            if(r.getCommand().getNodeId() == id && r.getControllerId().equals(controllerId))
                 filteredRules.add(r);
         }
         return filteredRules;

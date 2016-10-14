@@ -33,10 +33,12 @@ import java.util.List;
 public class RuleListFragment extends Fragment implements RequestCallback{
     private static final String TAG = "RuleListFragment";
     private static final String ARG_NODE_ID = "nodeId";
+    private static final String ARG_CONTROLLER_ID = "controllerId";
 
     private final String NODE_EXTRA_NAME = "name";
 
     private int mNodeId;
+    private String mControllerId;
     private RuleAdapter mAdapter;
     private List<NodesResponse.Node> mNodes = null;
     private List<Rule> mRules = null;
@@ -46,9 +48,10 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     private SwipeRefreshLayout mRuleListSwipeRefresh;
     private FloatingActionButton mFloatingActionButton;
 
-    public static Fragment newInstance(int nodeId){
+    public static Fragment newInstance(int nodeId, String controllerId){
         Bundle args = new Bundle();
         args.putInt(ARG_NODE_ID, nodeId);
+        args.putString(ARG_CONTROLLER_ID, controllerId);
         Fragment fragment = new RuleListFragment();
         fragment.setArguments(args);
         return fragment;
@@ -58,6 +61,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         mNodeId = getArguments().getInt(ARG_NODE_ID);
+        mControllerId = getArguments().getString(ARG_CONTROLLER_ID);
     }
 
     @Nullable
@@ -68,7 +72,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
 
         mActuatorTextView = (TextView)view.findViewById(R.id.rule_list_actuator_text_view);
-        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, ModelStorage.getInstance().getNodes(this));
+        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, ModelStorage.getInstance().getNodes(this));
         mActuatorTextView.setText(node.getExtra().get(NODE_EXTRA_NAME));
 
         mRuleListSwipeRefresh = (SwipeRefreshLayout)view.findViewById(R.id.rule_list_swipe_refresh_layout);
@@ -88,7 +92,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = ClauseActivity.newIntent(getActivity(), mNodeId);
+                Intent i = ClauseActivity.newIntent(getActivity(), mNodeId, mControllerId);
                 startActivity(i);
             }
         });
@@ -103,7 +107,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             mNodes = ModelStorage.getInstance().getNodes(this);
 
         if(mRules != null && mNodes != null) {
-            List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mRules);
+            List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(filtered);
             } else {

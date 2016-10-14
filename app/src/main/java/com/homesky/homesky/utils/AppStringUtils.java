@@ -19,7 +19,7 @@ public class AppStringUtils {
 
     private static final String NODE_EXTRA_NAME = "name";
 
-    public static String getPropositionLegibleText(Context context, Proposition p, List<NodesResponse.Node> nodes){
+    public static String getPropositionLegibleText(Context context, Proposition p, List<NodesResponse.Node> nodes, String controllerId){
         StringBuilder sb = new StringBuilder();
 
         if(p.isLhsValue())
@@ -28,7 +28,7 @@ public class AppStringUtils {
             String[] nodeAndCommand = p.getLhs().split("\\.");
             int nodeId = Integer.parseInt(nodeAndCommand[0]);
             int dataTypeId = Integer.parseInt(nodeAndCommand[1]);
-            NodesResponse.Node node = AppFindElementUtils.findNodeFromId(nodeId, nodes);
+            NodesResponse.Node node = AppFindElementUtils.findNodeFromId(nodeId, controllerId, nodes);
             sb.append(node.getExtra().get(NODE_EXTRA_NAME));
             sb.append("'s ");
             sb.append(AppEnumUtils.dataCategoryToString(context,
@@ -45,7 +45,7 @@ public class AppStringUtils {
             String[] nodeAndCommand = p.getRhs().split("\\.");
             int nodeId = Integer.parseInt(nodeAndCommand[0]);
             int dataTypeId = Integer.parseInt(nodeAndCommand[1]);
-            NodesResponse.Node node = AppFindElementUtils.findNodeFromId(nodeId, nodes);
+            NodesResponse.Node node = AppFindElementUtils.findNodeFromId(nodeId, controllerId, nodes);
             sb.append(node.getExtra().get(NODE_EXTRA_NAME));
             sb.append("'s ");
             sb.append(AppEnumUtils.dataCategoryToString(context,
@@ -61,7 +61,7 @@ public class AppStringUtils {
         for(List<Proposition> andStatement : clause){
             List<String> andParts = new ArrayList<>();
             for(Proposition p : andStatement)
-                andParts.add(getPropositionLegibleText(context, p, nodes));
+                andParts.add(getPropositionLegibleText(context, p, nodes, r.getControllerId()));
             orParts.add(TextUtils.join(" " + context.getString(R.string.rule_list_and) + " ", andParts));
         }
         return TextUtils.join(" " + context.getString(R.string.rule_list_or) + " ", orParts);
@@ -71,7 +71,7 @@ public class AppStringUtils {
         StringBuilder sb = new StringBuilder();
         sb.append(context.getString(R.string.rule_list_set));
         sb.append(" ");
-        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(r.getCommand().getNodeId(), nodes);
+        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(r.getCommand().getNodeId(), r.getControllerId(), nodes);
         sb.append(node.getExtra().get(NODE_EXTRA_NAME));
         sb.append("'s ");
         sb.append(AppEnumUtils.commandCategoryToString(context,
