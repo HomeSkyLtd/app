@@ -16,6 +16,7 @@ import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.Toast;
 
+import com.google.firebase.iid.FirebaseInstanceId;
 import com.homesky.homecloud_lib.Homecloud;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
@@ -43,6 +44,9 @@ public class LoginFragment extends Fragment implements RequestCallback {
 
     public LoginFragment() {
         HomecloudHolder.setUrl(URL);
+        String token = FirebaseInstanceId.getInstance().getToken();
+        HomecloudHolder.getInstance().setToken(token);
+        Log.d(TAG, "LoginFragment: " + token);
     }
 
     @Nullable
@@ -59,7 +63,6 @@ public class LoginFragment extends Fragment implements RequestCallback {
             public void onClick(View v) {
                 HomecloudHolder.getInstance().setUsername("admin1");
                 HomecloudHolder.getInstance().setPassword("mypass");
-                HomecloudHolder.getInstance().setToken("THIS_IS_A_DUMMY_TOKEN");
                 Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
                 new AsyncRequest(null, LoginFragment.this).execute(new LoginCommand());
             }
@@ -93,7 +96,6 @@ public class LoginFragment extends Fragment implements RequestCallback {
 
                 HomecloudHolder.getInstance().setUsername(login);
                 HomecloudHolder.getInstance().setPassword(passwd);
-                HomecloudHolder.getInstance().setToken("THIS_IS_A_DUMMY_TOKEN");
                 mLoginButton.setEnabled(false);
                 mSigninButton.setEnabled(false);
 
