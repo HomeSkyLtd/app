@@ -27,6 +27,10 @@
         <item name="android:background">#ffffff</item>
     </style>
 
+    <style name="CustomDialogInfos" parent="CustomDialog">
+        <item name="android:textSize">@dimen/subtitle_2_text_size</item>
+    </style>
+
     <style name="HeaderTextViewStyle">
         <item name="android:textStyle">bold</item>
         <item name="android:paddingTop">10dp</item>

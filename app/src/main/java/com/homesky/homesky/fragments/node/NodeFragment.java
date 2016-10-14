@@ -11,6 +11,7 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.InputType;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -29,6 +30,7 @@ import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.activities.SingleFragmentActivity;
 import com.homesky.homesky.command.NewActionCommand;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
@@ -281,8 +283,8 @@ public class NodeFragment extends Fragment {
         RelativeLayout mProgressBar;
 
         private View mItemView;
-        protected BigDecimal mValue;
-        protected BigDecimal mOldValue;
+        BigDecimal mValue;
+        BigDecimal mOldValue;
 
         NodesResponse.Node mNode;
         NodesResponse.Type mType;
@@ -328,9 +330,18 @@ public class NodeFragment extends Fragment {
         }
 
         protected abstract void setValue(BigDecimal valueTextView);
-        protected abstract void setLoading(boolean loading, boolean success);
 
-        protected void setValueLoading(BigDecimal value) {
+        protected void setLoading(boolean loading, boolean success) {
+            if (success) {
+                mNodeState.getCommand().put(mType.getId(), mValue);
+            } else {
+                mValue = mOldValue;
+                setValue(mValue);
+            }
+        }
+
+        void setValueLoading(BigDecimal value) {
+            mOldValue = mValue;
             mValue = value;
             mProgressBar.setVisibility(View.VISIBLE);
             setValue(value);
@@ -384,24 +395,12 @@ public class NodeFragment extends Fragment {
         }
 
         @Override
-        protected void setValueLoading(BigDecimal value) {
-            mOldValue = mValue;
-            super.setValueLoading(value);
-        }
-
-        @Override
         public void setLoading(boolean loading, boolean success) {
             if (loading) {
                 mValueTextView.setVisibility(View.GONE);
             } else {
                 mValueTextView.setVisibility(View.VISIBLE);
-
-                if (success) {
-                    mNodeState.getCommand().put(mType.getId(), mValue);
-                } else {
-                    mValue = mOldValue;
-                    setValue(mValue);
-                }
+                super.setLoading(false, success);
             }
         }
 
@@ -424,38 +423,24 @@ public class NodeFragment extends Fragment {
             mSwitch.setOnCheckedChangeListener(this);
         }
 
-        protected void setValue(BigDecimal valueTextView) {
-            mSwitch.setChecked(valueTextView.intValue() == 1);
+        protected void setValue(BigDecimal value) {
+            mValue = value;
+            mSwitch.setChecked(value.intValue() == 1);
         }
 
         @Override
-        protected void setValueLoading(BigDecimal value) {
-            mOldValue = mValue;
-            super.setValueLoading(value);
-        }
-
-        @Override
-        protected void setLoading(boolean loading, boolean success) {
-
-
-            //TODO: SALVAR NOVO VALOR NA LISTA DO MODELSTORAGE, OU SEJA, ATUALIZAR O NODESTATE
-
-            if (loading) {
+        protected void setLoading(boolean loading, boolean success) {if (loading) {
                 mSwitch.setVisibility(View.GONE);
             } else {
                 mSwitch.setVisibility(View.VISIBLE);
-                if (success) {
-                    mNodeState.getCommand().put(mType.getId(), mValue);
-                } else {
-                    mValue = mOldValue;
-                    setValue(mValue);
-                }
+                super.setLoading(false, success);
             }
         }
 
         @Override
         public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
             BigDecimal value = new BigDecimal(isChecked ? 1 : 0);
+            setValue(value);
             new AsyncRequest(this).execute(new NewActionCommand(mNodeId, mControllerId, mType.getId(), value));
         }
     }
@@ -489,8 +474,6 @@ public class NodeFragment extends Fragment {
             mType = type;
         }
 
-
-
         static NewActionDialogFragment newInstance(NodeHolder nodeHolder, NodesResponse.Type type) {
             NewActionDialogFragment fragment = new NewActionDialogFragment();
 
@@ -518,7 +501,9 @@ public class NodeFragment extends Fragment {
             View view = inflater.inflate(R.layout.node_dialog_fragment, container, false);
 
             getDialog().setCanceledOnTouchOutside(true);
-            getDialog().getWindow().setBackgroundDrawableResource(R.drawable.round_dialog);
+            if (getDialog().getWindow() != null) {
+                getDialog().getWindow().setBackgroundDrawableResource(R.drawable.round_dialog);
+            }
 
             Button sendValue = (Button) view.findViewById(R.id.node_dialog_fragment_button);
             sendValue.setOnClickListener(this);

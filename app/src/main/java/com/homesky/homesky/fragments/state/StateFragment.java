@@ -1,30 +1,39 @@
 package com.homesky.homesky.fragments.state;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.view.menu.MenuView;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Display;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.homesky.homecloud_lib.model.enums.TypeEnum;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.GetHouseStateCommand;
 import com.homesky.homesky.command.GetNodesInfoCommand;
+import com.homesky.homesky.command.NewActionCommand;
 import com.homesky.homesky.fragments.node.NodeActivity;
 import com.homesky.homesky.fragments.node.NodeFragment;
 import com.homesky.homesky.request.AsyncRequest;
@@ -32,6 +41,9 @@ import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homecloud_lib.model.response.StateResponse.NodeState;
 
+import org.w3c.dom.Text;
+
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -212,13 +224,16 @@ public class StateFragment extends Fragment {
         }
     }
 
-    class StateHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+    class StateHolder extends RecyclerView.ViewHolder implements View.OnClickListener, View.OnLongClickListener {
+
+        private static final String DIALOG_TAG = "state_holder_dialog_tag";
 
         private TextView mNodeIdTextView;
         private TextView mNodeName;
 
         private int mNodeId;
         private String mControllerId;
+        private NodesResponse.Node mNode;
 
         StateHolder (View itemView) {
             super(itemView);
@@ -226,6 +241,7 @@ public class StateFragment extends Fragment {
             mNodeName = (TextView) itemView.findViewById(R.id.state_fragment_node_name);
 
             itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         void bind (NodesResponse.Node node) {
@@ -235,11 +251,19 @@ public class StateFragment extends Fragment {
             String nodeTextView = "id " + mNodeId;
             mNodeIdTextView.setText(nodeTextView);
             mNodeName.setText(node.getExtra().get("name"));
+
+            mNode = node;
         }
 
         @Override
         public void onClick(View v) {
             startActivity(NodeActivity.newIntent(getActivity(), mNodeId, mControllerId));
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            ShowInfosDialogFragment.newInstance(mNode).show(getFragmentManager(), DIALOG_TAG);
+            return true;
         }
     }
 
@@ -254,6 +278,73 @@ public class StateFragment extends Fragment {
 
         void bind(String header) {
             mHeaderName.setText(header);
+        }
+    }
+
+    public static class ShowInfosDialogFragment extends DialogFragment {
+
+        private NodesResponse.Node mNode;
+        private TextView mTitle;
+        private TextView mControllerId;
+        private TextView mNodeId;
+        private TextView mNodeRoom;
+        private TextView mNodeAlive;
+
+        public void setNode(NodesResponse.Node node) {
+            mNode = node;
+        }
+
+        static ShowInfosDialogFragment newInstance(NodesResponse.Node node) {
+            ShowInfosDialogFragment fragment = new ShowInfosDialogFragment();
+
+            fragment.setNode(node);
+
+            return fragment;
+        }
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            setStyle(DialogFragment.STYLE_NORMAL, R.style.CustomDialogInfos);
+            return super.onCreateDialog(savedInstanceState);
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.node_infos_dialog_fragment, container, false);
+
+            getDialog().setCanceledOnTouchOutside(true);
+            Window window  = getDialog().getWindow();
+            if (window != null) {
+                window.setBackgroundDrawableResource(R.drawable.round_dialog);
+            }
+
+            mTitle = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_name);
+            mTitle.setText(mNode.getExtra().get("name"));
+
+            mControllerId = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_controller_id);
+            mControllerId.setText(mNode.getControllerId());
+
+            mNodeId = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_node_id);
+            String nodeId = String.valueOf(mNode.getNodeId());
+            mNodeId.setText(nodeId);
+
+            mNodeRoom = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_node_room);
+            mNodeRoom.setText(mNode.getExtra().get("room"));
+
+            mNodeAlive = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_node_alive);
+            String alive = mNode.getAlive() == 0 ?
+                            getActivity().getResources().getString(R.string.no) :
+                            getActivity().getResources().getString(R.string.yes);
+            mNodeAlive.setText(alive);
+
+            return view;
         }
     }
 
