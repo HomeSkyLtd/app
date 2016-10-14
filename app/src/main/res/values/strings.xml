@@ -33,6 +33,14 @@
     <string name="state_fragment_item_row">Node %1$d from Controller %2$d</string>
     <string name="state_fragment_error">Error. Try again.</string>
 
+    <!-- Node Infos Dialog Fragment -->
+    <string name="node_infos_dialog_fragment_controller_id">Controller ID </string>
+    <string name="node_infos_dialog_fragment_node_id">Node ID </string>
+    <string name="node_infos_dialog_fragment_node_room">Room</string>
+    <string name="node_infos_dialog_fragment_node_alive">Alive</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+
     <!-- Rule fragment -->
     <string name="rule_fragment_title">Rules</string>
     <string name="rule_item_node_id">Node id:</string>

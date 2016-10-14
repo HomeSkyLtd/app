@@ -41,6 +41,9 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:gravity="center"
+        android:background="@drawable/round_dialog"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:text="@string/login_fragment_title"/>
 
     <Button
@@ -49,13 +52,17 @@
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
         android:gravity="center"
+        android:background="@drawable/round_dialog"
+        android:textColor="@android:color/white"
+        android:layout_marginTop="@dimen/activity_vertical_margin"
         android:text="@string/login_activity_signin_button"/>
 
     <LinearLayout
         android:layout_width="@dimen/edit_text_width"
         android:layout_height="wrap_content"
         android:orientation="horizontal"
-        android:layout_gravity="center">
+        android:layout_gravity="center"
+        android:layout_marginTop="@dimen/activity_vertical_margin">
         <CheckBox
             android:id="@+id/login_fragment_check_box"
             android:layout_width="wrap_content"
