@@ -1,6 +1,7 @@
 package com.homesky.homesky.fragments.node;
 
 import android.app.Dialog;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
@@ -32,6 +33,7 @@ import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.activities.SingleFragmentActivity;
 import com.homesky.homesky.command.NewActionCommand;
+import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
@@ -143,7 +145,9 @@ public class NodeFragment extends Fragment {
                         getActivity(),
                         getResources().getText(R.string.state_fragment_error),
                         Toast.LENGTH_LONG).show();
-            } else {
+            }  else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+            }else {
                 setNodeAndState(true);
                 updateUI();
                 mNodeSwipeRefresh.setRefreshing(false);

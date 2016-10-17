@@ -28,7 +28,7 @@
     </style>
 
     <style name="CustomDialogInfos" parent="CustomDialog">
-        <item name="android:textSize">@dimen/subtitle_2_text_size</item>
+        <item name="android:textSize">@dimen/subtitle_3_text_size</item>
     </style>
 
     <style name="HeaderTextViewStyle">

@@ -42,11 +42,14 @@ public class LoginFragment extends Fragment implements RequestCallback {
     private EditText mEditTextPassword;
     private CheckBox mRememberMe;
 
-    public LoginFragment() {
-        HomecloudHolder.setUrl(URL);
+    public LoginFragment() {}
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        HomecloudHolder.getInstance().setUrl(URL);
         String token = FirebaseInstanceId.getInstance().getToken();
         HomecloudHolder.getInstance().setToken(token);
-        Log.d(TAG, "LoginFragment: " + token);
     }
 
     @Nullable

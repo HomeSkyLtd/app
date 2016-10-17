@@ -2,6 +2,7 @@ package com.homesky.homesky.fragments.state;
 
 import android.app.Dialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.os.Bundle;
 import android.speech.tts.TextToSpeech;
@@ -36,6 +37,7 @@ import com.homesky.homesky.command.GetNodesInfoCommand;
 import com.homesky.homesky.command.NewActionCommand;
 import com.homesky.homesky.fragments.node.NodeActivity;
 import com.homesky.homesky.fragments.node.NodeFragment;
+import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
@@ -120,6 +122,8 @@ public class StateFragment extends Fragment {
                         getActivity(),
                         getResources().getText(R.string.state_fragment_error),
                         Toast.LENGTH_LONG).show();
+            } else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
             } else {
                 updateUI();
             }
