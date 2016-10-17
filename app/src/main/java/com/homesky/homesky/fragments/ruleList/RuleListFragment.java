@@ -1,6 +1,9 @@
 package com.homesky.homesky.fragments.ruleList;
 
+import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
+import android.graphics.Rect;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -12,21 +15,28 @@ import android.text.TextUtils;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.homesky.homecloud_lib.model.Proposition;
 import com.homesky.homecloud_lib.model.Rule;
+import com.homesky.homecloud_lib.model.response.ConflictingRuleResponse;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
+import com.homesky.homecloud_lib.model.response.RuleResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.command.NewRulesCommand;
 import com.homesky.homesky.fragments.clause.ClauseActivity;
+import com.homesky.homesky.fragments.clause.ClauseFragment;
+import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.AppEnumUtils;
 import com.homesky.homesky.utils.AppFindElementUtils;
 import com.homesky.homesky.utils.AppStringUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -36,17 +46,20 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     private static final String ARG_CONTROLLER_ID = "controllerId";
 
     private final String NODE_EXTRA_NAME = "name";
+    private static int NEW_RULE_REQUEST = 1;
 
     private int mNodeId;
     private String mControllerId;
     private RuleAdapter mAdapter;
     private List<NodesResponse.Node> mNodes = null;
     private List<Rule> mRules = null;
+    private List<Rule> mRuleToSend = null;
 
     private TextView mActuatorTextView;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mRuleListSwipeRefresh;
     private FloatingActionButton mFloatingActionButton;
+    private ProgressDialog mRingProgressDialog;
 
     public static Fragment newInstance(int nodeId, String controllerId){
         Bundle args = new Bundle();
@@ -70,6 +83,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         View view = inflater.inflate(R.layout.fragment_rule_list, container, false);
         mRecyclerView = (RecyclerView)view.findViewById(R.id.fragment_rule_list_recycler_view);
         mRecyclerView.setLayoutManager(new LinearLayoutManager(getActivity()));
+        mRecyclerView.addItemDecoration(new VerticalSpaceItemDecoration(48));
 
         mActuatorTextView = (TextView)view.findViewById(R.id.rule_list_actuator_text_view);
         NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, ModelStorage.getInstance().getNodes(this));
@@ -84,7 +98,6 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 ModelStorage.getInstance().invalidateNodesCache();
                 ModelStorage.getInstance().invalidateRulesCache();
                 updateUI();
-                mRuleListSwipeRefresh.setRefreshing(false);
             }
         });
 
@@ -92,8 +105,16 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                Intent i = ClauseActivity.newIntent(getActivity(), mNodeId, mControllerId);
-                startActivity(i);
+                if(mAdapter.getShouldRetry()){
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.rule_list_fab_when_retry_message),
+                            Toast.LENGTH_LONG).show();
+                }
+                else{
+                    Intent i = ClauseActivity.newIntent(getActivity(), mNodeId, mControllerId);
+                    startActivityForResult(i, NEW_RULE_REQUEST);
+                }
             }
         });
 
@@ -110,11 +131,41 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(filtered);
+                mRecyclerView.setAdapter(mAdapter);
             } else {
                 mAdapter.setRules(filtered);
                 mAdapter.notifyDataSetChanged();
+
+                //If layout was refreshing, hide the progress indicator
+                if(mRuleListSwipeRefresh.isRefreshing()){
+                    mRuleListSwipeRefresh.setRefreshing(false);
+                }
             }
-            mRecyclerView.setAdapter(mAdapter);
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if(requestCode == NEW_RULE_REQUEST){
+            if(resultCode == Activity.RESULT_OK){
+                List<List<Proposition>> clause =
+                        (List<List<Proposition>>)data.getSerializableExtra(ClauseFragment.EXTRA_CLAUSE);
+                int commandId = data.getIntExtra(ClauseFragment.EXTRA_COMMAND_ID, -1);
+                BigDecimal value = (BigDecimal)data.getSerializableExtra(ClauseFragment.EXTRA_VALUE);
+                //send to BD
+                mRuleToSend = new ArrayList<>();
+                mRuleToSend.add(new Rule(mNodeId, mControllerId, commandId, value, clause));
+                NewRulesCommand command = new NewRulesCommand(mRuleToSend);
+                mRingProgressDialog = ProgressDialog.show(
+                        getActivity(),
+                        getString(R.string.rule_list_sending_progess_title),
+                        getString(R.string.rule_list_sending_progess_message),
+                        true);
+                new AsyncRequest(this).execute(command);
+            }
+        }
+        else{
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
@@ -125,38 +176,112 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                     getActivity(),
                     getResources().getText(R.string.login_fragment_server_offline),
                     Toast.LENGTH_LONG).show();
-        } else {
+        }
+        else if (s instanceof ConflictingRuleResponse){
+            //If everything OK
+            if(s.getStatus() == 200){
+                mRules.add(mRuleToSend.get(0));
+                List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
+                mAdapter.setRules(filtered);
+                mAdapter.setShouldRetry(false);
+                mAdapter.notifyDataSetChanged();
+                mRuleToSend = null;
+                ModelStorage.getInstance().invalidateRulesCache();
+                mRingProgressDialog.dismiss();
+            }
+            //If unauthorized
+            else if(s.getStatus() == 403){
+                //navigate to login page
+            }
+            //If some other error happened, check if the rule was not sent because of a conflicting rule.
+            //In this case, don't offer to resend it
+            else {
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getText(R.string.rule_list_retry_message) + ": " + s.getErrorMessage(),
+                        Toast.LENGTH_LONG).show();
+                if(((ConflictingRuleResponse) s).getConflictingRule() != null) {
+                    mAdapter.setShouldRetry(true);
+                    mAdapter.notifyDataSetChanged();
+                }
+                mRingProgressDialog.dismiss();
+            }
+        }
+        else if (s instanceof RuleResponse){
             updateUI();
+        }
+        else {
+            Toast.makeText(
+                    getActivity(),
+                    getResources().getText(R.string.rule_list_retry_message) + ": " + s.getErrorMessage(),
+                    Toast.LENGTH_LONG).show();
+            mAdapter.setShouldRetry(true);
+            mAdapter.notifyDataSetChanged();
+            mRingProgressDialog.dismiss();
         }
     }
 
-    class RuleAdapter extends RecyclerView.Adapter<RuleHolder> {
+    class RuleAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+        private static final int TYPE_RULE = 1, TYPE_RETRY = 2;
+
         private List<Rule> mRules;
+        private boolean mShouldRetry = false;
 
         public RuleAdapter(List<Rule> rules) {
             mRules = rules;
         }
 
-        public void setRules(List<Rule> rules){
+        public void setRules(List<Rule> rules) {
             mRules = rules;
         }
 
-        @Override
-        public RuleHolder onCreateViewHolder(ViewGroup parent, int viewType) {
-            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
-            View view = layoutInflater.inflate(R.layout.list_rule_item, parent, false);
+        public List<Rule> getRules() {
+            return mRules;
+        }
 
-            return new RuleHolder(view);
+        private void setShouldRetry(boolean shouldRetry){
+            mShouldRetry = shouldRetry;
+        }
+
+        public boolean getShouldRetry() {
+            return mShouldRetry;
         }
 
         @Override
-        public void onBindViewHolder(RuleHolder holder, int position) {
-            holder.bindRule(mRules.get(position));
+        public RecyclerView.ViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+            LayoutInflater layoutInflater = LayoutInflater.from(getActivity());
+            if (viewType == TYPE_RULE) {
+                View view = layoutInflater.inflate(R.layout.list_rule_item, parent, false);
+                return new RuleHolder(view);
+            } else if (viewType == TYPE_RETRY) {
+                View view = layoutInflater.inflate(R.layout.list_rule_error_item, parent, false);
+                return new RetryHolder(view);
+            } else {
+                return null;
+            }
+        }
+
+        @Override
+        public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
+            if (position < mRules.size() && !mShouldRetry)
+                ((RuleHolder) holder).bindRule(mRules.get(position));
         }
 
         @Override
         public int getItemCount() {
-            return mRules.size();
+            if (!mShouldRetry)
+                return mRules.size();
+            else
+                return mRules.size() + 1;
+        }
+
+        @Override
+        public int getItemViewType(int position) {
+            if (mShouldRetry && position == mRules.size()) {
+                return TYPE_RETRY;
+            } else {
+                return TYPE_RULE;
+            }
         }
     }
 
@@ -181,6 +306,43 @@ public class RuleListFragment extends Fragment implements RequestCallback{
 
         @Override
         public void onClick(View view) {
+        }
+    }
+
+    class RetryHolder extends RecyclerView.ViewHolder {
+
+        private Button mRetryButton;
+
+        public RetryHolder(View itemView) {
+            super(itemView);
+            mRetryButton = (Button)itemView.findViewById(R.id.list_rule_error_item_button);
+            mRetryButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    NewRulesCommand command = new NewRulesCommand(mRuleToSend);
+                    mRingProgressDialog = ProgressDialog.show(
+                            getActivity(),
+                            getString(R.string.rule_list_sending_progess_title),
+                            getString(R.string.rule_list_sending_progess_message),
+                            true);
+                    new AsyncRequest(RuleListFragment.this).execute(command);
+                }
+            });
+        }
+    }
+
+    public class VerticalSpaceItemDecoration extends RecyclerView.ItemDecoration {
+
+        private final int mVerticalSpaceHeight;
+
+        public VerticalSpaceItemDecoration(int mVerticalSpaceHeight) {
+            this.mVerticalSpaceHeight = mVerticalSpaceHeight;
+        }
+
+        @Override
+        public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
+                                   RecyclerView.State state) {
+            outRect.bottom = mVerticalSpaceHeight;
         }
     }
 }
