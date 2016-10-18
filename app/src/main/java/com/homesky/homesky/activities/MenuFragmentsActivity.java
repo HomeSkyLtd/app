@@ -1,25 +1,16 @@
 package com.homesky.homesky.activities;
 
-import android.app.NotificationManager;
-import android.app.PendingIntent;
-import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.content.LocalBroadcastManager;
-import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.app.NotificationCompat;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -27,27 +18,17 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
-import com.homesky.homecloud_lib.model.notification.ActionResultNotification;
-import com.homesky.homecloud_lib.model.notification.DetectedNodeNotification;
-import com.homesky.homecloud_lib.model.notification.LearntRulesNotification;
-import com.homesky.homecloud_lib.model.notification.Notification;
-import com.homesky.homesky.MessageService;
 import com.homesky.homesky.R;
 import com.homesky.homesky.fragments.controller.ControllerFragment;
 import com.homesky.homesky.fragments.notification.FirebaseBackgroundService;
-import com.homesky.homesky.fragments.notification.HomeSkyBroadcastReceiver;
 import com.homesky.homesky.fragments.notification.NotificationFragment;
 import com.homesky.homesky.fragments.rule.RuleFragment;
 import com.homesky.homesky.fragments.settings.SettingsFragment;
 import com.homesky.homesky.fragments.state.StateFragment;
-import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.user.UserFragment;
 
 import java.util.HashMap;
 import java.util.Map;
-
-import static android.support.v4.app.NotificationCompat.DEFAULT_SOUND;
-import static android.support.v4.app.NotificationCompat.DEFAULT_VIBRATE;
 
 /* AppCompatActivity already extends FragmentActivity */
 public class MenuFragmentsActivity extends AppCompatActivity {

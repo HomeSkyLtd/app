@@ -13,7 +13,6 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.NotificationCompat;
-import android.util.Log;
 
 import com.homesky.homecloud_lib.model.notification.ActionResultNotification;
 import com.homesky.homecloud_lib.model.notification.DetectedNodeNotification;
@@ -36,6 +35,7 @@ import static android.support.v4.app.NotificationCompat.DEFAULT_VIBRATE;
 public class FirebaseBackgroundService extends Service {
 
     private static final String TAG = "FirebaseService";
+    private HomeSkyBroadcastReceiver mReceiver;
 
     @Nullable
     @Override
@@ -45,11 +45,17 @@ public class FirebaseBackgroundService extends Service {
 
     @Override
     public void onCreate() {
-        Log.d(TAG, "onCreate:");
         super.onCreate();
-        HomeSkyBroadcastReceiver receiver = new HomeSkyBroadcastReceiver();
+
+        mReceiver = new HomeSkyBroadcastReceiver();
         LocalBroadcastManager.getInstance(this)
-                .registerReceiver((receiver), new IntentFilter(MessageService.NOTIF_RESULT));
+                .registerReceiver((mReceiver), new IntentFilter(MessageService.NOTIF_RESULT));
+    }
+
+    @Override
+    public void onDestroy() {
+        super.onDestroy();
+        LocalBroadcastManager.getInstance(this).unregisterReceiver(mReceiver);
     }
 
     public static class HomeSkyBroadcastReceiver extends BroadcastReceiver {
@@ -68,15 +74,12 @@ public class FirebaseBackgroundService extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
-            context.startService(new Intent(context, FirebaseBackgroundService.class));
             notify(context, intent);
         }
 
         private void notify(Context context, Intent intent) {
             Notification n = (Notification) intent.getSerializableExtra(MessageService.NOTIF_MESSAGE);
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-
-            Log.d(TAG, "onReceive: " + n.toString());
 
             builder
                     .setAutoCancel(true)
