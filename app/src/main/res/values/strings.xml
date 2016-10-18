@@ -46,6 +46,7 @@
     <string name="rule_item_node_id">Node id:</string>
     <string name="rule_item_node_name">Name:</string>
     <string name="rule_item_node_room">Room:</string>
+    <string name="rule_fragment_no_connection">No internet connection</string>
 
     <!-- Rule list fragment -->
     <string name="rule_list_or">or</string>

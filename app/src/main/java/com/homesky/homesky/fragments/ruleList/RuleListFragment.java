@@ -12,10 +12,12 @@ import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -29,6 +31,8 @@ import com.homesky.homesky.R;
 import com.homesky.homesky.command.NewRulesCommand;
 import com.homesky.homesky.fragments.clause.ClauseActivity;
 import com.homesky.homesky.fragments.clause.ClauseFragment;
+import com.homesky.homesky.homecloud.HomecloudHolder;
+import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
@@ -60,6 +64,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     private SwipeRefreshLayout mRuleListSwipeRefresh;
     private FloatingActionButton mFloatingActionButton;
     private ProgressDialog mRingProgressDialog;
+    private RelativeLayout mLoadingLayout;
 
     public static Fragment newInstance(int nodeId, String controllerId){
         Bundle args = new Bundle();
@@ -118,6 +123,9 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             }
         });
 
+        mLoadingLayout = (RelativeLayout)view.findViewById(R.id.rule_list_fragment_loading_panel);
+        mLoadingLayout.setVisibility(View.VISIBLE);
+
         updateUI();
         return view;
     }
@@ -132,6 +140,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(filtered);
                 mRecyclerView.setAdapter(mAdapter);
+                mLoadingLayout.setVisibility(View.GONE);
             } else {
                 mAdapter.setRules(filtered);
                 mAdapter.notifyDataSetChanged();
@@ -191,7 +200,8 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             }
             //If unauthorized
             else if(s.getStatus() == 403){
-                //navigate to login page
+                HomecloudHolder.getInstance().invalidateSession();
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
             }
             //If some other error happened, check if the rule was not sent because of a conflicting rule.
             //In this case, don't offer to resend it
@@ -207,7 +217,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 mRingProgressDialog.dismiss();
             }
         }
-        else if (s instanceof RuleResponse){
+        else if (s instanceof RuleResponse || s instanceof NodesResponse){
             updateUI();
         }
         else {

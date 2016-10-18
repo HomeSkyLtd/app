@@ -34,9 +34,11 @@ import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.GetHouseStateCommand;
 import com.homesky.homesky.command.GetNodesInfoCommand;
+import com.homesky.homesky.command.LogoutCommand;
 import com.homesky.homesky.command.NewActionCommand;
 import com.homesky.homesky.fragments.node.NodeActivity;
 import com.homesky.homesky.fragments.node.NodeFragment;
+import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
@@ -123,6 +125,9 @@ public class StateFragment extends Fragment {
                         getResources().getText(R.string.state_fragment_error),
                         Toast.LENGTH_LONG).show();
             } else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+            } else if (s.getStatus() == 403){
+                HomecloudHolder.getInstance().invalidateSession();
                 getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
             } else {
                 updateUI();

@@ -137,7 +137,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
         } else {
             Toast.makeText(
                     getActivity(),
-                    getResources().getString(R.string.node_fragment_no_connection),
+                    s.getErrorMessage(),
                     Toast.LENGTH_LONG).show();
             mEditTextPassword.setEnabled(true);
             mEditTextLogin.setEnabled(true);
