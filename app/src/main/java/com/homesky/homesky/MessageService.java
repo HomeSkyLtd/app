@@ -20,17 +20,18 @@ public class MessageService extends FirebaseMessagingService {
     public static final String NOTIF_RESULT = "com.homesky.homesky.NOTIF_RESULT";
     public static final String NOTIF_MESSAGE = "com.homesky.homesky.NOTIF_MESSAGE";
 
-    private LocalBroadcastManager broadcaster;
+    private LocalBroadcastManager mBroadcaster;
 
     @Override
     public void onCreate() {
         super.onCreate();
-        broadcaster = LocalBroadcastManager.getInstance(this);
+        Log.d(TAG, "onCreate: MessageService");
+        mBroadcaster = LocalBroadcastManager.getInstance(this);
     }
 
     @Override
     public void onMessageReceived(RemoteMessage remoteMessage) {
-//      super.onMessageReceived(remoteMessage);
+        //super.onMessageReceived(remoteMessage);
         String jsonStr = remoteMessage.getData().get("data");
         Log.d(TAG, "onMessageReceived: " + jsonStr);
 
@@ -46,7 +47,7 @@ public class MessageService extends FirebaseMessagingService {
                         Log.e(TAG, "Action result notification in invalid format");
                     else {
                         i.putExtra(NOTIF_MESSAGE, notification);
-                        broadcaster.sendBroadcast(i);
+                        mBroadcaster.sendBroadcast(i);
                     }
                     break;
                 }
@@ -57,7 +58,7 @@ public class MessageService extends FirebaseMessagingService {
                         Log.e(TAG, "Learnt rule notification in invalid format");
                     else{
                         i.putExtra(NOTIF_MESSAGE, notification);
-                        broadcaster.sendBroadcast(i);
+                        mBroadcaster.sendBroadcast(i);
                     }
                     break;
                 }
@@ -68,7 +69,7 @@ public class MessageService extends FirebaseMessagingService {
                         Log.e(TAG, "Detected node notification in invalid format");
                     else{
                         i.putExtra(NOTIF_MESSAGE, notification);
-                        broadcaster.sendBroadcast(i);
+                        mBroadcaster.sendBroadcast(i);
                     }
                     break;
                 }

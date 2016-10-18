@@ -6,24 +6,19 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.support.design.widget.Snackbar;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.TaskStackBuilder;
-import android.support.v4.content.ContextCompat;
 import android.support.v4.content.LocalBroadcastManager;
+import android.support.v4.content.res.ResourcesCompat;
 import android.support.v4.view.GravityCompat;
 import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
-import android.support.v7.widget.RecyclerView;
-import android.support.v7.widget.Toolbar;
-import android.util.Log;
-import android.util.SparseIntArray;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -42,17 +37,21 @@ import com.homesky.homesky.fragments.notification.NotificationFragment;
 import com.homesky.homesky.fragments.rule.RuleFragment;
 import com.homesky.homesky.fragments.settings.SettingsFragment;
 import com.homesky.homesky.fragments.state.StateFragment;
+import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.user.UserFragment;
 
 import java.util.HashMap;
 import java.util.Map;
+
+import static android.support.v4.app.NotificationCompat.DEFAULT_SOUND;
+import static android.support.v4.app.NotificationCompat.DEFAULT_VIBRATE;
 
 /* AppCompatActivity already extends FragmentActivity */
 public class MenuFragmentsActivity extends AppCompatActivity {
 
     private static final String TAG = "MenuFragmentsActivity";
 
-    private static final String EXTRA_STARTING_FRAGMENT = "com.homesky.homesky.activities";
+    public static final String EXTRA_STARTING_FRAGMENT = "com.homesky.homesky.activities";
 
     private String[] mModulesTitles;
     private DrawerLayout mDrawerLayout;
@@ -60,7 +59,7 @@ public class MenuFragmentsActivity extends AppCompatActivity {
     private Map<String, Fragment> mFragments;
     private ActionBarDrawerToggle mDrawerToggle;
 
-    private BroadcastReceiver mReceiver;
+    private HomeSkyBroadcastReceiver mReceiver;
 
     private Fragment createFragment(int position) {
         String f = mModulesTitles[position];
@@ -149,15 +148,14 @@ public class MenuFragmentsActivity extends AppCompatActivity {
             actionbar.setDisplayHomeAsUpEnabled(true);
         }
 
-        mReceiver = new HomeSkyBroadcastReceiver(this);
+        mReceiver = new HomeSkyBroadcastReceiver();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        LocalBroadcastManager.getInstance(this).registerReceiver((mReceiver),
-                new IntentFilter(MessageService.NOTIF_RESULT)
-        );
+        LocalBroadcastManager.getInstance(this)
+                .registerReceiver((mReceiver), new IntentFilter(MessageService.NOTIF_RESULT));
     }
 
     @Override
@@ -201,43 +199,62 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         mDrawerToggle.syncState();
     }
 
-    class HomeSkyBroadcastReceiver extends BroadcastReceiver {
+    public static class HomeSkyBroadcastReceiver extends BroadcastReceiver {
 
-        private Context mContext;
+        private String ACTION = "action", NODE = "node", RULE = "rule";
+        private Map<String, String> mNotificationsString;
 
-        HomeSkyBroadcastReceiver(Context context) {
-            mContext = context;
+        public HomeSkyBroadcastReceiver() {
+            reset();
+        }
+
+        public void reset() {
+            mNotificationsString = new HashMap<>(3);
         }
 
         @Override
         public void onReceive(Context context, Intent intent) {
             Notification n = (Notification) intent.getSerializableExtra(MessageService.NOTIF_MESSAGE);
-            android.support.v4.app.NotificationCompat.Builder builder = new NotificationCompat.Builder(mContext);
-            builder.setAutoCancel(true).setSmallIcon(R.drawable.ic_home_white_24dp);
+
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
+
+            builder
+                    .setAutoCancel(true)
+                    .setSmallIcon(R.drawable.ic_home_white_24dp)
+                    .setDefaults(DEFAULT_SOUND | DEFAULT_VIBRATE)
+                    .setColor(ResourcesCompat.getColor(context.getResources(), R.color.colorPrimary, context.getTheme()))
+                    .setContentTitle("HomeSky")
+                    .setContentText("Touch to see what's new in your house");
 
             if (n instanceof ActionResultNotification) {
                 ActionResultNotification an = (ActionResultNotification) n;
-
-                builder.setContentTitle("Sent action")
-                        .setContentText(an.toString());
+                String str = "Sent action: value " + an.getAction().getValue() + " to node " + an.getAction().getNodeId();
+                mNotificationsString.put(ACTION, str);
 
             } else if (n instanceof DetectedNodeNotification) {
                 DetectedNodeNotification dn = (DetectedNodeNotification) n;
+                String str = "New nodes: " + dn.getNumberOfNodes();
+                mNotificationsString.put(NODE, str);
 
-                builder.setContentTitle("New detected nodes")
-                       .setContentText(dn.toString());
             } else if (n instanceof LearntRulesNotification) {
                 LearntRulesNotification ln = (LearntRulesNotification) n;
+                String str = "New rules: " + ln.getNumberOfRules();
+                mNotificationsString.put(RULE, str);
 
-                builder.setContentTitle("New suggested rules")
-                        .setContentText(ln.toString());
             }
 
+            NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
+                    .setSummaryText(HomecloudHolder.getInstance().getUsername());
+            for (String s : mNotificationsString.values()) {
+                style.addLine(s);
+            }
 
-            Intent resultIntent = new Intent(mContext, MenuFragmentsActivity.class);
-            resultIntent.putExtra(EXTRA_STARTING_FRAGMENT, 4);
+            builder.setStyle(style);
 
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(mContext);
+            Intent resultIntent = new Intent(context, MenuFragmentsActivity.class);
+            resultIntent.putExtra(MenuFragmentsActivity.EXTRA_STARTING_FRAGMENT, 4);
+
+            TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
             stackBuilder.addParentStack(MenuFragmentsActivity.class);
 
             stackBuilder.addNextIntent(resultIntent);
@@ -248,10 +265,14 @@ public class MenuFragmentsActivity extends AppCompatActivity {
                     );
             builder.setContentIntent(resultPendingIntent);
             NotificationManager notificationManager =
-                    (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 
 
             notificationManager.notify(0, builder.build());
         }
+    }
+
+    public void reset() {
+        mReceiver.reset();
     }
 }
