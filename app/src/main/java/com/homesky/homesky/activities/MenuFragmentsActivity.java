@@ -19,6 +19,7 @@ import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.NotificationCompat;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -33,6 +34,8 @@ import com.homesky.homecloud_lib.model.notification.Notification;
 import com.homesky.homesky.MessageService;
 import com.homesky.homesky.R;
 import com.homesky.homesky.fragments.controller.ControllerFragment;
+import com.homesky.homesky.fragments.notification.FirebaseBackgroundService;
+import com.homesky.homesky.fragments.notification.HomeSkyBroadcastReceiver;
 import com.homesky.homesky.fragments.notification.NotificationFragment;
 import com.homesky.homesky.fragments.rule.RuleFragment;
 import com.homesky.homesky.fragments.settings.SettingsFragment;
@@ -51,15 +54,14 @@ public class MenuFragmentsActivity extends AppCompatActivity {
 
     private static final String TAG = "MenuFragmentsActivity";
 
-    public static final String EXTRA_STARTING_FRAGMENT = "com.homesky.homesky.activities";
+    public static final String EXTRA_STARTING_FRAGMENT = "com.homesky.homesky.activities.starting_fragment";
+    public static final String EXTRA_NOTIFICATION_MAP = "com.homesky.homesky.activities.notification_map";
 
     private String[] mModulesTitles;
     private DrawerLayout mDrawerLayout;
     private ListView mDrawerList;
     private Map<String, Fragment> mFragments;
     private ActionBarDrawerToggle mDrawerToggle;
-
-    private HomeSkyBroadcastReceiver mReceiver;
 
     private Fragment createFragment(int position) {
         String f = mModulesTitles[position];
@@ -110,6 +112,9 @@ public class MenuFragmentsActivity extends AppCompatActivity {
 
         initFragments();
 
+        Intent notificationsService = new Intent(this, FirebaseBackgroundService.class);
+        startService(notificationsService);
+
         mModulesTitles = getResources().getStringArray(R.array.modules_titles);
         mDrawerLayout = (DrawerLayout) findViewById(R.id.drawer_layout);
         mDrawerList = (ListView) findViewById(R.id.menu_fragments_activity_left_drawer);
@@ -124,6 +129,8 @@ public class MenuFragmentsActivity extends AppCompatActivity {
 
         int startingFragment = getIntent().getIntExtra(EXTRA_STARTING_FRAGMENT, 0);
         selectFragment(startingFragment);
+
+        FirebaseBackgroundService.HomeSkyBroadcastReceiver.reset();
 
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, 0, 0) {
             @Override
@@ -147,15 +154,11 @@ public class MenuFragmentsActivity extends AppCompatActivity {
         if (actionbar != null) {
             actionbar.setDisplayHomeAsUpEnabled(true);
         }
-
-        mReceiver = new HomeSkyBroadcastReceiver();
     }
 
     @Override
     protected void onStart() {
         super.onStart();
-        LocalBroadcastManager.getInstance(this)
-                .registerReceiver((mReceiver), new IntentFilter(MessageService.NOTIF_RESULT));
     }
 
     @Override
@@ -197,82 +200,5 @@ public class MenuFragmentsActivity extends AppCompatActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         mDrawerToggle.syncState();
-    }
-
-    public static class HomeSkyBroadcastReceiver extends BroadcastReceiver {
-
-        private String ACTION = "action", NODE = "node", RULE = "rule";
-        private Map<String, String> mNotificationsString;
-
-        public HomeSkyBroadcastReceiver() {
-            reset();
-        }
-
-        public void reset() {
-            mNotificationsString = new HashMap<>(3);
-        }
-
-        @Override
-        public void onReceive(Context context, Intent intent) {
-            Notification n = (Notification) intent.getSerializableExtra(MessageService.NOTIF_MESSAGE);
-
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context);
-
-            builder
-                    .setAutoCancel(true)
-                    .setSmallIcon(R.drawable.ic_home_white_24dp)
-                    .setDefaults(DEFAULT_SOUND | DEFAULT_VIBRATE)
-                    .setColor(ResourcesCompat.getColor(context.getResources(), R.color.colorPrimary, context.getTheme()))
-                    .setContentTitle("HomeSky")
-                    .setContentText("Touch to see what's new in your house");
-
-            if (n instanceof ActionResultNotification) {
-                ActionResultNotification an = (ActionResultNotification) n;
-                String str = "Sent action: value " + an.getAction().getValue() + " to node " + an.getAction().getNodeId();
-                mNotificationsString.put(ACTION, str);
-
-            } else if (n instanceof DetectedNodeNotification) {
-                DetectedNodeNotification dn = (DetectedNodeNotification) n;
-                String str = "New nodes: " + dn.getNumberOfNodes();
-                mNotificationsString.put(NODE, str);
-
-            } else if (n instanceof LearntRulesNotification) {
-                LearntRulesNotification ln = (LearntRulesNotification) n;
-                String str = "New rules: " + ln.getNumberOfRules();
-                mNotificationsString.put(RULE, str);
-
-            }
-
-            NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
-                    .setSummaryText(HomecloudHolder.getInstance().getUsername());
-            for (String s : mNotificationsString.values()) {
-                style.addLine(s);
-            }
-
-            builder.setStyle(style);
-
-            Intent resultIntent = new Intent(context, MenuFragmentsActivity.class);
-            resultIntent.putExtra(MenuFragmentsActivity.EXTRA_STARTING_FRAGMENT, 4);
-
-            TaskStackBuilder stackBuilder = TaskStackBuilder.create(context);
-            stackBuilder.addParentStack(MenuFragmentsActivity.class);
-
-            stackBuilder.addNextIntent(resultIntent);
-            PendingIntent resultPendingIntent =
-                    stackBuilder.getPendingIntent(
-                            0,
-                            PendingIntent.FLAG_UPDATE_CURRENT
-                    );
-            builder.setContentIntent(resultPendingIntent);
-            NotificationManager notificationManager =
-                    (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
-
-
-            notificationManager.notify(0, builder.build());
-        }
-    }
-
-    public void reset() {
-        mReceiver.reset();
     }
 }

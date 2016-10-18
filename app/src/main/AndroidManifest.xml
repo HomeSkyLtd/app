@@ -47,7 +47,14 @@
                 </intent-filter>
         </service>
 
-        <receiver android:name=".activities.MenuFragmentsActivity$HomeSkyBroadcastReceiver">
+        <service
+            android:name=".fragments.notification.FirebaseBackgroundService">
+            <intent-filter>
+                <action android:name="com.example.bgfirebaseapp.FirebaseBackgroundService" />
+            </intent-filter>
+        </service>
+
+        <receiver android:name=".fragments.notification.HomeSkyBroadcastReceiver">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED"/>
             </intent-filter>
