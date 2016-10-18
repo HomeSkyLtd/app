@@ -47,6 +47,7 @@
     <string name="rule_item_node_name">Name:</string>
     <string name="rule_item_node_room">Room:</string>
     <string name="rule_fragment_no_connection">No internet connection</string>
+    <string name="rule_fragment_refresh_message">No internet connection. Please, refresh this page.</string>
 
     <!-- Rule list fragment -->
     <string name="rule_list_or">or</string>
@@ -59,6 +60,7 @@
     <string name="rule_list_retry_message">Could not send rule</string>
     <string name="rule_list_retry_button_text">Retry</string>
     <string name="rule_list_fab_when_retry_message">There is already a new pending rule</string>
+    <string name="rule_list_connection_error">Could not connect to server</string>
 
     <!-- Clause fragment -->
     <string name="clause_action_command">Action command</string>

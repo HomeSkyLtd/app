@@ -59,7 +59,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     private List<Rule> mRules = null;
     private List<Rule> mRuleToSend = null;
 
-    private TextView mActuatorTextView;
+    private TextView mActuatorTextView, mNoInternetTextView;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mRuleListSwipeRefresh;
     private FloatingActionButton mFloatingActionButton;
@@ -91,8 +91,6 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mRecyclerView.addItemDecoration(new VerticalSpaceItemDecoration(48));
 
         mActuatorTextView = (TextView)view.findViewById(R.id.rule_list_actuator_text_view);
-        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, ModelStorage.getInstance().getNodes(this));
-        mActuatorTextView.setText(node.getExtra().get(NODE_EXTRA_NAME));
 
         mRuleListSwipeRefresh = (SwipeRefreshLayout)view.findViewById(R.id.rule_list_swipe_refresh_layout);
         mRuleListSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -126,6 +124,8 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mLoadingLayout = (RelativeLayout)view.findViewById(R.id.rule_list_fragment_loading_panel);
         mLoadingLayout.setVisibility(View.VISIBLE);
 
+        mNoInternetTextView = (TextView)view.findViewById(R.id.rule_list_fragment_no_internet_text_view);
+
         updateUI();
         return view;
     }
@@ -136,18 +136,27 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             mNodes = ModelStorage.getInstance().getNodes(this);
 
         if(mRules != null && mNodes != null) {
+            NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, ModelStorage.getInstance().getNodes(this));
+            mActuatorTextView.setText(node.getExtra().get(NODE_EXTRA_NAME));
+
             List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(filtered);
                 mRecyclerView.setAdapter(mAdapter);
                 mLoadingLayout.setVisibility(View.GONE);
+                mNoInternetTextView.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
             } else {
+                mNoInternetTextView.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
                 mAdapter.setRules(filtered);
                 mAdapter.notifyDataSetChanged();
-
                 //If layout was refreshing, hide the progress indicator
                 if(mRuleListSwipeRefresh.isRefreshing()){
                     mRuleListSwipeRefresh.setRefreshing(false);
+                }
+                if(mRingProgressDialog != null && mRingProgressDialog.isShowing()){
+                    mRingProgressDialog.dismiss();
                 }
             }
         }
@@ -186,17 +195,25 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                     getResources().getText(R.string.login_fragment_server_offline),
                     Toast.LENGTH_LONG).show();
         }
+        //This happens when trying to send a new rule
         else if (s instanceof ConflictingRuleResponse){
             //If everything OK
             if(s.getStatus() == 200){
-                mRules.add(mRuleToSend.get(0));
-                List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
-                mAdapter.setRules(filtered);
-                mAdapter.setShouldRetry(false);
-                mAdapter.notifyDataSetChanged();
-                mRuleToSend = null;
-                ModelStorage.getInstance().invalidateRulesCache();
-                mRingProgressDialog.dismiss();
+                if(mRules != null) {
+                    mRules.add(mRuleToSend.get(0));
+                    List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
+                    mAdapter.setRules(filtered);
+                    mAdapter.setShouldRetry(false);
+                    mAdapter.notifyDataSetChanged();
+                    mRuleToSend = null;
+                    ModelStorage.getInstance().invalidateRulesCache();
+                    mRingProgressDialog.dismiss();
+                }
+                else{
+                    mRuleToSend = null;
+                    mAdapter.setShouldRetry(false);
+                    updateUI();
+                }
             }
             //If unauthorized
             else if(s.getStatus() == 403){
@@ -217,17 +234,46 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 mRingProgressDialog.dismiss();
             }
         }
+        //This happens if the UI is refreshing
         else if (s instanceof RuleResponse || s instanceof NodesResponse){
-            updateUI();
+            if(s.getStatus() == 403){
+                HomecloudHolder.getInstance().invalidateSession();
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+            }
+            else if(s.getStatus() == 200){
+                updateUI();
+            }
         }
+        //s is SimpleResponse, which happens if there was a connection error (status = 0)
         else {
-            Toast.makeText(
-                    getActivity(),
-                    getResources().getText(R.string.rule_list_retry_message) + ": " + s.getErrorMessage(),
-                    Toast.LENGTH_LONG).show();
-            mAdapter.setShouldRetry(true);
-            mAdapter.notifyDataSetChanged();
-            mRingProgressDialog.dismiss();
+            //If there was a connection error when refreshing
+            if(mRuleListSwipeRefresh.isRefreshing()){
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getText(R.string.rule_list_connection_error),
+                        Toast.LENGTH_LONG).show();
+                mRuleListSwipeRefresh.setRefreshing(false);
+            }
+            //If there was a connection error while sending the rule
+            else if(mRingProgressDialog != null && mRingProgressDialog.isShowing()){
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getText(R.string.rule_list_connection_error),
+                        Toast.LENGTH_LONG).show();
+                mAdapter.setShouldRetry(true);
+                mAdapter.notifyDataSetChanged();
+                mRingProgressDialog.dismiss();
+            }
+            //If there was a connection error when loading the page
+            else{
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getText(R.string.rule_list_connection_error),
+                        Toast.LENGTH_LONG).show();
+                mLoadingLayout.setVisibility(View.GONE);
+                mNoInternetTextView.setVisibility(View.VISIBLE);
+                mRecyclerView.setVisibility(View.GONE);;
+            }
         }
     }
 

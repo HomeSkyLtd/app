@@ -62,6 +62,7 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
     private int mNodeId;
     private String mControllerId;
     private NodesResponse.Node mNode;
+    private List<NodesResponse.Node> mNodes;
     private ArrayList<ArrayList<Proposition>> mClause;
     ArrayList<NodesResponse.CommandType> mCommandSpinnerIndexToCommandType = new ArrayList<>();
 
@@ -95,16 +96,6 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
         View view = inflater.inflate(R.layout.fragment_clause, container, false);
 
         mActionCommandSpinner = (Spinner)view.findViewById(R.id.fragment_clause_action_command_spinner);
-        List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(this);
-        mNode = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, nodes);
-
-        List<String> commandNames = new ArrayList<>();
-        for(NodesResponse.CommandType ct : mNode.getCommandType()){
-            mCommandSpinnerIndexToCommandType.add(ct);
-            commandNames.add(AppEnumUtils.commandCategoryToString(getActivity(), ct.getCommandCategory()));
-        }
-        mActionCommandSpinner.setAdapter(new ArrayAdapter<String>(
-                getActivity(), android.R.layout.simple_spinner_dropdown_item, commandNames));
 
         mActionValueEditText = (EditText)view.findViewById(R.id.fragment_clause_action_value_edit_text);
         mActionValueSwitch = (Switch)view.findViewById(R.id.fragment_clause_action_value_switch);
@@ -145,35 +136,6 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
         mActionValueEditText = (EditText)view.findViewById(R.id.fragment_clause_action_value_edit_text);
 
         mViewPager = (ViewPager)view.findViewById(R.id.fragment_clause_view_pager);
-        FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
-        mViewPager.setAdapter(new FragmentStatePagerAdapter(fragmentManager) {
-
-            @Override
-            public Fragment getItem(int position) {
-                if(position == mClause.size())
-                    return AndStatementFragmentEmpty.newInstance();
-                else{
-                    List<String> andStatement = new ArrayList<>(mClause.get(position).size());
-                    for(Proposition p : mClause.get(position)){
-                        andStatement.add(AppStringUtils.getPropositionLegibleText(
-                                getActivity(), p, ModelStorage.getInstance().getNodes(ClauseFragment.this), mControllerId));
-                    }
-                    Log.d(TAG, "Ran this");
-                    return AndStatementFragment.newInstance(andStatement);
-                }
-            }
-
-            @Override
-            public int getCount() {
-                return mClause.size() + 1;
-            }
-
-            @Override
-            public int getItemPosition(Object object) {
-                return POSITION_NONE;
-            }
-
-        });
 
         mFloatingActionButton = (FloatingActionButton)view.findViewById(R.id.fragment_clause_fab);
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
@@ -184,7 +146,56 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
             }
         });
 
+        updateUI();
+
         return view;
+    }
+
+    public void updateUI(){
+        mNodes = ModelStorage.getInstance().getNodes(this);
+        if(mNodes != null){
+            List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(this);
+            mNode = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, nodes);
+
+            List<String> commandNames = new ArrayList<>();
+            for(NodesResponse.CommandType ct : mNode.getCommandType()){
+                mCommandSpinnerIndexToCommandType.add(ct);
+                commandNames.add(AppEnumUtils.commandCategoryToString(getActivity(), ct.getCommandCategory()));
+            }
+            mActionCommandSpinner.setAdapter(new ArrayAdapter<String>(
+                    getActivity(), android.R.layout.simple_spinner_dropdown_item, commandNames));
+
+            FragmentManager fragmentManager = getActivity().getSupportFragmentManager();
+            mViewPager.setAdapter(new FragmentStatePagerAdapter(fragmentManager) {
+
+                @Override
+                public Fragment getItem(int position) {
+                    if(position == mClause.size())
+                        return AndStatementFragmentEmpty.newInstance();
+                    else{
+                        List<String> andStatement = new ArrayList<>(mClause.get(position).size());
+                        for(Proposition p : mClause.get(position)){
+                            andStatement.add(AppStringUtils.getPropositionLegibleText(
+                                    getActivity(), p, mNodes, mControllerId));
+                        }
+                        Log.d(TAG, "Ran this");
+                        return AndStatementFragment.newInstance(andStatement);
+                    }
+                }
+
+                @Override
+                public int getCount() {
+                    return mClause.size() + 1;
+                }
+
+                @Override
+                public int getItemPosition(Object object) {
+                    return POSITION_NONE;
+                }
+
+            });
+
+        }
     }
 
     @Override
@@ -237,6 +248,8 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
 
     @Override
     public void onPostRequest(SimpleResponse s) {
+        if(s instanceof NodesResponse)
+            updateUI();
     }
 
 

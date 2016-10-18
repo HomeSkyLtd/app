@@ -44,11 +44,23 @@
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">
 
-                <android.support.v7.widget.RecyclerView
-                    android:id="@+id/fragment_rule_list_recycler_view"
+                <RelativeLayout
                     android:layout_width="match_parent"
                     android:layout_height="match_parent">
-                </android.support.v7.widget.RecyclerView>
+                    <TextView
+                        android:id="@+id/rule_list_fragment_no_internet_text_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:text="@string/rule_fragment_refresh_message"
+                        android:gravity="center"
+                        style="@style/SecondaryTextStyle"/>
+
+                    <android.support.v7.widget.RecyclerView
+                        android:id="@+id/fragment_rule_list_recycler_view"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent">
+                    </android.support.v7.widget.RecyclerView>
+                </RelativeLayout>
             </android.support.v4.widget.SwipeRefreshLayout>
         </LinearLayout>
 

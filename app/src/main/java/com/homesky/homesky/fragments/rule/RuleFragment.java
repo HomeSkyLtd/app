@@ -43,6 +43,7 @@ public class RuleFragment extends Fragment implements RequestCallback {
     private RuleAdapter mAdapter;
     private SwipeRefreshLayout mRuleActuatorSwipeRefresh;
     private RelativeLayout mLoadingLayout;
+    private TextView mNoInternetTextView;
 
     @Nullable
     @Override
@@ -63,6 +64,10 @@ public class RuleFragment extends Fragment implements RequestCallback {
 
         mLoadingLayout = (RelativeLayout)view.findViewById(R.id.rule_fragment_loading_panel);
         mLoadingLayout.setVisibility(View.VISIBLE);
+
+        mNoInternetTextView = (TextView)view.findViewById(R.id.rule_fragment_no_internet_text_view);
+        mNoInternetTextView.setVisibility(View.GONE);
+
         updateUI();
         return view;
     }
@@ -77,6 +82,8 @@ public class RuleFragment extends Fragment implements RequestCallback {
             List<NodesResponse.Node> actuators = getActuators(nodes);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(actuators);
+                if(mRuleActuatorSwipeRefresh.isRefreshing())
+                    mRuleActuatorSwipeRefresh.setRefreshing(false);
                 if(mLoadingLayout.getVisibility() == View.VISIBLE)
                     mLoadingLayout.setVisibility(View.GONE);
             } else {
@@ -84,7 +91,11 @@ public class RuleFragment extends Fragment implements RequestCallback {
                 mAdapter.notifyDataSetChanged();
                 if(mRuleActuatorSwipeRefresh.isRefreshing())
                     mRuleActuatorSwipeRefresh.setRefreshing(false);
+                if(mLoadingLayout.getVisibility() == View.VISIBLE)
+                    mLoadingLayout.setVisibility(View.GONE);
             }
+            mNoInternetTextView.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.VISIBLE);
             mRecyclerView.setAdapter(mAdapter);
         }
     }
@@ -140,6 +151,10 @@ public class RuleFragment extends Fragment implements RequestCallback {
                     getActivity(),
                     getResources().getText(R.string.rule_fragment_no_connection),
                     Toast.LENGTH_LONG).show();
+            mLoadingLayout.setVisibility(View.GONE);
+            mRuleActuatorSwipeRefresh.setRefreshing(false);
+            mNoInternetTextView.setVisibility(View.VISIBLE);
+            mRecyclerView.setVisibility(View.GONE);
         }
     }
 
