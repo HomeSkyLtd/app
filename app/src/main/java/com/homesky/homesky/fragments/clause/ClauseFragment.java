@@ -1,15 +1,21 @@
 package com.homesky.homesky.fragments.clause;
 
+import android.app.Activity;
+import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentStatePagerAdapter;
+import android.support.v4.app.NavUtils;
 import android.support.v4.view.ViewPager;
 import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
@@ -17,6 +23,7 @@ import android.widget.ArrayAdapter;
 import android.widget.EditText;
 import android.widget.Spinner;
 import android.widget.Switch;
+import android.widget.Toast;
 
 import com.homesky.homecloud_lib.model.Proposition;
 import com.homesky.homecloud_lib.model.enums.EnumUtil;
@@ -25,12 +32,14 @@ import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.fragments.andStatement.AndStatementFragment;
 import com.homesky.homesky.fragments.andStatement.AndStatementFragmentEmpty;
+import com.homesky.homesky.fragments.ruleList.RuleListFragment;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.AppEnumUtils;
 import com.homesky.homesky.utils.AppFindElementUtils;
 import com.homesky.homesky.utils.AppStringUtils;
 
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -45,11 +54,15 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
     private static final String ARG_NODE_ID = "nodeId";
     private static final String ARG_CONTROLLER_ID = "controllerId";
     private static final String DIALOG_TAG = "ClauseFragmentTag";
+    public static final String EXTRA_CLAUSE = "extraClause";
+    public static final String EXTRA_COMMAND_ID = "extraCommandId";
+    public static final String EXTRA_VALUE = "extraValue";
+
 
     private int mNodeId;
     private String mControllerId;
     private NodesResponse.Node mNode;
-    private List<List<Proposition>> mClause;
+    private ArrayList<ArrayList<Proposition>> mClause;
     ArrayList<NodesResponse.CommandType> mCommandSpinnerIndexToCommandType = new ArrayList<>();
 
     private Spinner mActionCommandSpinner;
@@ -73,6 +86,7 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
         mNodeId = getArguments().getInt(ARG_NODE_ID);
         mControllerId = getArguments().getString(ARG_CONTROLLER_ID);
         mClause = new ArrayList<>();
+        setHasOptionsMenu(true);
     }
 
     @Nullable
@@ -174,8 +188,55 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
     }
 
     @Override
-    public void onPostRequest(SimpleResponse s) {
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_clause, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
 
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        if(id == R.id.menu_clause_done){
+            if(validateInput()){
+                Intent data = new Intent();
+                data.putExtra(EXTRA_CLAUSE, mClause);
+
+                data.putExtra(EXTRA_COMMAND_ID, mCommandSpinnerIndexToCommandType.get(
+                        mActionCommandSpinner.getSelectedItemPosition()).getId());
+
+                BigDecimal actionValue = null;
+                if(mActionValueEditText.getVisibility() == View.VISIBLE){
+                    actionValue = new BigDecimal(mActionValueEditText.getText().toString());
+                }
+                else{
+                    actionValue = new BigDecimal(mActionValueSwitch.isChecked()? 1 : 0);
+                }
+                data.putExtra(EXTRA_VALUE, actionValue);
+
+                getActivity().setResult(Activity.RESULT_OK, data);
+                NavUtils.navigateUpTo(getActivity(), new Intent(getActivity(), RuleListFragment.class));
+                return true;
+            }
+            else {
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getText(R.string.clause_save_error_message),
+                        Toast.LENGTH_LONG).show();
+                return true;
+            }
+        }
+        else if(id == R.id.menu_clause_cancel){
+            getActivity().setResult(Activity.RESULT_CANCELED, null);
+            NavUtils.navigateUpTo(getActivity(), new Intent(getActivity(), RuleListFragment.class));
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    public void onPostRequest(SimpleResponse s) {
     }
 
 
@@ -189,5 +250,17 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
             mClause.get(orStatementIndex).add(p);
         }
         mViewPager.getAdapter().notifyDataSetChanged();
+    }
+
+    private boolean validateInput(){
+        if(mActionValueEditText.getVisibility() == View.VISIBLE && mActionValueEditText.getText().length() == 0){
+            return false;
+        }
+        else if(mClause.size() == 0){
+            return false;
+        }
+        else{
+            return true;
+        }
     }
 }

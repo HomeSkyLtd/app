@@ -53,10 +53,18 @@
     <string name="rule_list_set">set</string>
     <string name="rule_list_condition">condition:</string>
     <string name="rule_list_effect">effect:</string>
+    <string name="rule_list_sending_progess_title">Please wait</string>
+    <string name="rule_list_sending_progess_message">Sending rule to server...</string>
+    <string name="rule_list_retry_message">Could not send rule</string>
+    <string name="rule_list_retry_button_text">Retry</string>
+    <string name="rule_list_fab_when_retry_message">There is already a new pending rule</string>
 
     <!-- Clause fragment -->
     <string name="clause_action_command">Action command</string>
     <string name="clause_action_value">Action value</string>
+    <string name="clause_menu_save">Save</string>
+    <string name="clause_menu_cancel">Cancel</string>
+    <string name="clause_save_error_message">Please fill in all fields</string>
 
     <!-- And statement fragment -->
     <string name="and_statement_empty_message">Add a new OR statement</string>
