@@ -87,6 +87,8 @@
 
     <!-- Notification fragment -->
     <string name="notification_fragment_title">Notification</string>
+    <string name="notification_fragment_list_accept">Accept</string>
+    <string name="notification_fragment_list_deny">Deny</string>
 
     <!-- User fragment -->
     <string name="user_fragment_title">Users</string>
