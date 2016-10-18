@@ -108,7 +108,13 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mAdapter.getShouldRetry()){
+                if(mAdapter == null || mRules == null){
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.rule_list_fab_when_no_internet_message),
+                            Toast.LENGTH_LONG).show();
+                }
+                else if(mAdapter.getShouldRetry()){
                     Toast.makeText(
                             getActivity(),
                             getResources().getText(R.string.rule_list_fab_when_retry_message),
@@ -151,13 +157,12 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 mRecyclerView.setVisibility(View.VISIBLE);
                 mAdapter.setRules(filtered);
                 mAdapter.notifyDataSetChanged();
-                //If layout was refreshing, hide the progress indicator
-                if(mRuleListSwipeRefresh.isRefreshing()){
-                    mRuleListSwipeRefresh.setRefreshing(false);
-                }
                 if(mRingProgressDialog != null && mRingProgressDialog.isShowing()){
                     mRingProgressDialog.dismiss();
                 }
+            }
+            if(mRuleListSwipeRefresh.isRefreshing()){
+                mRuleListSwipeRefresh.setRefreshing(false);
             }
         }
     }

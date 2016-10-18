@@ -60,6 +60,7 @@
     <string name="rule_list_retry_message">Could not send rule</string>
     <string name="rule_list_retry_button_text">Retry</string>
     <string name="rule_list_fab_when_retry_message">There is already a new pending rule</string>
+    <string name="rule_list_fab_when_no_internet_message">Can\'t load new rule page with no connection</string>
     <string name="rule_list_connection_error">Could not connect to server</string>
 
     <!-- Clause fragment -->
