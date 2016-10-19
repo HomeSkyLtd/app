@@ -1,15 +1,23 @@
 package com.homesky.homesky.fragments.notification;
 
+import android.app.Dialog;
 import android.content.Intent;
 import android.os.Bundle;
+import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
+import android.support.design.widget.Snackbar;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
+import android.widget.Button;
+import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,6 +27,7 @@ import com.homesky.homecloud_lib.model.notification.Notification;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.command.AcceptNodeCommand;
 import com.homesky.homesky.fragments.state.StateFragment;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
@@ -34,6 +43,8 @@ import java.util.Objects;
  * Created by henrique on 9/22/16.
  */
 public class NotificationFragment extends Fragment {
+
+    private static final String TAG = "NotificationFragment";
 
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mStateSwipeRefresh;
@@ -77,17 +88,51 @@ public class NotificationFragment extends Fragment {
         mAdapter.setNodes();
     }
 
-    private class NotificationHolder extends RecyclerView.ViewHolder {
+    private class NotificationHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
 
         private NodesResponse.Node mNode;
         private Rule mRule;
         private TextView mName, mRoom;
+        private ImageButton mDeny, mAccept;
+
+        private class NodeClickListener implements View.OnClickListener {
+            int mAccept;
+            NodeClickListener(int accept) { mAccept = accept; }
+            @Override
+            public void onClick(View v) {
+                new AsyncRequest(new AcceptCallback(mNode))
+                        .execute(new AcceptNodeCommand(mNode.getNodeId(),mNode.getControllerId(),mAccept));
+            }
+        }
+
+        private class RuleClickListener implements View.OnClickListener {
+            int mAccept;
+            RuleClickListener(int accept) { mAccept = accept; }
+            @Override
+            public void onClick(View v) {
+
+            }
+        }
 
         NotificationHolder(View itemView) {
             super(itemView);
 
             mName = (TextView) itemView.findViewById(R.id.list_notification_node_name);
             mRoom = (TextView) itemView.findViewById(R.id.list_notification_room_name);
+
+
+
+            mAccept = (ImageButton) itemView.findViewById(R.id.list_notification_accept_button);
+            mAccept.setOnClickListener(
+                    mRule == null ? new NodeClickListener(1) : new RuleClickListener(1)
+            );
+
+            mDeny = (ImageButton) itemView.findViewById(R.id.list_notification_deny_button);
+            mDeny.setOnClickListener(
+                    mRule == null ? new NodeClickListener(0) : new RuleClickListener(0)
+            );
+
+            itemView.setOnLongClickListener(this);
         }
 
         void bind(Object o) {
@@ -107,6 +152,7 @@ public class NotificationFragment extends Fragment {
                     for (NodesResponse.Node n : nodes) {
                         if (n.getNodeId() == mRule.getCommand().getNodeId()
                                 && n.getControllerId().equals(mRule.getControllerId())) {
+                            mNode = n;
 
                             String str = "New rule for " + n.getExtra().get(NODE_MAP_NAME);
                             mName.setText(str);
@@ -114,6 +160,43 @@ public class NotificationFragment extends Fragment {
                             break;
                         }
                     }
+                }
+            }
+        }
+
+        @Override
+        public boolean onLongClick(View v) {
+            //TODO: adicionar o DialogFragment abaixo com as infos do nó
+            return false;
+        }
+    }
+
+    class AcceptCallback implements RequestCallback {
+
+        NodesResponse.Node mNode;
+
+        AcceptCallback(NodesResponse.Node node) {
+            mNode = node;
+        }
+
+        @Override
+        public void onPostRequest(SimpleResponse s) {
+            List<Object> nodes = mAdapter.getNotifications();
+
+            for (int i = 0; i < nodes.size(); i++) {
+                Object o = nodes.get(i);
+
+                if (o instanceof NodesResponse.Node && mNode == o) {
+                    nodes.remove(i);
+                    mAdapter.notifyDataSetChanged();
+
+                    Snackbar.make(
+                            getActivity().findViewById(R.id.menu_fragments_activity_container),
+                            "Done!",
+                            Snackbar.LENGTH_SHORT
+                    ).show();
+
+                    break;
                 }
             }
         }
@@ -125,6 +208,10 @@ public class NotificationFragment extends Fragment {
 
         NotificationAdapter() {
             mNotifications = new ArrayList<>();
+        }
+
+        List<Object> getNotifications() {
+            return mNotifications;
         }
 
         void setNodes() {
@@ -203,6 +290,63 @@ public class NotificationFragment extends Fragment {
             } else {
                 updateUI();
             }
+        }
+    }
+
+    public static class ShowInfosDialogFragment extends DialogFragment {
+
+        private NodesResponse.Node mNode;
+        private TextView mTitle;
+        private TextView mControllerId;
+        private TextView mNodeId;
+
+
+        public void setNode(NodesResponse.Node node) {
+            mNode = node;
+        }
+
+        static ShowInfosDialogFragment newInstance(NodesResponse.Node node) {
+            ShowInfosDialogFragment fragment = new ShowInfosDialogFragment();
+
+            fragment.setNode(node);
+
+            return fragment;
+        }
+
+        @Override
+        public void onCreate(@Nullable Bundle savedInstanceState) {
+            super.onCreate(savedInstanceState);
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            setStyle(DialogFragment.STYLE_NORMAL, R.style.CustomDialogInfos);
+            return super.onCreateDialog(savedInstanceState);
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.node_infos_dialog_fragment, container, false);
+
+            getDialog().setCanceledOnTouchOutside(true);
+            Window window  = getDialog().getWindow();
+            if (window != null) {
+                window.setBackgroundDrawableResource(R.drawable.round_dialog);
+            }
+
+            mTitle = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_name);
+            mTitle.setText(mNode.getExtra().get("name"));
+
+            mControllerId = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_controller_id);
+            mControllerId.setText(mNode.getControllerId());
+
+            mNodeId = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_node_id);
+            String nodeId = String.valueOf(mNode.getNodeId());
+            mNodeId.setText(nodeId);
+
+            return view;
         }
     }
 }
