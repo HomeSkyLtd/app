@@ -31,8 +31,8 @@ public class LoginFragment extends Fragment implements RequestCallback {
 
     private static final String TAG = "LoginFragment";
     //private static final String URL = "http://192.168.0.197:3000";             // Henrique no energia
-    private static final String URL = "http://10.144.38.149:3000";    // Henrique no Eduroam
-    //private static final String URL = "http://192.168.1.106:3000";      // Casa do Henrique
+    //private static final String URL = "http://10.144.38.149:3000";    // Henrique no Eduroam
+    private static final String URL = "http://192.168.1.108:3000";      // Casa do Henrique
     //private static final String URL = "http://ec2-52-67-169-17.sa-east-1.compute.amazonaws.com:3000"; // AWS do Henrique
     //private static final String URL = "http://ec2-52-67-3-31.sa-east-1.compute.amazonaws.com:3000"; // AWS do Fabão
 
@@ -137,7 +137,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
         } else {
             Toast.makeText(
                     getActivity(),
-                    getResources().getString(R.string.node_fragment_no_connection),
+                    s.getErrorMessage(),
                     Toast.LENGTH_LONG).show();
             mEditTextPassword.setEnabled(true);
             mEditTextLogin.setEnabled(true);

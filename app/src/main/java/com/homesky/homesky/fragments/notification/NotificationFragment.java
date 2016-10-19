@@ -40,6 +40,9 @@ public class NotificationFragment extends Fragment {
     private RelativeLayout mLoadingPanel;
     private NotificationAdapter mAdapter;
 
+    private static final String NODE_MAP_NAME = "name";
+    private static final String NODE_MAP_ROOM = "room";
+
     public NotificationFragment() {}
 
     @Nullable
@@ -92,13 +95,26 @@ public class NotificationFragment extends Fragment {
             if (o instanceof NodesResponse.Node) {
                 mNode = (NodesResponse.Node) o;
 
-                mName.setText(mNode.getExtra().get("name"));
-                mRoom.setText(mNode.getExtra().get("room"));
+                String str = "A " + mNode.getExtra().get(NODE_MAP_NAME) + " detected";
+                mName.setText(str);
+                mRoom.setText(mNode.getExtra().get(NODE_MAP_ROOM));
             } else if (o instanceof Rule) {
                 mRule = (Rule) o;
 
-                mName.setText("NODE TARGET");
-                mRoom.setText("ROOM OF TARGET");
+                List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest());
+
+                if (nodes != null) {
+                    for (NodesResponse.Node n : nodes) {
+                        if (n.getNodeId() == mRule.getCommand().getNodeId()
+                                && n.getControllerId().equals(mRule.getControllerId())) {
+
+                            String str = "New rule for " + n.getExtra().get(NODE_MAP_NAME);
+                            mName.setText(str);
+                            mRoom.setText(n.getExtra().get(NODE_MAP_ROOM));
+                            break;
+                        }
+                    }
+                }
             }
         }
     }
