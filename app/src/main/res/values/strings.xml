@@ -56,12 +56,15 @@
     <string name="rule_list_condition">condition:</string>
     <string name="rule_list_effect">effect:</string>
     <string name="rule_list_sending_progess_title">Please wait</string>
-    <string name="rule_list_sending_progess_message">Sending rule to server...</string>
+    <string name="rule_list_sending_progess_message">Sending rule to server…</string>
     <string name="rule_list_retry_message">Could not send rule</string>
     <string name="rule_list_retry_button_text">Retry</string>
     <string name="rule_list_fab_when_retry_message">There is already a new pending rule</string>
     <string name="rule_list_fab_when_no_internet_message">Can\'t load new rule page with no connection</string>
     <string name="rule_list_connection_error">Could not connect to server</string>
+    <string name="rule_list_delete_rule_dialog_title">Delete Rule</string>
+    <string name="rule_list_delete_rule_dialog_message">Do you wish to delete the selected rule?</string>
+    <string name="rule_list_deleting_progess_message">Deleting rule…</string>
 
     <!-- Clause fragment -->
     <string name="clause_action_command">Action command</string>
