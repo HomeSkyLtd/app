@@ -92,6 +92,10 @@ public class ModelStorage implements RequestCallback{
         mRules = null;
     }
 
+    public void invalidateLearntRulesCache(){
+        mLearntRules = null;
+    }
+
     public Map<NodesResponse.Node, StateResponse.NodeState> getNodeIdToValue(boolean forceSync) {
         if (mNodes == null || mNodeStates == null)
             return null;

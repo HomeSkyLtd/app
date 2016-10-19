@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -28,6 +29,7 @@ import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.AcceptNodeCommand;
+import com.homesky.homesky.command.AcceptRuleCommand;
 import com.homesky.homesky.fragments.state.StateFragment;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
@@ -69,6 +71,7 @@ public class NotificationFragment extends Fragment {
             @Override
             public void onRefresh() {
                 ModelStorage.getInstance().invalidateNodesCache();
+                ModelStorage.getInstance().invalidateLearntRulesCache();
                 updateUI();
                 mStateSwipeRefresh.setRefreshing(false);
             }
@@ -80,11 +83,8 @@ public class NotificationFragment extends Fragment {
     }
 
     private void updateUI() {
-        if (mAdapter == null) {
-            mAdapter = new NotificationAdapter();
-            mRecyclerView.setAdapter(mAdapter);
-        }
-
+        mAdapter = new NotificationAdapter();
+        mRecyclerView.setAdapter(mAdapter);
         mAdapter.setNodes();
     }
 
@@ -100,7 +100,8 @@ public class NotificationFragment extends Fragment {
             NodeClickListener(int accept) { mAccept = accept; }
             @Override
             public void onClick(View v) {
-                new AsyncRequest(new AcceptCallback(mNode))
+                Log.d(TAG, "onClick: Node");
+                new AsyncRequest(new AcceptCallback(mNode, mRule))
                         .execute(new AcceptNodeCommand(mNode.getNodeId(),mNode.getControllerId(),mAccept));
             }
         }
@@ -110,7 +111,12 @@ public class NotificationFragment extends Fragment {
             RuleClickListener(int accept) { mAccept = accept; }
             @Override
             public void onClick(View v) {
-
+                Log.d(TAG, "onClick: Accept rule = " + mAccept);
+                Rule.Command c = mRule.getCommand();
+                new AsyncRequest(new AcceptCallback(mNode, mRule))
+                        .execute(new AcceptRuleCommand(
+                                c.getNodeId(), c.getCommandId(), mNode.getControllerId(),
+                                c.getValue(), mAccept));
             }
         }
 
@@ -120,17 +126,8 @@ public class NotificationFragment extends Fragment {
             mName = (TextView) itemView.findViewById(R.id.list_notification_node_name);
             mRoom = (TextView) itemView.findViewById(R.id.list_notification_room_name);
 
-
-
             mAccept = (ImageButton) itemView.findViewById(R.id.list_notification_accept_button);
-            mAccept.setOnClickListener(
-                    mRule == null ? new NodeClickListener(1) : new RuleClickListener(1)
-            );
-
             mDeny = (ImageButton) itemView.findViewById(R.id.list_notification_deny_button);
-            mDeny.setOnClickListener(
-                    mRule == null ? new NodeClickListener(0) : new RuleClickListener(0)
-            );
 
             itemView.setOnLongClickListener(this);
         }
@@ -138,11 +135,16 @@ public class NotificationFragment extends Fragment {
         void bind(Object o) {
 
             if (o instanceof NodesResponse.Node) {
+                mRule = null;
                 mNode = (NodesResponse.Node) o;
 
                 String str = "A " + mNode.getExtra().get(NODE_MAP_NAME) + " detected";
                 mName.setText(str);
                 mRoom.setText(mNode.getExtra().get(NODE_MAP_ROOM));
+
+                mAccept.setOnClickListener(new NodeClickListener(1));
+                mDeny.setOnClickListener(new NodeClickListener(0));
+
             } else if (o instanceof Rule) {
                 mRule = (Rule) o;
 
@@ -157,6 +159,10 @@ public class NotificationFragment extends Fragment {
                             String str = "New rule for " + n.getExtra().get(NODE_MAP_NAME);
                             mName.setText(str);
                             mRoom.setText(n.getExtra().get(NODE_MAP_ROOM));
+
+                            mAccept.setOnClickListener(new RuleClickListener(1));
+                            mDeny.setOnClickListener(new RuleClickListener(0));
+
                             break;
                         }
                     }
@@ -174,19 +180,25 @@ public class NotificationFragment extends Fragment {
     class AcceptCallback implements RequestCallback {
 
         NodesResponse.Node mNode;
+        Rule mRule;
 
-        AcceptCallback(NodesResponse.Node node) {
+        AcceptCallback(NodesResponse.Node node, Rule rule) {
             mNode = node;
+            mRule = rule;
         }
 
         @Override
         public void onPostRequest(SimpleResponse s) {
             List<Object> nodes = mAdapter.getNotifications();
+            Log.d(TAG, "onPostRequest: " + mRule);
 
             for (int i = 0; i < nodes.size(); i++) {
                 Object o = nodes.get(i);
 
-                if (o instanceof NodesResponse.Node && mNode == o) {
+                if (mRule == null && mNode == o || mRule == o) {
+
+                    Log.d(TAG, "onPostRequest: " + i);
+
                     nodes.remove(i);
                     mAdapter.notifyDataSetChanged();
 
@@ -218,7 +230,7 @@ public class NotificationFragment extends Fragment {
             List<Object> list = new ArrayList<>();
 
             List<NodesResponse.Node> nodeList = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest());
-            List<Rule> ruleList = ModelStorage.getInstance().getLearntRules(new GetLearntRules());
+            List<Rule> ruleList = ModelStorage.getInstance().getLearntRules(new GetLearntRulesRequest());
 
             if (nodeList != null) {
                 for (NodesResponse.Node n : nodeList) {
@@ -227,8 +239,9 @@ public class NotificationFragment extends Fragment {
                 }
             }
 
-            if (ruleList != null)
+            if (ruleList != null) {
                 list.addAll(ruleList);
+            }
 
             if (nodeList == null || ruleList == null) {
                 mLoadingPanel.setVisibility(View.VISIBLE);
@@ -277,7 +290,7 @@ public class NotificationFragment extends Fragment {
         }
     }
 
-    class GetLearntRules implements RequestCallback {
+    class GetLearntRulesRequest implements RequestCallback {
         @Override
         public void onPostRequest(SimpleResponse s) {
             if (s == null) {
