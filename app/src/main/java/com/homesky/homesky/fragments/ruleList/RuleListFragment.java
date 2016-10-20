@@ -2,6 +2,7 @@ package com.homesky.homesky.fragments.ruleList;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Rect;
 import android.os.Bundle;
@@ -9,13 +10,16 @@ import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -27,8 +31,11 @@ import com.homesky.homecloud_lib.model.response.RuleResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.NewRulesCommand;
+import com.homesky.homesky.command.RemoveRuleCommand;
 import com.homesky.homesky.fragments.clause.ClauseActivity;
 import com.homesky.homesky.fragments.clause.ClauseFragment;
+import com.homesky.homesky.homecloud.HomecloudHolder;
+import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
@@ -48,18 +55,24 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     private final String NODE_EXTRA_NAME = "name";
     private static int NEW_RULE_REQUEST = 1;
 
+    enum PageState{
+        LOADING, REFRESHING, SENDING_RULE, REMOVING_RULE, IDLE
+    }
+
     private int mNodeId;
     private String mControllerId;
     private RuleAdapter mAdapter;
     private List<NodesResponse.Node> mNodes = null;
     private List<Rule> mRules = null;
     private List<Rule> mRuleToSend = null;
+    private PageState mPageState;
 
-    private TextView mActuatorTextView;
+    private TextView mActuatorTextView, mNoInternetTextView;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mRuleListSwipeRefresh;
     private FloatingActionButton mFloatingActionButton;
     private ProgressDialog mRingProgressDialog;
+    private RelativeLayout mLoadingLayout;
 
     public static Fragment newInstance(int nodeId, String controllerId){
         Bundle args = new Bundle();
@@ -86,8 +99,6 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mRecyclerView.addItemDecoration(new VerticalSpaceItemDecoration(48));
 
         mActuatorTextView = (TextView)view.findViewById(R.id.rule_list_actuator_text_view);
-        NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, ModelStorage.getInstance().getNodes(this));
-        mActuatorTextView.setText(node.getExtra().get(NODE_EXTRA_NAME));
 
         mRuleListSwipeRefresh = (SwipeRefreshLayout)view.findViewById(R.id.rule_list_swipe_refresh_layout);
         mRuleListSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
@@ -97,6 +108,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 mRules = null;
                 ModelStorage.getInstance().invalidateNodesCache();
                 ModelStorage.getInstance().invalidateRulesCache();
+                mPageState = PageState.REFRESHING;
                 updateUI();
             }
         });
@@ -105,7 +117,13 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mAdapter.getShouldRetry()){
+                if(mAdapter == null || mRules == null){
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.rule_list_fab_when_no_internet_message),
+                            Toast.LENGTH_LONG).show();
+                }
+                else if(mAdapter.getShouldRetry()){
                     Toast.makeText(
                             getActivity(),
                             getResources().getText(R.string.rule_list_fab_when_retry_message),
@@ -118,29 +136,45 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             }
         });
 
+        mLoadingLayout = (RelativeLayout)view.findViewById(R.id.rule_list_fragment_loading_panel);
+
+        mNoInternetTextView = (TextView)view.findViewById(R.id.rule_list_fragment_no_internet_text_view);
+
+        mPageState = PageState.LOADING;
         updateUI();
         return view;
     }
 
     private void updateUI(){
+        mLoadingLayout.setVisibility(View.VISIBLE);
         mRules = ModelStorage.getInstance().getRules(this);
         if(mRules != null)
             mNodes = ModelStorage.getInstance().getNodes(this);
 
         if(mRules != null && mNodes != null) {
+            NodesResponse.Node node = AppFindElementUtils.findNodeFromId(mNodeId, mControllerId, ModelStorage.getInstance().getNodes(this));
+            mActuatorTextView.setText(node.getExtra().get(NODE_EXTRA_NAME));
+
             List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(filtered);
                 mRecyclerView.setAdapter(mAdapter);
+                mNoInternetTextView.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
             } else {
+                mNoInternetTextView.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
                 mAdapter.setRules(filtered);
                 mAdapter.notifyDataSetChanged();
-
-                //If layout was refreshing, hide the progress indicator
-                if(mRuleListSwipeRefresh.isRefreshing()){
-                    mRuleListSwipeRefresh.setRefreshing(false);
+                if(mRingProgressDialog != null && mRingProgressDialog.isShowing()){
+                    mRingProgressDialog.dismiss();
                 }
             }
+            if(mRuleListSwipeRefresh.isRefreshing()){
+                mRuleListSwipeRefresh.setRefreshing(false);
+            }
+            mLoadingLayout.setVisibility(View.GONE);
+            mPageState = PageState.IDLE;
         }
     }
 
@@ -161,6 +195,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                         getString(R.string.rule_list_sending_progess_title),
                         getString(R.string.rule_list_sending_progess_message),
                         true);
+                mPageState = PageState.SENDING_RULE;
                 new AsyncRequest(this).execute(command);
             }
         }
@@ -177,21 +212,31 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                     getResources().getText(R.string.login_fragment_server_offline),
                     Toast.LENGTH_LONG).show();
         }
-        else if (s instanceof ConflictingRuleResponse){
+        //This happens when trying to send a new rule
+        else if (s instanceof ConflictingRuleResponse && mPageState.equals(PageState.SENDING_RULE)){
             //If everything OK
             if(s.getStatus() == 200){
-                mRules.add(mRuleToSend.get(0));
-                List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
-                mAdapter.setRules(filtered);
-                mAdapter.setShouldRetry(false);
-                mAdapter.notifyDataSetChanged();
-                mRuleToSend = null;
-                ModelStorage.getInstance().invalidateRulesCache();
-                mRingProgressDialog.dismiss();
+                if(mRules != null) {
+                    mRules.add(mRuleToSend.get(0));
+                    List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
+                    mAdapter.setRules(filtered);
+                    mAdapter.setShouldRetry(false);
+                    mAdapter.notifyDataSetChanged();
+                    mRuleToSend = null;
+                    ModelStorage.getInstance().invalidateRulesCache();
+                    mRingProgressDialog.dismiss();
+                    mPageState = PageState.IDLE;
+                }
+                else{
+                    mRuleToSend = null;
+                    mAdapter.setShouldRetry(false);
+                    updateUI();
+                }
             }
             //If unauthorized
             else if(s.getStatus() == 403){
-                //navigate to login page
+                HomecloudHolder.getInstance().invalidateSession();
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
             }
             //If some other error happened, check if the rule was not sent because of a conflicting rule.
             //In this case, don't offer to resend it
@@ -205,19 +250,76 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                     mAdapter.notifyDataSetChanged();
                 }
                 mRingProgressDialog.dismiss();
+                mPageState = PageState.IDLE;
             }
         }
-        else if (s instanceof RuleResponse){
-            updateUI();
+        //This happens if the UI is refreshing or loading
+        else if ((s instanceof RuleResponse || s instanceof NodesResponse) &&
+                 (mPageState.equals(PageState.REFRESHING) || mPageState.equals(PageState.LOADING))){
+            if(s.getStatus() == 403){
+                HomecloudHolder.getInstance().invalidateSession();
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+            }
+            else if(s.getStatus() == 200){
+                updateUI();
+            }
         }
+        //s is SimpleResponse
         else {
-            Toast.makeText(
-                    getActivity(),
-                    getResources().getText(R.string.rule_list_retry_message) + ": " + s.getErrorMessage(),
-                    Toast.LENGTH_LONG).show();
-            mAdapter.setShouldRetry(true);
-            mAdapter.notifyDataSetChanged();
-            mRingProgressDialog.dismiss();
+            //this happens if rule removal was successful
+            if(s.getStatus() == 200 && mPageState.equals(PageState.REMOVING_RULE)){
+                mRingProgressDialog.dismiss();
+                mRules = null;
+                ModelStorage.getInstance().invalidateRulesCache();
+                mPageState = PageState.REFRESHING;
+                updateUI();
+            }
+            else if (s.getStatus() == 403){
+                HomecloudHolder.getInstance().invalidateSession();
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+            }
+            //this happens if there was a connection error (status = 0)
+            else {
+                //If there was a connection error when refreshing
+                if (mPageState.equals(PageState.REFRESHING)) {
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.rule_list_connection_error),
+                            Toast.LENGTH_LONG).show();
+                    mRuleListSwipeRefresh.setRefreshing(false);
+                    mRecyclerView.setVisibility(View.GONE);
+                    mLoadingLayout.setVisibility(View.GONE);
+                    mNoInternetTextView.setVisibility(View.VISIBLE);
+                }
+                //If there was a connection error while sending the rule
+                else if (mPageState.equals(PageState.SENDING_RULE)) {
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.rule_list_connection_error),
+                            Toast.LENGTH_LONG).show();
+                    mAdapter.setShouldRetry(true);
+                    mAdapter.notifyDataSetChanged();
+                    mRingProgressDialog.dismiss();
+                }
+                //If there was a connection error when removing a rule
+                else if (mPageState.equals(PageState.REMOVING_RULE)){
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.rule_list_connection_error),
+                            Toast.LENGTH_LONG).show();
+                    mRingProgressDialog.dismiss();
+                }
+                //If there was a connection error when loading the page
+                else if (mPageState.equals(PageState.LOADING)) {
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.rule_list_connection_error),
+                            Toast.LENGTH_LONG).show();
+                    mLoadingLayout.setVisibility(View.GONE);
+                    mNoInternetTextView.setVisibility(View.VISIBLE);
+                    mRecyclerView.setVisibility(View.GONE);
+                }
+            }
         }
     }
 
@@ -263,8 +365,9 @@ public class RuleListFragment extends Fragment implements RequestCallback{
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            if (position < mRules.size() && !mShouldRetry)
+            if (position < mRules.size() && !mShouldRetry) {
                 ((RuleHolder) holder).bindRule(mRules.get(position));
+            }
         }
 
         @Override
@@ -285,7 +388,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         }
     }
 
-    class RuleHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
+    class RuleHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener, View.OnClickListener{
         Rule mRule;
 
         TextView mRuleCondition, mRuleEffect;
@@ -295,7 +398,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             mRuleCondition = (TextView)itemView.findViewById(R.id.rule_condition_text_view);
             mRuleEffect = (TextView)itemView.findViewById(R.id.rule_effect_text_view);
 
-            itemView.setOnClickListener(this);
+            itemView.setOnLongClickListener(this);
         }
 
         public void bindRule(Rule r){
@@ -305,7 +408,34 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         }
 
         @Override
+        public boolean onLongClick(View view) {
+            new AlertDialog.Builder(getActivity())
+                    .setTitle(getString(R.string.rule_list_delete_rule_dialog_title))
+                    .setMessage(getString(R.string.rule_list_delete_rule_dialog_message))
+                    .setPositiveButton(android.R.string.yes, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            mPageState = PageState.REMOVING_RULE;
+                            new AsyncRequest(RuleListFragment.this).execute(new RemoveRuleCommand(mRule));
+                            mRingProgressDialog = ProgressDialog.show(
+                                    getActivity(),
+                                    getString(R.string.rule_list_sending_progess_title),
+                                    getString(R.string.rule_list_deleting_progess_message),
+                                    true);
+                        }
+                    })
+                    .setNegativeButton(android.R.string.no, new DialogInterface.OnClickListener() {
+                        public void onClick(DialogInterface dialog, int which) {
+                            // do nothing
+                        }
+                    })
+                    .setIcon(android.R.drawable.ic_dialog_alert)
+                    .show();
+            return true;
+        }
+
+        @Override
         public void onClick(View view) {
+
         }
     }
 
@@ -325,6 +455,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                             getString(R.string.rule_list_sending_progess_title),
                             getString(R.string.rule_list_sending_progess_message),
                             true);
+                    mPageState = PageState.SENDING_RULE;
                     new AsyncRequest(RuleListFragment.this).execute(command);
                 }
             });

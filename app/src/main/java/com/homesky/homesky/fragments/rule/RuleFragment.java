@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -20,6 +21,8 @@ import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.fragments.ruleList.RuleListActivity;
+import com.homesky.homesky.homecloud.HomecloudHolder;
+import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 
@@ -39,6 +42,8 @@ public class RuleFragment extends Fragment implements RequestCallback {
     private RecyclerView mRecyclerView;
     private RuleAdapter mAdapter;
     private SwipeRefreshLayout mRuleActuatorSwipeRefresh;
+    private RelativeLayout mLoadingLayout;
+    private TextView mNoInternetTextView;
 
     @Nullable
     @Override
@@ -53,9 +58,15 @@ public class RuleFragment extends Fragment implements RequestCallback {
                 ModelStorage.getInstance().invalidateNodesCache();
                 ModelStorage.getInstance().invalidateRulesCache();
                 updateUI();
-                mRuleActuatorSwipeRefresh.setRefreshing(false);
+
             }
         });
+
+        mLoadingLayout = (RelativeLayout)view.findViewById(R.id.rule_fragment_loading_panel);
+        mLoadingLayout.setVisibility(View.VISIBLE);
+
+        mNoInternetTextView = (TextView)view.findViewById(R.id.rule_fragment_no_internet_text_view);
+        mNoInternetTextView.setVisibility(View.GONE);
 
         updateUI();
         return view;
@@ -71,10 +82,20 @@ public class RuleFragment extends Fragment implements RequestCallback {
             List<NodesResponse.Node> actuators = getActuators(nodes);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(actuators);
+                if(mRuleActuatorSwipeRefresh.isRefreshing())
+                    mRuleActuatorSwipeRefresh.setRefreshing(false);
+                if(mLoadingLayout.getVisibility() == View.VISIBLE)
+                    mLoadingLayout.setVisibility(View.GONE);
             } else {
                 mAdapter.setActuators(actuators);
                 mAdapter.notifyDataSetChanged();
+                if(mRuleActuatorSwipeRefresh.isRefreshing())
+                    mRuleActuatorSwipeRefresh.setRefreshing(false);
+                if(mLoadingLayout.getVisibility() == View.VISIBLE)
+                    mLoadingLayout.setVisibility(View.GONE);
             }
+            mNoInternetTextView.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.VISIBLE);
             mRecyclerView.setAdapter(mAdapter);
         }
     }
@@ -117,8 +138,23 @@ public class RuleFragment extends Fragment implements RequestCallback {
                     getActivity(),
                     getResources().getText(R.string.login_fragment_server_offline),
                     Toast.LENGTH_LONG).show();
-        } else {
+        }
+        else if(s.getStatus() == 200) {
             updateUI();
+        }
+        else if(s.getStatus() == 403) {
+            HomecloudHolder.getInstance().invalidateSession();
+            getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+        }
+        else {
+            Toast.makeText(
+                    getActivity(),
+                    getResources().getText(R.string.rule_fragment_no_connection),
+                    Toast.LENGTH_LONG).show();
+            mLoadingLayout.setVisibility(View.GONE);
+            mRuleActuatorSwipeRefresh.setRefreshing(false);
+            mNoInternetTextView.setVisibility(View.VISIBLE);
+            mRecyclerView.setVisibility(View.GONE);
         }
     }
 
