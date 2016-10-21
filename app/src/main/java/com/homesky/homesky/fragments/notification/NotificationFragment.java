@@ -343,6 +343,14 @@ public class NotificationFragment extends Fragment {
             super.onCreate(savedInstanceState);
         }
 
+        @Override
+        public void onResume() {
+            super.onResume();
+            int width = getResources().getDimensionPixelSize(R.dimen.dialog_width);
+            int height = getResources().getDimensionPixelSize(R.dimen.dialog_height);
+            getDialog().getWindow().setLayout(width, height);
+        }
+
         @NonNull
         @Override
         public Dialog onCreateDialog(Bundle savedInstanceState) {
