@@ -151,4 +151,8 @@
     <string name="TEMPERATURE">temperature</string>
     <string name="TOGGLE">toggle</string>
 
+    <!-- Notification fragment -->
+    <string name="notification_fragment_rule_result">Result</string>
+    <string name="notification_fragment_rule_clause">When</string>
+
 </resources>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+          android:orientation="vertical"
+          android:layout_width="match_parent"
+          android:layout_height="match_parent"
+    android:layout_marginBottom="@dimen/activity_vertical_margin">
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:background="@color/white">
+
+        <TableRow
+            android:layout_width="match_parent">
+            <TextView
+                android:text="Node Type"
+                android:textStyle="normal|bold"/>
+            <TextView
+                android:layout_weight="1"
+                android:id="@+id/dialog_node_view_node_type"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+            <TextView/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent">
+            <TextView
+                android:text="Value Type"
+                android:textStyle="normal|bold"/>
+            <TextView
+                android:layout_weight="1"
+                android:id="@+id/dialog_node_view_value_type"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+            <TextView/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent">
+            <TextView
+                android:text="Category"
+                android:textStyle="normal|bold"/>
+            <TextView
+                android:layout_weight="1"
+                android:id="@+id/dialog_node_view_category"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+            <TextView/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent">
+            <TextView
+                android:text="Unit"
+                android:textStyle="normal|bold"/>
+            <TextView
+                android:layout_weight="1"
+                android:id="@+id/dialog_node_view_unit"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+            <TextView/>
+        </TableRow>
+
+        <TableRow
+            android:layout_width="match_parent">
+            <TextView
+                android:text="Range"
+                android:textStyle="normal|bold"/>
+            <TextView
+                android:layout_weight="1"
+                android:id="@+id/dialog_node_view_range"
+                android:layout_marginStart="@dimen/activity_horizontal_margin"/>
+            <TextView/>
+        </TableRow>
+    </TableLayout>
+    <TextView
+        android:layout_height="@dimen/activity_horizontal_margin"
+        android:layout_width="match_parent"
+        android:background="@color/light_gray"/>
+</LinearLayout>

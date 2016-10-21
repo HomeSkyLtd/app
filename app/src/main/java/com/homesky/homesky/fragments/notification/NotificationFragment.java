@@ -1,6 +1,7 @@
 package com.homesky.homesky.fragments.notification;
 
 import android.app.Dialog;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -19,11 +20,17 @@ import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.ImageButton;
+import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.homesky.homecloud_lib.model.Rule;
+import com.homesky.homecloud_lib.model.enums.CommandCategoryEnum;
+import com.homesky.homecloud_lib.model.enums.DataCategoryEnum;
+import com.homesky.homecloud_lib.model.enums.EnumUtil;
+import com.homesky.homecloud_lib.model.enums.TypeEnum;
 import com.homesky.homecloud_lib.model.notification.Notification;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
@@ -88,7 +95,9 @@ public class NotificationFragment extends Fragment {
         mAdapter.setNodes();
     }
 
-    private class NotificationHolder extends RecyclerView.ViewHolder implements View.OnLongClickListener {
+    private class NotificationHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
+
+        private static final String DIALOG_TAG = "state_holder_dialog_tag";
 
         private NodesResponse.Node mNode;
         private Rule mRule;
@@ -127,7 +136,7 @@ public class NotificationFragment extends Fragment {
             mAccept = (ImageButton) itemView.findViewById(R.id.list_notification_accept_button);
             mDeny = (ImageButton) itemView.findViewById(R.id.list_notification_deny_button);
 
-            itemView.setOnLongClickListener(this);
+            itemView.setOnClickListener(this);
         }
 
         void bind(Object o) {
@@ -169,9 +178,8 @@ public class NotificationFragment extends Fragment {
         }
 
         @Override
-        public boolean onLongClick(View v) {
-            //TODO: adicionar o DialogFragment abaixo com as infos do nó
-            return false;
+        public void onClick(View v) {
+            ShowInfosDialogFragment.newInstance(mNode, mRule).show(getFragmentManager(), DIALOG_TAG);
         }
     }
 
@@ -303,19 +311,29 @@ public class NotificationFragment extends Fragment {
     public static class ShowInfosDialogFragment extends DialogFragment {
 
         private NodesResponse.Node mNode;
+        private Rule mRule;
+
         private TextView mTitle;
         private TextView mControllerId;
         private TextView mNodeId;
+
+        private TextView mResult;
+        private TextView mClause;
 
 
         public void setNode(NodesResponse.Node node) {
             mNode = node;
         }
 
-        static ShowInfosDialogFragment newInstance(NodesResponse.Node node) {
+        public void setRule(Rule rule) {
+            mRule = rule;
+        }
+
+        static ShowInfosDialogFragment newInstance(NodesResponse.Node node, Rule rule) {
             ShowInfosDialogFragment fragment = new ShowInfosDialogFragment();
 
             fragment.setNode(node);
+            fragment.setRule(rule);
 
             return fragment;
         }
@@ -335,7 +353,7 @@ public class NotificationFragment extends Fragment {
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            View view = inflater.inflate(R.layout.node_infos_dialog_fragment, container, false);
+            View view = inflater.inflate(R.layout.notification_dialog_fragment, container, false);
 
             getDialog().setCanceledOnTouchOutside(true);
             Window window  = getDialog().getWindow();
@@ -343,15 +361,84 @@ public class NotificationFragment extends Fragment {
                 window.setBackgroundDrawableResource(R.drawable.round_dialog);
             }
 
-            mTitle = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_name);
+            mTitle = (TextView) view.findViewById(R.id.notification_dialog_fragment_name);
             mTitle.setText(mNode.getExtra().get("name"));
 
-            mControllerId = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_controller_id);
+            mControllerId = (TextView) view.findViewById(R.id.notification_dialog_fragment_controller_id);
             mControllerId.setText(mNode.getControllerId());
 
-            mNodeId = (TextView) view.findViewById(R.id.node_infos_dialog_fragment_node_id);
+            mNodeId = (TextView) view.findViewById(R.id.notification_dialog_fragment_node_id);
             String nodeId = String.valueOf(mNode.getNodeId());
             mNodeId.setText(nodeId);
+
+            if (mRule != null) {
+                view.findViewById(R.id.clause_tablerow).setVisibility(View.VISIBLE);
+                view.findViewById(R.id.result_tablerow).setVisibility(View.VISIBLE);
+
+                mResult = (TextView) view.findViewById(R.id.notification_dialog_fragment_res_id);
+                mResult.setText(AppStringUtils.getRuleEffectLegibleText(
+                        getActivity(),
+                        mRule,
+                        ModelStorage.getInstance().getNodes(null))
+                );
+
+                mClause = (TextView) view.findViewById(R.id.notification_dialog_fragment_clause_id);
+                mClause.setText(AppStringUtils.getRuleConditionLegibleText(
+                        getActivity(),
+                        mRule,
+                        ModelStorage.getInstance().getNodes(null))
+                );
+            } else {
+
+                LinearLayout ll = (LinearLayout) view.findViewById(R.id.notification_dialog_fragment_scrollview);
+                LayoutInflater linflater = LayoutInflater.from(getActivity());
+
+                for (NodesResponse.DataType d : mNode.getDataType()) {
+
+                    View footerView = linflater.inflate(R.layout.notification_node_view_dialog_fragment, null, false);
+
+                    TextView node = (TextView) footerView.findViewById(R.id.dialog_node_view_node_type);
+                    node.setText("Sensor");
+
+                    TextView type = (TextView) footerView.findViewById(R.id.dialog_node_view_value_type);
+                    type.setText(EnumUtil.getEnumPrettyName(d.getType().getId(), TypeEnum.class));
+
+                    TextView category = (TextView) footerView.findViewById(R.id.dialog_node_view_category);
+                    category.setText(EnumUtil.getEnumPrettyName(d.getDataCategory().getId(), DataCategoryEnum.class));
+
+                    TextView unit = (TextView) footerView.findViewById(R.id.dialog_node_view_unit);
+                    unit.setText(d.getUnit());
+
+                    TextView range = (TextView) footerView.findViewById(R.id.dialog_node_view_range);
+                    String str = "[" + d.getRange()[0] + ", " + d.getRange()[1] + "]";
+                    range.setText(str);
+
+                    ll.addView(footerView);
+                }
+
+                for (NodesResponse.CommandType c : mNode.getCommandType()) {
+
+                    View footerView = linflater.inflate(R.layout.notification_node_view_dialog_fragment, null, false);
+
+                    TextView node = (TextView) footerView.findViewById(R.id.dialog_node_view_node_type);
+                    node.setText("Actuator");
+
+                    TextView type = (TextView) footerView.findViewById(R.id.dialog_node_view_value_type);
+                    type.setText(EnumUtil.getEnumPrettyName(c.getType().getId(), TypeEnum.class));
+
+                    TextView category = (TextView) footerView.findViewById(R.id.dialog_node_view_category);
+                    category.setText(EnumUtil.getEnumPrettyName(c.getCommandCategory().getId(), CommandCategoryEnum.class));
+
+                    TextView unit = (TextView) footerView.findViewById(R.id.dialog_node_view_unit);
+                    unit.setText(c.getUnit());
+
+                    TextView range = (TextView) footerView.findViewById(R.id.dialog_node_view_range);
+                    String str = "[" + c.getRange()[0] + ", " + c.getRange()[1] + "]";
+                    range.setText(str);
+
+                    ll.addView(footerView);
+                }
+            }
 
             return view;
         }

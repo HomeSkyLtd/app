@@ -29,6 +29,7 @@
 
     <style name="CustomDialogInfos" parent="CustomDialog">
         <item name="android:textSize">@dimen/subtitle_3_text_size</item>
+        <item name="android:background">@color/light_gray</item>
     </style>
 
     <style name="HeaderTextViewStyle">
