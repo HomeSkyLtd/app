@@ -100,7 +100,6 @@ public class NotificationFragment extends Fragment {
             NodeClickListener(int accept) { mAccept = accept; }
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "onClick: Node");
                 new AsyncRequest(new AcceptCallback(mNode, mRule))
                         .execute(new AcceptNodeCommand(mNode.getNodeId(),mNode.getControllerId(),mAccept));
             }
@@ -111,7 +110,6 @@ public class NotificationFragment extends Fragment {
             RuleClickListener(int accept) { mAccept = accept; }
             @Override
             public void onClick(View v) {
-                Log.d(TAG, "onClick: Accept rule = " + mAccept);
                 Rule.Command c = mRule.getCommand();
                 new AsyncRequest(new AcceptCallback(mNode, mRule))
                         .execute(new AcceptRuleCommand(
@@ -190,15 +188,11 @@ public class NotificationFragment extends Fragment {
         @Override
         public void onPostRequest(SimpleResponse s) {
             List<Object> nodes = mAdapter.getNotifications();
-            Log.d(TAG, "onPostRequest: " + mRule);
 
             for (int i = 0; i < nodes.size(); i++) {
                 Object o = nodes.get(i);
 
                 if (mRule == null && mNode == o || mRule == o) {
-
-                    Log.d(TAG, "onPostRequest: " + i);
-
                     nodes.remove(i);
                     mAdapter.notifyDataSetChanged();
 
