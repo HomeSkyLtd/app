@@ -103,7 +103,7 @@ public class RuleFragment extends Fragment implements RequestCallback {
     private List<NodesResponse.Node> getActuators(List<NodesResponse.Node> nodes){
         List<NodesResponse.Node> actuators = new ArrayList<>();
         for(NodesResponse.Node n : nodes){
-            if(n.getNodeClass().contains(NodeClassEnum.ACTUATOR))
+            if(n.getNodeClass().contains(NodeClassEnum.ACTUATOR) && n.getAccepted() == 1)
                 actuators.add(n);
         }
         return actuators;
@@ -169,7 +169,11 @@ public class RuleFragment extends Fragment implements RequestCallback {
         }
 
         public void setActuators(List<NodesResponse.Node> actuators){
-            if (actuators == null || actuators.isEmpty()) return;
+            if (actuators == null) return;
+            else if (actuators.isEmpty()){
+                mActuators = new ArrayList<>();
+                return;
+            }
 
             Map<String, List<NodesResponse.Node>> nodesPerRoom = new HashMap<>();
 

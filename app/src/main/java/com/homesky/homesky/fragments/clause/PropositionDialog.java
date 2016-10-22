@@ -103,7 +103,8 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
         List<String> sensors = new ArrayList<>();
         mSpinnerIndexToNodeUId = new ArrayList<>();
         for(NodesResponse.Node n : mNodes){
-            if(n.getNodeClass().contains(NodeClassEnum.SENSOR) && n.getControllerId().equals(mControllerId)) {
+            if(n.getNodeClass().contains(NodeClassEnum.SENSOR) && n.getControllerId().equals(mControllerId) &&
+                    n.getAccepted() == 1) {
                 mSpinnerIndexToNodeUId.add(n.getNodeId());
                 sensors.add(n.getExtra().get(NODE_EXTRA_NAME));
             }
