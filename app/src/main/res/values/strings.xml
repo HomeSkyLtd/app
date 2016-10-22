@@ -89,8 +89,9 @@
     <string name="proposition_dialog_ok">OK</string>
     <string name="proposition_dialog_cancel">Cancel</string>
     <string name="proposition_dialog_value_error_msg">Value field cannot be empty</string>
+
     <!-- Controller fragment -->
-    <string name="controller_fragment_title">Controller</string>
+    <string name="controller_fragment_title">Associated Controllers</string>
 
     <!-- Notification fragment -->
     <string name="notification_fragment_title">Notification</string>
