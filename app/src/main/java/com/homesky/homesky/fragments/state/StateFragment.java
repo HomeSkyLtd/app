@@ -215,13 +215,15 @@ public class StateFragment extends Fragment {
             Map<String, List<NodesResponse.Node>> nodesPerRoom = new HashMap<>();
 
             for (NodesResponse.Node n : nodes) {
-                String room = n.getExtra().get("room");
-                if (nodesPerRoom.containsKey(room)) {
-                    nodesPerRoom.get(room).add(n);
-                } else {
-                    List<NodesResponse.Node> list = new LinkedList<>();
-                    list.add(n);
-                    nodesPerRoom.put(room, list);
+                if (n.getAccepted() == 1) {
+                    String room = n.getExtra().get("room");
+                    if (nodesPerRoom.containsKey(room)) {
+                        nodesPerRoom.get(room).add(n);
+                    } else {
+                        List<NodesResponse.Node> list = new LinkedList<>();
+                        list.add(n);
+                        nodesPerRoom.put(room, list);
+                    }
                 }
             }
 

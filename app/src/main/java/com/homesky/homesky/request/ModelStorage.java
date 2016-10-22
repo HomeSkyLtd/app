@@ -8,6 +8,7 @@ import com.homesky.homecloud_lib.model.response.RuleResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.command.GetHouseStateCommand;
+import com.homesky.homesky.command.GetLearntRulesCommand;
 import com.homesky.homesky.command.GetNodesInfoCommand;
 import com.homesky.homesky.command.GetRulesCommand;
 
@@ -24,6 +25,7 @@ public class ModelStorage implements RequestCallback{
     private List<StateResponse.NodeState> mNodeStates = null;
     private List<Rule> mRules = null;
     private Map<NodesResponse.Node, StateResponse.NodeState> mNodeIdToValue;
+    private List<Rule> mLearntRules;
 
     public static ModelStorage getInstance(){
         if(instance == null){
@@ -63,6 +65,21 @@ public class ModelStorage implements RequestCallback{
         }
     }
 
+    public List<Rule> getLearntRules(RequestCallback source) {
+        if (mLearntRules != null) {
+            return mLearntRules;
+        } else {
+            new AsyncRequest(new RequestCallback() {
+                @Override
+                public void onPostRequest(SimpleResponse s) {
+                    mLearntRules = ((RuleResponse) s).getRules();
+                }
+            }, source).execute(new GetLearntRulesCommand());
+
+            return null;
+        }
+    }
+
     public void invalidateNodesCache(){
         mNodes = null;
     }
@@ -73,6 +90,10 @@ public class ModelStorage implements RequestCallback{
 
     public void invalidateRulesCache(){
         mRules = null;
+    }
+
+    public void invalidateLearntRulesCache(){
+        mLearntRules = null;
     }
 
     public Map<NodesResponse.Node, StateResponse.NodeState> getNodeIdToValue(boolean forceSync) {
@@ -104,7 +125,6 @@ public class ModelStorage implements RequestCallback{
         }
         else if(s instanceof RuleResponse){
             mRules = ((RuleResponse) s).getRules();
-            Log.d(TAG, "Received " + mRules.size() + " rules");
         }
     }
 }

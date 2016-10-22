@@ -95,6 +95,8 @@
 
     <!-- Notification fragment -->
     <string name="notification_fragment_title">Notification</string>
+    <string name="notification_fragment_list_accept">Accept</string>
+    <string name="notification_fragment_list_deny">Deny</string>
 
     <!-- User fragment -->
     <string name="user_fragment_title">Users</string>
@@ -149,5 +151,9 @@
     <string name="LIGHT_SWITCH">light switch</string>
     <string name="TEMPERATURE">temperature</string>
     <string name="TOGGLE">toggle</string>
+
+    <!-- Notification fragment -->
+    <string name="notification_fragment_rule_result">Result</string>
+    <string name="notification_fragment_rule_clause">When</string>
 
 </resources>
