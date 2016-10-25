@@ -92,6 +92,9 @@
 
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Associated Controllers</string>
+    <string name="controller_register_error">Error registerig controller:</string>
+    <string name="controller_sending_progess_title">Please wait</string>
+    <string name="controller_sending_progess_message">Registering controller…</string>
 
     <!-- Notification fragment -->
     <string name="notification_fragment_title">Notification</string>

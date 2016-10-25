@@ -2,6 +2,7 @@ package com.homesky.homesky.fragments.controller;
 
 import android.app.ProgressDialog;
 import android.content.Intent;
+import android.net.Uri;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
@@ -16,13 +17,16 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.homesky.homecloud_lib.model.response.ControllerDataResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.command.RegisterControllerCommand;
 import com.homesky.homesky.fragments.ruleList.RuleListFragment;
 import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.login.LoginActivity;
+import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.VerticalSpaceItemDecoration;
@@ -32,6 +36,8 @@ import java.util.List;
 public class ControllerFragment extends Fragment implements RequestCallback {
     private static final String TAG = "ControllerFrag";
 
+    private static final int REQUEST_QR_READ = 0;
+
     enum PageState{
         LOADING, REFRESHING, SENDING_NEW_CONTROLLER, IDLE
     }
@@ -39,6 +45,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
 
     private List<String> mControllerIds;
     private ControllerAdapter mAdapter;
+    private String mControllerIdToAdd = null;
 
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mControllerSwipeRefresh;
@@ -71,6 +78,26 @@ public class ControllerFragment extends Fragment implements RequestCallback {
         });
 
         mFloatingActionButton = (FloatingActionButton)view.findViewById(R.id.controller_fragment_fab);
+        mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                try {
+                    Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                    intent.putExtra("SCAN_MODE", "QR_CODE_MODE"); // "PRODUCT_MODE for bar codes
+                    mPageState = PageState.SENDING_NEW_CONTROLLER;
+                    startActivityForResult(intent, REQUEST_QR_READ);
+                    mRingProgressDialog = ProgressDialog.show(
+                            getActivity(),
+                            getString(R.string.controller_sending_progess_title),
+                            getString(R.string.controller_sending_progess_message),
+                            true);
+                } catch (Exception e) {
+                    Uri marketUri = Uri.parse("market://details?id=com.google.zxing.client.android");
+                    Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
+                    startActivity(marketIntent);
+                }
+            }
+        });
 
         mLoadingLayout = (RelativeLayout)view.findViewById(R.id.controller_fragment_loading_panel);
 
@@ -117,19 +144,59 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
             }
         }
-        // This should happen if there was a connection error
+
         else if(s instanceof SimpleResponse) {
-            if(mPageState.equals(PageState.LOADING)){
-                mLoadingLayout.setVisibility(View.GONE);
-                mNoInternetTextView.setVisibility(View.VISIBLE);
-                mRecyclerView.setVisibility(View.GONE);
+            // This should happen after sending a RegisterController command
+            if(s.getStatus() == 200 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {
+                mControllerIds.add(mControllerIdToAdd);
+                mControllerIdToAdd = null;
+                mAdapter.notifyDataSetChanged();
+                ModelStorage.getInstance().invalidateControllerIdsCache();
+                mRingProgressDialog.dismiss();
+                mPageState = PageState.IDLE;
             }
-            else if(mPageState.equals(PageState.REFRESHING)){
-                mControllerSwipeRefresh.setRefreshing(false);
-                mRecyclerView.setVisibility(View.GONE);
-                mLoadingLayout.setVisibility(View.GONE);
-                mNoInternetTextView.setVisibility(View.VISIBLE);
+            else if(s.getStatus() == 403 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {
+                HomecloudHolder.getInstance().invalidateSession();
+                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
             }
+            // This should happen if invalid data was sent on Register Controller command
+            else if(s.getStatus() == 400 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {
+                Toast.makeText(
+                        getActivity(),
+                        getString(R.string.controller_register_error) + " " + s.getErrorMessage(),
+                        Toast.LENGTH_LONG).show();
+                mRingProgressDialog.dismiss();
+                mPageState = PageState.IDLE;
+            }
+            // This should happen if there was a connection error
+            else {
+                if(mPageState.equals(PageState.LOADING)){
+                    mLoadingLayout.setVisibility(View.GONE);
+                    mNoInternetTextView.setVisibility(View.VISIBLE);
+                    mRecyclerView.setVisibility(View.GONE);
+                }
+                else if(mPageState.equals(PageState.REFRESHING)){
+                    mControllerSwipeRefresh.setRefreshing(false);
+                    mRecyclerView.setVisibility(View.GONE);
+                    mLoadingLayout.setVisibility(View.GONE);
+                    mNoInternetTextView.setVisibility(View.VISIBLE);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == 0) {
+            if (resultCode == getActivity().RESULT_OK) {
+                mControllerIdToAdd = data.getStringExtra("SCAN_RESULT");
+                new AsyncRequest(this).execute(new RegisterControllerCommand(mControllerIdToAdd));
+            }
+            if(resultCode == getActivity().RESULT_CANCELED){
+            }
+        }
+        else{
+            super.onActivityResult(requestCode, resultCode, data);
         }
     }
 
