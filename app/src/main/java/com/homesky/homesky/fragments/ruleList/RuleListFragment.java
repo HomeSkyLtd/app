@@ -42,6 +42,7 @@ import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.AppEnumUtils;
 import com.homesky.homesky.utils.AppFindElementUtils;
 import com.homesky.homesky.utils.AppStringUtils;
+import com.homesky.homesky.utils.VerticalSpaceItemDecoration;
 
 import java.math.BigDecimal;
 import java.util.ArrayList;
@@ -141,12 +142,12 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mNoInternetTextView = (TextView)view.findViewById(R.id.rule_list_fragment_no_internet_text_view);
 
         mPageState = PageState.LOADING;
+        mLoadingLayout.setVisibility(View.VISIBLE);
         updateUI();
         return view;
     }
 
     private void updateUI(){
-        mLoadingLayout.setVisibility(View.VISIBLE);
         mRules = ModelStorage.getInstance().getRules(this);
         if(mRules != null)
             mNodes = ModelStorage.getInstance().getNodes(this);
@@ -158,18 +159,17 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(filtered);
-                mRecyclerView.setAdapter(mAdapter);
-                mNoInternetTextView.setVisibility(View.GONE);
-                mRecyclerView.setVisibility(View.VISIBLE);
             } else {
-                mNoInternetTextView.setVisibility(View.GONE);
-                mRecyclerView.setVisibility(View.VISIBLE);
                 mAdapter.setRules(filtered);
                 mAdapter.notifyDataSetChanged();
                 if(mRingProgressDialog != null && mRingProgressDialog.isShowing()){
                     mRingProgressDialog.dismiss();
                 }
             }
+            mRecyclerView.setAdapter(mAdapter);
+
+            mNoInternetTextView.setVisibility(View.GONE);
+            mRecyclerView.setVisibility(View.VISIBLE);
             if(mRuleListSwipeRefresh.isRefreshing()){
                 mRuleListSwipeRefresh.setRefreshing(false);
             }
@@ -459,21 +459,6 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                     new AsyncRequest(RuleListFragment.this).execute(command);
                 }
             });
-        }
-    }
-
-    public class VerticalSpaceItemDecoration extends RecyclerView.ItemDecoration {
-
-        private final int mVerticalSpaceHeight;
-
-        public VerticalSpaceItemDecoration(int mVerticalSpaceHeight) {
-            this.mVerticalSpaceHeight = mVerticalSpaceHeight;
-        }
-
-        @Override
-        public void getItemOffsets(Rect outRect, View view, RecyclerView parent,
-                                   RecyclerView.State state) {
-            outRect.bottom = mVerticalSpaceHeight;
         }
     }
 }

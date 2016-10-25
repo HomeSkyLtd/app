@@ -19,7 +19,8 @@
             android:layout_height="wrap_content"
             android:text="@string/controller_fragment_title"
             android:textSize="@dimen/subtitle_2_text_size"
-            android:layout_gravity="center_horizontal"/>
+            android:layout_gravity="center_horizontal"
+            android:layout_marginBottom="20dp"/>
 
         <LinearLayout
             android:layout_width="match_parent"

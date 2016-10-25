@@ -3,10 +3,12 @@ package com.homesky.homesky.request;
 import android.util.Log;
 
 import com.homesky.homecloud_lib.model.Rule;
+import com.homesky.homecloud_lib.model.response.ControllerDataResponse;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.RuleResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
+import com.homesky.homesky.command.GetControllersCommand;
 import com.homesky.homesky.command.GetHouseStateCommand;
 import com.homesky.homesky.command.GetLearntRulesCommand;
 import com.homesky.homesky.command.GetNodesInfoCommand;
@@ -26,6 +28,7 @@ public class ModelStorage implements RequestCallback{
     private List<Rule> mRules = null;
     private Map<NodesResponse.Node, StateResponse.NodeState> mNodeIdToValue;
     private List<Rule> mLearntRules;
+    private List<String> mControllerIds = null;
 
     public static ModelStorage getInstance(){
         if(instance == null){
@@ -80,6 +83,16 @@ public class ModelStorage implements RequestCallback{
         }
     }
 
+    public List<String> getControllerIds(RequestCallback source) {
+        if(mControllerIds != null) {
+            return mControllerIds;
+        }
+        else {
+            new AsyncRequest(this, source).execute(new GetControllersCommand());
+            return null;
+        }
+    }
+
     public void invalidateNodesCache(){
         mNodes = null;
     }
@@ -95,6 +108,11 @@ public class ModelStorage implements RequestCallback{
     public void invalidateLearntRulesCache(){
         mLearntRules = null;
     }
+
+    public void invalidateControllerIdsCache(){
+        mControllerIds = null;
+    }
+
 
     public Map<NodesResponse.Node, StateResponse.NodeState> getNodeIdToValue(boolean forceSync) {
         if (mNodes == null || mNodeStates == null)
@@ -117,14 +135,19 @@ public class ModelStorage implements RequestCallback{
 
     @Override
     public void onPostRequest(SimpleResponse s) {
-        if(s instanceof NodesResponse){
-            mNodes = ((NodesResponse) s).getNodes();
-        }
-        else if(s instanceof StateResponse){
-            mNodeStates = ((StateResponse) s).getState();
-        }
-        else if(s instanceof RuleResponse){
-            mRules = ((RuleResponse) s).getRules();
+        if(s.getStatus() == 200){
+            if(s instanceof NodesResponse){
+                mNodes = ((NodesResponse) s).getNodes();
+            }
+            else if(s instanceof StateResponse){
+                mNodeStates = ((StateResponse) s).getState();
+            }
+            else if(s instanceof RuleResponse){
+                mRules = ((RuleResponse) s).getRules();
+            }
+            else if(s instanceof ControllerDataResponse){
+                mControllerIds = ((ControllerDataResponse) s).getControllerIds();
+            }
         }
     }
 }
