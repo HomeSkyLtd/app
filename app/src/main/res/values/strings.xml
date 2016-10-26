@@ -95,6 +95,10 @@
     <string name="controller_register_error">Error registerig controller:</string>
     <string name="controller_sending_progess_title">Please wait</string>
     <string name="controller_sending_progess_message">Registering controller…</string>
+    <string name="controller_connection_error">Could not connect to server</string>
+    <string name="controller_retry_message">Could not register controller</string>
+    <string name="controller_fab_when_retry_message">There is already a pending controller registration request</string>
+
 
     <!-- Notification fragment -->
     <string name="notification_fragment_title">Notification</string>
