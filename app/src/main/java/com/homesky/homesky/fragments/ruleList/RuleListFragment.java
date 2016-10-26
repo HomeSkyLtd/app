@@ -365,7 +365,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            if (position < mRules.size() && !mShouldRetry) {
+            if (position < mRules.size()) {
                 ((RuleHolder) holder).bindRule(mRules.get(position));
             }
         }
