@@ -19,11 +19,6 @@
             android:textStyle="normal|bold"
             android:gravity="top"
             tools:text="NODE NAME"/>
-        <TextView
-            android:id="@+id/list_notification_room_name"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            tools:text="ROOM NAME"/>
     </LinearLayout>
     <LinearLayout
         android:layout_width="wrap_content"

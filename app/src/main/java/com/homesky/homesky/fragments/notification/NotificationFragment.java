@@ -1,28 +1,25 @@
 package com.homesky.homesky.fragments.notification;
 
 import android.app.Dialog;
-import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
-import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -30,14 +27,14 @@ import com.homesky.homecloud_lib.model.Rule;
 import com.homesky.homecloud_lib.model.enums.CommandCategoryEnum;
 import com.homesky.homecloud_lib.model.enums.DataCategoryEnum;
 import com.homesky.homecloud_lib.model.enums.EnumUtil;
+import com.homesky.homecloud_lib.model.enums.NodeClassEnum;
 import com.homesky.homecloud_lib.model.enums.TypeEnum;
-import com.homesky.homecloud_lib.model.notification.Notification;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.AcceptNodeCommand;
 import com.homesky.homesky.command.AcceptRuleCommand;
-import com.homesky.homesky.fragments.state.StateFragment;
+import com.homesky.homesky.command.SetNodeExtraCommand;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
@@ -45,8 +42,9 @@ import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.utils.AppStringUtils;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
-import java.util.Objects;
+import java.util.Map;
 
 /**
  * Created by henrique on 9/22/16.
@@ -101,7 +99,7 @@ public class NotificationFragment extends Fragment {
 
         private NodesResponse.Node mNode;
         private Rule mRule;
-        private TextView mName, mRoom;
+        private TextView mName;
         private ImageButton mDeny, mAccept;
 
         private class NodeClickListener implements View.OnClickListener {
@@ -109,8 +107,12 @@ public class NotificationFragment extends Fragment {
             NodeClickListener(int accept) { mAccept = accept; }
             @Override
             public void onClick(View v) {
-                new AsyncRequest(new AcceptCallback(mNode, mRule))
-                        .execute(new AcceptNodeCommand(mNode.getNodeId(),mNode.getControllerId(),mAccept));
+                if (mAccept == 0) {
+                    new AsyncRequest(new AcceptCallback(mNode, mRule))
+                            .execute(new AcceptNodeCommand(mNode.getNodeId(), mNode.getControllerId(), mAccept));
+                } else {
+                    AskExtrasDialogFragment.newInstance(mNode, new AcceptCallback(mNode, null)).show(getFragmentManager(), DIALOG_TAG);
+                }
             }
         }
 
@@ -131,7 +133,6 @@ public class NotificationFragment extends Fragment {
             super(itemView);
 
             mName = (TextView) itemView.findViewById(R.id.list_notification_node_name);
-            mRoom = (TextView) itemView.findViewById(R.id.list_notification_room_name);
 
             mAccept = (ImageButton) itemView.findViewById(R.id.list_notification_accept_button);
             mDeny = (ImageButton) itemView.findViewById(R.id.list_notification_deny_button);
@@ -145,9 +146,18 @@ public class NotificationFragment extends Fragment {
                 mRule = null;
                 mNode = (NodesResponse.Node) o;
 
-                String str = "A " + mNode.getExtra().get(NODE_MAP_NAME) + " detected";
+                String str = "New device detected: ";
+
+                if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR) &&
+                        mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
+                    str += "Sensor/Actuator";
+                } else if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
+                    str += "Sensor";
+                } else if (mNode.getNodeClass().contains(NodeClassEnum.ACTUATOR)) {
+                    str += "Actuator";
+                }
+
                 mName.setText(str);
-                mRoom.setText(mNode.getExtra().get(NODE_MAP_ROOM));
 
                 mAccept.setOnClickListener(new NodeClickListener(1));
                 mDeny.setOnClickListener(new NodeClickListener(0));
@@ -165,7 +175,6 @@ public class NotificationFragment extends Fragment {
 
                             String str = "New rule for " + n.getExtra().get(NODE_MAP_NAME);
                             mName.setText(str);
-                            mRoom.setText(n.getExtra().get(NODE_MAP_ROOM));
 
                             mAccept.setOnClickListener(new RuleClickListener(1));
                             mDeny.setOnClickListener(new RuleClickListener(0));
@@ -195,22 +204,37 @@ public class NotificationFragment extends Fragment {
 
         @Override
         public void onPostRequest(SimpleResponse s) {
-            List<Object> nodes = mAdapter.getNotifications();
+            if (s == null || s.getStatus() != 200) {
+                Snackbar.make(
+                        getActivity().findViewById(R.id.menu_fragments_activity_container),
+                        "No connection, try again",
+                        Snackbar.LENGTH_SHORT
+                ).show();
+            } else {
+                List<Object> nodes = mAdapter.getNotifications();
 
-            for (int i = 0; i < nodes.size(); i++) {
-                Object o = nodes.get(i);
+                for (int i = 0; i < nodes.size(); i++) {
+                    Object o = nodes.get(i);
 
-                if (mRule == null && mNode == o || mRule == o) {
-                    nodes.remove(i);
-                    mAdapter.notifyDataSetChanged();
+                    if (mRule == null && mNode == o || mRule == o) {
+                        nodes.remove(i);
+                        mAdapter.notifyDataSetChanged();
 
-                    Snackbar.make(
-                            getActivity().findViewById(R.id.menu_fragments_activity_container),
-                            "Done!",
-                            Snackbar.LENGTH_SHORT
-                    ).show();
+                        Snackbar.make(
+                                getActivity().findViewById(R.id.menu_fragments_activity_container),
+                                "Done!",
+                                Snackbar.LENGTH_SHORT
+                        ).show();
 
-                    break;
+                        if (mRule == null && mNode == o) {
+                            ModelStorage.getInstance().invalidateNodeStatesCache();
+                            ModelStorage.getInstance().invalidateNodesCache();
+                        } else {
+                            ModelStorage.getInstance().invalidateRulesCache();
+                        }
+
+                        break;
+                    }
                 }
             }
         }
@@ -308,7 +332,148 @@ public class NotificationFragment extends Fragment {
         }
     }
 
-    public static class ShowInfosDialogFragment extends DialogFragment {
+    public static class DefaultDialogFragment extends DialogFragment {
+        @Override
+        public void onResume() {
+            super.onResume();
+            int width = getResources().getDimensionPixelSize(R.dimen.dialog_width);
+            int height = getResources().getDimensionPixelSize(R.dimen.dialog_height);
+            getDialog().getWindow().setLayout(width, height);
+        }
+
+        @NonNull
+        @Override
+        public Dialog onCreateDialog(Bundle savedInstanceState) {
+            setStyle(DialogFragment.STYLE_NORMAL, R.style.CustomDialogInfos);
+            return super.onCreateDialog(savedInstanceState);
+        }
+    }
+
+    public static class AskExtrasDialogFragment extends DefaultDialogFragment implements View.OnClickListener {
+
+        private NodesResponse.Node mNode;
+        private Button mOkButton, mCancelButton;
+        private EditText mNameEditText, mRoomEditText;
+        private String mDefaultName, mDefaultRoom;
+        private AcceptCallback mCallback;
+
+        public void setNode(NodesResponse.Node node) {
+            mNode = node;
+        }
+
+        public void setCallback(AcceptCallback callback) {
+            mCallback = callback;
+        }
+
+        static AskExtrasDialogFragment newInstance(NodesResponse.Node node, AcceptCallback callback) {
+            AskExtrasDialogFragment fragment = new AskExtrasDialogFragment();
+
+            fragment.setNode(node);
+            fragment.setCallback(callback);
+
+            return fragment;
+        }
+
+        @Nullable
+        @Override
+        public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+            View view = inflater.inflate(R.layout.notification_ask_extra_dialog_fragment, container, false);
+
+            getDialog().setCanceledOnTouchOutside(true);
+            Window window  = getDialog().getWindow();
+            if (window != null) {
+                window.setBackgroundDrawableResource(R.drawable.round_dialog);
+            }
+
+            if (!mNode.getCommandType().isEmpty()) {
+                CommandCategoryEnum cat = mNode.getCommandType().get(0).getCommandCategory();
+                mDefaultName = EnumUtil.getEnumPrettyName(cat.getId(), CommandCategoryEnum.class);
+            } else {
+                DataCategoryEnum cat = mNode.getDataType().get(0).getDataCategory();
+                mDefaultName = EnumUtil.getEnumPrettyName(cat.getId(), DataCategoryEnum.class);
+            }
+            String defaultName = "Name (Default: " + mDefaultName + ")";
+
+            mNameEditText = (EditText) view.findViewById(R.id.notification_ask_extra_edit_text_name);
+            mNameEditText.setHint(defaultName);
+
+            mRoomEditText = (EditText) view.findViewById(R.id.notification_ask_extra_edit_text_room);
+            mDefaultRoom = "In the House";
+
+            mCancelButton = (Button) view.findViewById(R.id.notification_ask_extra_button_cancel);
+            mCancelButton.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    getDialog().cancel();
+                }
+            });
+
+            mOkButton = (Button) view.findViewById(R.id.notification_ask_extra_button_ok);
+            mOkButton.setOnClickListener(this);
+
+            return view;
+        }
+
+        @Override
+        public void onClick(View v) {
+            String nameFromEdit = mNameEditText.getText().toString();
+            if (nameFromEdit.length() > 0) {
+                mDefaultName = nameFromEdit;
+            }
+
+            String roomFromEdit = mRoomEditText.getText().toString();
+            if (roomFromEdit.length() > 0) {
+                mDefaultRoom = roomFromEdit;
+            }
+
+            new AsyncRequest(new AcceptNodeCallback())
+                    .execute(new AcceptNodeCommand(mNode.getNodeId(), mNode.getControllerId(), 1));
+
+
+            Snackbar.make(
+                    getActivity().findViewById(R.id.menu_fragments_activity_container),
+                    "Accepting...",
+                    Snackbar.LENGTH_SHORT
+            ).show();
+        }
+
+        private class AcceptNodeCallback implements RequestCallback {
+
+            Map<String, String> mMap;
+
+            @Override
+            public void onPostRequest(SimpleResponse s) {
+                if (s == null || s.getStatus() != 200) {
+                    Snackbar.make(
+                            getActivity().findViewById(R.id.menu_fragments_activity_container),
+                            "No connection, try again",
+                            Snackbar.LENGTH_SHORT
+                    ).show();
+                } else {
+                    mMap = new HashMap<>(2);
+                    mMap.put(NODE_MAP_NAME, mDefaultName);
+                    mMap.put(NODE_MAP_ROOM, mDefaultRoom);
+
+                    new AsyncRequest(new AcceptExtraCallback())
+                            .execute(new SetNodeExtraCommand(mMap, mNode.getNodeId(), mNode.getControllerId()));
+                }
+            }
+            private class AcceptExtraCallback implements RequestCallback {
+                @Override
+                public void onPostRequest(SimpleResponse s) {
+                    if (s == null || s.getStatus() != 200) {
+                        new AsyncRequest(new AcceptExtraCallback())
+                                .execute(new SetNodeExtraCommand(mMap, mNode.getNodeId(), mNode.getControllerId()));
+                    } else {
+                        mCallback.onPostRequest(s);
+                        getDialog().cancel();
+                    }
+                }
+            }
+        }
+    }
+
+    public static class ShowInfosDialogFragment extends DefaultDialogFragment {
 
         private NodesResponse.Node mNode;
         private Rule mRule;
@@ -338,30 +503,10 @@ public class NotificationFragment extends Fragment {
             return fragment;
         }
 
-        @Override
-        public void onCreate(@Nullable Bundle savedInstanceState) {
-            super.onCreate(savedInstanceState);
-        }
-
-        @Override
-        public void onResume() {
-            super.onResume();
-            int width = getResources().getDimensionPixelSize(R.dimen.dialog_width);
-            int height = getResources().getDimensionPixelSize(R.dimen.dialog_height);
-            getDialog().getWindow().setLayout(width, height);
-        }
-
-        @NonNull
-        @Override
-        public Dialog onCreateDialog(Bundle savedInstanceState) {
-            setStyle(DialogFragment.STYLE_NORMAL, R.style.CustomDialogInfos);
-            return super.onCreateDialog(savedInstanceState);
-        }
-
         @Nullable
         @Override
         public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-            View view = inflater.inflate(R.layout.notification_dialog_fragment, container, false);
+            View view = inflater.inflate(R.layout.notification_infos_dialog_fragment, container, false);
 
             getDialog().setCanceledOnTouchOutside(true);
             Window window  = getDialog().getWindow();
@@ -370,7 +515,7 @@ public class NotificationFragment extends Fragment {
             }
 
             mTitle = (TextView) view.findViewById(R.id.notification_dialog_fragment_name);
-            mTitle.setText(mNode.getExtra().get("name"));
+            mTitle.setText(mNode.getExtra().get(NODE_MAP_NAME));
 
             mControllerId = (TextView) view.findViewById(R.id.notification_dialog_fragment_controller_id);
             mControllerId.setText(mNode.getControllerId());
