@@ -47,7 +47,7 @@
     <string name="rule_item_node_name">Name:</string>
     <string name="rule_item_node_room">Room:</string>
     <string name="rule_fragment_no_connection">No internet connection</string>
-    <string name="rule_fragment_refresh_message">No internet connection. Please, refresh this page.</string>
+    <string name="rule_fragment_refresh_message">No internet connection. Please, restore the connection and refresh this page.</string>
 
     <!-- Rule list fragment -->
     <string name="rule_list_or">or</string>
@@ -55,8 +55,8 @@
     <string name="rule_list_set">set</string>
     <string name="rule_list_condition">condition:</string>
     <string name="rule_list_effect">effect:</string>
-    <string name="rule_list_sending_progess_title">Please wait</string>
-    <string name="rule_list_sending_progess_message">Sending rule to server…</string>
+    <string name="rule_list_sending_progress_title">Please wait</string>
+    <string name="rule_list_sending_progress_message">Sending rule to server…</string>
     <string name="rule_list_retry_message">Could not send rule</string>
     <string name="rule_list_retry_button_text">Retry</string>
     <string name="rule_list_fab_when_retry_message">There is already a new pending rule</string>
@@ -64,7 +64,7 @@
     <string name="rule_list_connection_error">Could not connect to server</string>
     <string name="rule_list_delete_rule_dialog_title">Delete Rule</string>
     <string name="rule_list_delete_rule_dialog_message">Do you wish to delete the selected rule?</string>
-    <string name="rule_list_deleting_progess_message">Deleting rule…</string>
+    <string name="rule_list_deleting_progress_message">Deleting rule…</string>
 
     <!-- Clause fragment -->
     <string name="clause_action_command">Action command</string>
@@ -93,8 +93,12 @@
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Associated Controllers</string>
     <string name="controller_register_error">Error registerig controller:</string>
-    <string name="controller_sending_progess_title">Please wait</string>
-    <string name="controller_sending_progess_message">Registering controller…</string>
+    <string name="controller_sending_progress_title">Please wait</string>
+    <string name="controller_sending_progress_message">Registering controller…</string>
+    <string name="controller_connection_error">Could not connect to server</string>
+    <string name="controller_retry_message">Could not register controller</string>
+    <string name="controller_fab_when_retry_message">There is already a pending controller registration request</string>
+
 
     <!-- Notification fragment -->
     <string name="notification_fragment_title">Notification</string>
@@ -102,7 +106,19 @@
     <string name="notification_fragment_list_deny">Deny</string>
 
     <!-- User fragment -->
-    <string name="user_fragment_title">Users</string>
+    <string name="user_fragment_title">Registered Users</string>
+    <string name="user_retry_message">Could not register new user</string>
+    <string name="user_sending_progress_title">Please wait</string>
+    <string name="user_sending_progress_message">Registering user…</string>
+
+    <!-- New User Dialog fragment -->
+    <string name="new_user_fragment_username">Username:</string>
+    <string name="new_user_fragment_password">Password:</string>
+    <string name="new_user_fragment_password_confirm">Confirm Password:</string>
+    <string name="new_user_fragment_empty_field_message">Please, fill in all fields</string>
+    <string name="new_user_fragment_password_mismatch_message">Passwords don\'t match</string>
+
+
 
     <!-- Settings fragment -->
     <string name="settings_fragment_title">Settings</string>

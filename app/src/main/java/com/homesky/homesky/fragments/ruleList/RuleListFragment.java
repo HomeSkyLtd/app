@@ -192,8 +192,8 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 NewRulesCommand command = new NewRulesCommand(mRuleToSend);
                 mRingProgressDialog = ProgressDialog.show(
                         getActivity(),
-                        getString(R.string.rule_list_sending_progess_title),
-                        getString(R.string.rule_list_sending_progess_message),
+                        getString(R.string.rule_list_sending_progress_title),
+                        getString(R.string.rule_list_sending_progress_message),
                         true);
                 mPageState = PageState.SENDING_RULE;
                 new AsyncRequest(this).execute(command);
@@ -365,7 +365,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            if (position < mRules.size() && !mShouldRetry) {
+            if (position < mRules.size()) {
                 ((RuleHolder) holder).bindRule(mRules.get(position));
             }
         }
@@ -418,8 +418,8 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                             new AsyncRequest(RuleListFragment.this).execute(new RemoveRuleCommand(mRule));
                             mRingProgressDialog = ProgressDialog.show(
                                     getActivity(),
-                                    getString(R.string.rule_list_sending_progess_title),
-                                    getString(R.string.rule_list_deleting_progess_message),
+                                    getString(R.string.rule_list_sending_progress_title),
+                                    getString(R.string.rule_list_deleting_progress_message),
                                     true);
                         }
                     })
@@ -452,8 +452,8 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                     NewRulesCommand command = new NewRulesCommand(mRuleToSend);
                     mRingProgressDialog = ProgressDialog.show(
                             getActivity(),
-                            getString(R.string.rule_list_sending_progess_title),
-                            getString(R.string.rule_list_sending_progess_message),
+                            getString(R.string.rule_list_sending_progress_title),
+                            getString(R.string.rule_list_sending_progress_message),
                             true);
                     mPageState = PageState.SENDING_RULE;
                     new AsyncRequest(RuleListFragment.this).execute(command);

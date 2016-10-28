@@ -81,20 +81,28 @@ public class ControllerFragment extends Fragment implements RequestCallback {
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                try {
-                    Intent intent = new Intent("com.google.zxing.client.android.SCAN");
-                    intent.putExtra("SCAN_MODE", "QR_CODE_MODE"); // "PRODUCT_MODE for bar codes
-                    mPageState = PageState.SENDING_NEW_CONTROLLER;
-                    startActivityForResult(intent, REQUEST_QR_READ);
-                    mRingProgressDialog = ProgressDialog.show(
+                if(mControllerIdToAdd != null){
+                    Toast.makeText(
                             getActivity(),
-                            getString(R.string.controller_sending_progess_title),
-                            getString(R.string.controller_sending_progess_message),
-                            true);
-                } catch (Exception e) {
-                    Uri marketUri = Uri.parse("market://details?id=com.google.zxing.client.android");
-                    Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
-                    startActivity(marketIntent);
+                            getResources().getText(R.string.controller_fab_when_retry_message),
+                            Toast.LENGTH_LONG).show();
+                }
+                else{
+                    try {
+                        Intent intent = new Intent("com.google.zxing.client.android.SCAN");
+                        intent.putExtra("SCAN_MODE", "QR_CODE_MODE"); // "PRODUCT_MODE for bar codes
+                        mPageState = PageState.SENDING_NEW_CONTROLLER;
+                        startActivityForResult(intent, REQUEST_QR_READ);
+                        mRingProgressDialog = ProgressDialog.show(
+                                getActivity(),
+                                getString(R.string.controller_sending_progress_title),
+                                getString(R.string.controller_sending_progress_message),
+                                true);
+                    } catch (Exception e) {
+                        Uri marketUri = Uri.parse("market://details?id=com.google.zxing.client.android");
+                        Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
+                        startActivity(marketIntent);
+                    }
                 }
             }
         });
@@ -153,6 +161,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 mAdapter.notifyDataSetChanged();
                 ModelStorage.getInstance().invalidateControllerIdsCache();
                 mRingProgressDialog.dismiss();
+                mAdapter.setShouldRetry(false);
                 mPageState = PageState.IDLE;
             }
             else if(s.getStatus() == 403 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {
@@ -166,6 +175,9 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                         getString(R.string.controller_register_error) + " " + s.getErrorMessage(),
                         Toast.LENGTH_LONG).show();
                 mRingProgressDialog.dismiss();
+                mControllerIdToAdd = null;
+                mAdapter.setShouldRetry(false);
+                mAdapter.notifyDataSetChanged();
                 mPageState = PageState.IDLE;
             }
             // This should happen if there was a connection error
@@ -181,6 +193,15 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                     mLoadingLayout.setVisibility(View.GONE);
                     mNoInternetTextView.setVisibility(View.VISIBLE);
                 }
+                else if(mPageState.equals(PageState.SENDING_NEW_CONTROLLER)){
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.controller_connection_error),
+                            Toast.LENGTH_LONG).show();
+                    mAdapter.setShouldRetry(true);
+                    mAdapter.notifyDataSetChanged();
+                    mRingProgressDialog.dismiss();
+                }
             }
         }
     }
@@ -193,6 +214,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 new AsyncRequest(this).execute(new RegisterControllerCommand(mControllerIdToAdd));
             }
             if(resultCode == getActivity().RESULT_CANCELED){
+                mRingProgressDialog.dismiss();
             }
         }
         else{
@@ -219,7 +241,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 return new ControllerHolder(view);
             }
             else if(viewType == TYPE_RETRY) {
-                View view = layoutInflater.inflate(R.layout.list_rule_error_item, parent, false);
+                View view = layoutInflater.inflate(R.layout.list_controller_error_item, parent, false);
                 return new RetryHolder(view);
             }
             else
@@ -228,7 +250,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            if (position < mControllerIds.size() && !mShouldRetry) {
+            if (position < mControllerIds.size()) {
                 ((ControllerHolder) holder).bindController(mControllerIds.get(position));
             }
         }
@@ -278,11 +300,17 @@ public class ControllerFragment extends Fragment implements RequestCallback {
 
         public RetryHolder(View itemView) {
             super(itemView);
-            mRetryButton = (Button)itemView.findViewById(R.id.list_rule_error_item_button);
+            mRetryButton = (Button)itemView.findViewById(R.id.list_controller_error_item_button);
             mRetryButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {
-
+                    mPageState = PageState.SENDING_NEW_CONTROLLER;
+                    mRingProgressDialog = ProgressDialog.show(
+                            getActivity(),
+                            getString(R.string.controller_sending_progress_title),
+                            getString(R.string.controller_sending_progress_message),
+                            true);
+                    new AsyncRequest(ControllerFragment.this).execute(new RegisterControllerCommand(mControllerIdToAdd));
                 }
             });
         }

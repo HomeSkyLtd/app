@@ -11,6 +11,7 @@ import android.support.v4.widget.DrawerLayout;
 import android.support.v7.app.ActionBar;
 import android.support.v7.app.ActionBarDrawerToggle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -25,13 +26,14 @@ import com.homesky.homesky.fragments.notification.NotificationFragment;
 import com.homesky.homesky.fragments.rule.RuleFragment;
 import com.homesky.homesky.fragments.settings.SettingsFragment;
 import com.homesky.homesky.fragments.state.StateFragment;
+import com.homesky.homesky.user.NewUserDialog;
 import com.homesky.homesky.user.UserFragment;
 
 import java.util.HashMap;
 import java.util.Map;
 
 /* AppCompatActivity already extends FragmentActivity */
-public class MenuFragmentsActivity extends AppCompatActivity {
+public class MenuFragmentsActivity extends AppCompatActivity implements NewUserDialog.NewUserDialogCallback{
 
     private static final String TAG = "MenuFragmentsActivity";
 
@@ -181,5 +183,14 @@ public class MenuFragmentsActivity extends AppCompatActivity {
     protected void onPostCreate(Bundle savedInstanceState) {
         super.onPostCreate(savedInstanceState);
         mDrawerToggle.syncState();
+    }
+
+    @Override
+    public void onNewUserResult(String username, String password) {
+        UserFragment fragment = (UserFragment)mFragments.get("User");
+        // Safety check
+        if(fragment.isAdded()){
+            fragment.onNewUserResult(username, password);
+        }
     }
 }
