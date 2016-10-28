@@ -75,7 +75,8 @@ public class ModelStorage implements RequestCallback{
             new AsyncRequest(new RequestCallback() {
                 @Override
                 public void onPostRequest(SimpleResponse s) {
-                    mLearntRules = ((RuleResponse) s).getRules();
+                    if (s instanceof RuleResponse)
+                        mLearntRules = ((RuleResponse) s).getRules();
                 }
             }, source).execute(new GetLearntRulesCommand());
 
