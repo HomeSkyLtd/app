@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
@@ -71,7 +72,7 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
             @Override
             public void onRefresh() {
                 mUsers = null;
-                ModelStorage.getInstance().invalidateControllerIdsCache();
+                ModelStorage.getInstance().invalidateUsersCache();
                 mPageState = PageState.REFRESHING;
                 updateUI();
             }
@@ -81,8 +82,17 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                NewUserDialog dialog = NewUserDialog.newInstance();
-                dialog.show(getActivity().getSupportFragmentManager(), DIALOG_TAG);
+                if(mUserToAdd == null){
+                    NewUserDialog dialog = NewUserDialog.newInstance();
+                    dialog.setStyle(DialogFragment.STYLE_NORMAL, R.style.DialogWithTitle);
+                    dialog.show(getActivity().getSupportFragmentManager(), DIALOG_TAG);
+                }
+                else{
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.user_fab_when_retry_message),
+                            Toast.LENGTH_LONG).show();
+                }
             }
         });
 
@@ -176,6 +186,10 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                     mAdapter.setShouldRetry(true);
                     mAdapter.notifyDataSetChanged();
                     mRingProgressDialog.dismiss();
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.user_connection_error),
+                            Toast.LENGTH_LONG).show();
                 }
             }
         }
@@ -272,7 +286,7 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
 
         public RetryHolder(View itemView) {
             super(itemView);
-            mRetryButton = (Button)itemView.findViewById(R.id.list_controller_error_item_button);
+            mRetryButton = (Button)itemView.findViewById(R.id.list_user_error_item_button);
             mRetryButton.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View view) {

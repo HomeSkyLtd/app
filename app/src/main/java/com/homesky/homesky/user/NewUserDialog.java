@@ -1,5 +1,6 @@
 package com.homesky.homesky.user;
 
+import android.app.Dialog;
 import android.content.Context;
 import android.os.Bundle;
 import android.support.annotation.Nullable;
@@ -42,9 +43,17 @@ public class NewUserDialog extends DialogFragment {
         mCallback = (NewUserDialogCallback)getActivity();
     }
 
+    @Override
+    public Dialog onCreateDialog(Bundle savedInstanceState) {
+        Dialog dialog = super.onCreateDialog(savedInstanceState);
+        dialog.setTitle(getString(R.string.new_user_fragment_dialog_title));
+        return dialog;
+    }
+
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
+
         View v = inflater.inflate(R.layout.fragment_new_user_dialog, container, false);
 
         mUsernameEditText = (EditText)v.findViewById(R.id.fragment_new_user_dialog_username_edit_text);

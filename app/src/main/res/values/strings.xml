@@ -110,6 +110,8 @@
     <string name="user_retry_message">Could not register new user</string>
     <string name="user_sending_progress_title">Please wait</string>
     <string name="user_sending_progress_message">Registering user…</string>
+    <string name="user_connection_error">Could not connect to server</string>
+    <string name="user_fab_when_retry_message">There is already a pending user registration request</string>
 
     <!-- New User Dialog fragment -->
     <string name="new_user_fragment_username">Username:</string>
@@ -118,6 +120,7 @@
     <string name="new_user_fragment_empty_field_message">Please, fill in all fields</string>
     <string name="new_user_fragment_password_mismatch_message">Passwords don\'t match</string>
     <string name="new_user_fragment_send_error_message">Error registering user:</string>
+    <string name="new_user_fragment_dialog_title">Insert new user data</string>
 
     <!-- Settings fragment -->
     <string name="settings_fragment_title">Settings</string>
