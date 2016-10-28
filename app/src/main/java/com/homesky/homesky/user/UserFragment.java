@@ -21,6 +21,7 @@ import android.widget.Toast;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.UserDataResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.command.NewUserCommand;
 import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
@@ -44,7 +45,7 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
 
     private List<String> mUsers;
     private UserAdapter mAdapter;
-    private String mUserToAdd = null;
+    private User mUserToAdd = null;
 
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mUserSwipeRefresh;
@@ -133,7 +134,14 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
         }
         else if(s instanceof SimpleResponse){
             if(s.getStatus() == 200 && mPageState.equals(PageState.SENDING_NEW_USER)){
-
+                mUsers.add(mUserToAdd.getUsername());
+                mAdapter.setUsers(mUsers);
+                mAdapter.setShouldRetry(false);
+                mAdapter.notifyDataSetChanged();
+                mUserToAdd = null;
+                ModelStorage.getInstance().invalidateUsersCache();
+                mRingProgressDialog.dismiss();
+                mPageState = PageState.IDLE;
             }
             else if(s.getStatus() == 403){
                 HomecloudHolder.getInstance().invalidateSession();
@@ -141,7 +149,15 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
             }
             // This happens if new user data is invalid
             else if(s.getStatus() == 400 && mPageState.equals(PageState.SENDING_NEW_USER)){
-
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getText(R.string.new_user_fragment_send_error_message) + " " + s.getErrorMessage(),
+                        Toast.LENGTH_LONG).show();
+                mAdapter.setShouldRetry(false);
+                mAdapter.notifyDataSetChanged();
+                mUserToAdd = null;
+                mRingProgressDialog.dismiss();
+                mPageState = PageState.IDLE;
             }
             // This should happen if there was a connection error
             else {
@@ -156,13 +172,25 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                     mLoadingLayout.setVisibility(View.GONE);
                     mNoInternetTextView.setVisibility(View.VISIBLE);
                 }
+                else if(mPageState.equals(PageState.SENDING_NEW_USER)){
+                    mAdapter.setShouldRetry(true);
+                    mAdapter.notifyDataSetChanged();
+                    mRingProgressDialog.dismiss();
+                }
             }
         }
     }
 
     @Override
     public void onNewUserResult(String username, String password) {
-        Log.d(TAG, "New user: " + username + ", " + password);
+        mPageState = PageState.SENDING_NEW_USER;
+        mUserToAdd = new User(username, password);
+        mRingProgressDialog = ProgressDialog.show(
+                getActivity(),
+                getString(R.string.user_sending_progress_title),
+                getString(R.string.user_sending_progress_message),
+                true);
+        new AsyncRequest(this).execute(new NewUserCommand(username, password));
     }
 
     class UserAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
@@ -206,8 +234,8 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                 return mUsers.size() + 1;
         }
 
-        public void setUsers(List<String> controllerIds){
-            mUsers = controllerIds;
+        public void setUsers(List<String> users){
+            mUsers = users;
         }
 
         public void setShouldRetry(boolean shouldRetry) {
@@ -254,9 +282,28 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                             getString(R.string.user_sending_progress_title),
                             getString(R.string.user_sending_progress_message),
                             true);
+                    new AsyncRequest(UserFragment.this).execute(new NewUserCommand(mUserToAdd.getUsername(), mUserToAdd.getPassword()));
 
                 }
             });
+        }
+    }
+
+    class User {
+        public String mUsername;
+        public String mPassword;
+
+        public User(String username, String password) {
+            mUsername = username;
+            mPassword = password;
+        }
+
+        public String getUsername() {
+            return mUsername;
+        }
+
+        public String getPassword() {
+            return mPassword;
         }
     }
 }
