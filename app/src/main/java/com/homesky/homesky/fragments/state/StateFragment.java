@@ -125,10 +125,10 @@ public class StateFragment extends Fragment {
                         getResources().getText(R.string.state_fragment_error),
                         Toast.LENGTH_LONG).show();
             } else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             } else if (s.getStatus() == 403){
                 HomecloudHolder.getInstance().invalidateSession();
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             } else {
                 updateUI();
             }

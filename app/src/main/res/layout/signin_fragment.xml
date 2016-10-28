@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:orientation="vertical"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent">
+
+    <TextView
+        android:layout_margin="@dimen/activity_horizontal_margin"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:textSize="@dimen/subtitle_1_title_text_size"
+        android:text="New House Admin"/>
+
+    <EditText
+        android:id="@+id/signin_fragment_edit_text_login"
+        android:layout_width="@dimen/edit_text_width"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:hint="Login"
+        android:inputType="text"
+        android:maxLines="1"
+        android:layout_margin="@dimen/activity_horizontal_margin"/>
+
+    <EditText
+        android:id="@+id/signin_fragment_edit_text_passwd1"
+        android:layout_width="@dimen/edit_text_width"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:hint="Password"
+        android:inputType="textPassword"
+        android:maxLines="1"
+        android:layout_margin="@dimen/activity_horizontal_margin"/>
+
+    <EditText
+        android:id="@+id/signin_fragment_edit_text_passwd2"
+        android:layout_width="@dimen/edit_text_width"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:gravity="center_horizontal"
+        android:hint="Confirm password"
+        android:inputType="textPassword"
+        android:maxLines="1"
+        android:imeOptions="actionDone"
+        android:layout_margin="@dimen/activity_horizontal_margin"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_horizontal"
+        android:layout_margin="@dimen/activity_horizontal_margin">
+
+        <Button
+            android:id="@+id/siginin_fragment_button_ok"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/round_dialog"
+            android:text="Ok"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:textColor="@color/white"/>
+
+        <Button
+            android:id="@+id/siginin_fragment_button_cancel"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@drawable/round_dialog"
+            android:text="Cancel"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"
+            android:textColor="@color/white"/>
+    </LinearLayout>
+
+
+</LinearLayout>

@@ -149,7 +149,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 updateUI();
             else if(s.getStatus() == 403){
                 HomecloudHolder.getInstance().invalidateSession();
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             }
         }
 
@@ -166,7 +166,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
             }
             else if(s.getStatus() == 403 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {
                 HomecloudHolder.getInstance().invalidateSession();
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             }
             // This should happen if invalid data was sent on Register Controller command
             else if(s.getStatus() == 400 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {

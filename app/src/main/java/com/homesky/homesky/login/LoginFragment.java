@@ -110,7 +110,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
         mSigninButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                startActivity(UserActivity.newIntent(getActivity()));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.SIGNIN));
             }
         });
 
@@ -137,7 +137,7 @@ public class LoginFragment extends Fragment implements RequestCallback {
         } else {
             Toast.makeText(
                     getActivity(),
-                    s.getErrorMessage(),
+                    "No internet connection",
                     Toast.LENGTH_LONG).show();
             mEditTextPassword.setEnabled(true);
             mEditTextLogin.setEnabled(true);

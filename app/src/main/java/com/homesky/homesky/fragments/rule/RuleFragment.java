@@ -144,7 +144,7 @@ public class RuleFragment extends Fragment implements RequestCallback {
         }
         else if(s.getStatus() == 403) {
             HomecloudHolder.getInstance().invalidateSession();
-            getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+            getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
         }
         else {
             Toast.makeText(

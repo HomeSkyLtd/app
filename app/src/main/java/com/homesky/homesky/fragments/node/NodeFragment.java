@@ -146,7 +146,7 @@ public class NodeFragment extends Fragment {
                         getResources().getText(R.string.state_fragment_error),
                         Toast.LENGTH_LONG).show();
             }  else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             }else {
                 setNodeAndState(true);
                 updateUI();

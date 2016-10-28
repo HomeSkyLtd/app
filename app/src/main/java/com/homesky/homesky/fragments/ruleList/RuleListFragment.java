@@ -236,7 +236,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             //If unauthorized
             else if(s.getStatus() == 403){
                 HomecloudHolder.getInstance().invalidateSession();
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             }
             //If some other error happened, check if the rule was not sent because of a conflicting rule.
             //In this case, don't offer to resend it
@@ -258,7 +258,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                  (mPageState.equals(PageState.REFRESHING) || mPageState.equals(PageState.LOADING))){
             if(s.getStatus() == 403){
                 HomecloudHolder.getInstance().invalidateSession();
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             }
             else if(s.getStatus() == 200){
                 updateUI();
@@ -276,7 +276,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             }
             else if (s.getStatus() == 403){
                 HomecloudHolder.getInstance().invalidateSession();
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             }
             //this happens if there was a connection error (status = 0)
             else {

@@ -16,7 +16,6 @@
             android:id="@+id/list_notification_node_name"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:textStyle="normal|bold"
             android:gravity="top"
             tools:text="NODE NAME"/>
     </LinearLayout>

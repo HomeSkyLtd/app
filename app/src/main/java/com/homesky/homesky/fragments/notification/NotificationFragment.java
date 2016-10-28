@@ -165,7 +165,7 @@ public class NotificationFragment extends Fragment {
             } else if (o instanceof Rule) {
                 mRule = (Rule) o;
 
-                List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest());
+                List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(new GetInfosRequest());
 
                 if (nodes != null) {
                     for (NodesResponse.Node n : nodes) {
@@ -255,8 +255,8 @@ public class NotificationFragment extends Fragment {
         void setNodes() {
             List<Object> list = new ArrayList<>();
 
-            List<NodesResponse.Node> nodeList = ModelStorage.getInstance().getNodes(new GetNodesInfoRequest());
-            List<Rule> ruleList = ModelStorage.getInstance().getLearntRules(new GetLearntRulesRequest());
+            List<NodesResponse.Node> nodeList = ModelStorage.getInstance().getNodes(new GetInfosRequest());
+            List<Rule> ruleList = ModelStorage.getInstance().getLearntRules(new GetInfosRequest());
 
             if (nodeList != null) {
                 for (NodesResponse.Node n : nodeList) {
@@ -300,32 +300,18 @@ public class NotificationFragment extends Fragment {
         }
     }
 
-    class GetNodesInfoRequest implements RequestCallback {
+    class GetInfosRequest implements RequestCallback {
         @Override
         public void onPostRequest(SimpleResponse s) {
-            if (s == null) {
+            if (s != null && s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
+                getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
+            } else if (s == null || s.getStatus() != 200) {
+                mLoadingPanel.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
                 Toast.makeText(
                         getActivity(),
-                        getResources().getText(R.string.state_fragment_error),
+                        "No internet connection",
                         Toast.LENGTH_LONG).show();
-            } else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
-            } else {
-                updateUI();
-            }
-        }
-    }
-
-    class GetLearntRulesRequest implements RequestCallback {
-        @Override
-        public void onPostRequest(SimpleResponse s) {
-            if (s == null) {
-                Toast.makeText(
-                        getActivity(),
-                        getResources().getText(R.string.state_fragment_error),
-                        Toast.LENGTH_LONG).show();
-            } else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
-                getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
             } else {
                 updateUI();
             }
@@ -446,7 +432,7 @@ public class NotificationFragment extends Fragment {
                 if (s == null || s.getStatus() != 200) {
                     Snackbar.make(
                             getActivity().findViewById(R.id.menu_fragments_activity_container),
-                            "No connection, try again",
+                            "No internet connection",
                             Snackbar.LENGTH_SHORT
                     ).show();
                 } else {
