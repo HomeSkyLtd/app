@@ -8,11 +8,13 @@ import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.RuleResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homecloud_lib.model.response.StateResponse;
+import com.homesky.homecloud_lib.model.response.UserDataResponse;
 import com.homesky.homesky.command.GetControllersCommand;
 import com.homesky.homesky.command.GetHouseStateCommand;
 import com.homesky.homesky.command.GetLearntRulesCommand;
 import com.homesky.homesky.command.GetNodesInfoCommand;
 import com.homesky.homesky.command.GetRulesCommand;
+import com.homesky.homesky.command.GetUsersCommand;
 
 import java.util.HashMap;
 import java.util.List;
@@ -29,6 +31,7 @@ public class ModelStorage implements RequestCallback{
     private Map<NodesResponse.Node, StateResponse.NodeState> mNodeIdToValue;
     private List<Rule> mLearntRules;
     private List<String> mControllerIds = null;
+    private List<String> mUsers = null;
 
     public static ModelStorage getInstance(){
         if(instance == null){
@@ -93,6 +96,16 @@ public class ModelStorage implements RequestCallback{
         }
     }
 
+    public List<String> getUsers(RequestCallback source) {
+        if(mUsers != null) {
+            return mUsers;
+        }
+        else {
+            new AsyncRequest(this, source).execute(new GetUsersCommand());
+            return null;
+        }
+    }
+
     public void invalidateNodesCache(){
         mNodes = null;
     }
@@ -113,6 +126,9 @@ public class ModelStorage implements RequestCallback{
         mControllerIds = null;
     }
 
+    public void invalidateUsersCache(){
+        mUsers = null;
+    }
 
     public Map<NodesResponse.Node, StateResponse.NodeState> getNodeIdToValue(boolean forceSync) {
         if (mNodes == null || mNodeStates == null)
@@ -147,6 +163,9 @@ public class ModelStorage implements RequestCallback{
             }
             else if(s instanceof ControllerDataResponse){
                 mControllerIds = ((ControllerDataResponse) s).getControllerIds();
+            }
+            else if(s instanceof UserDataResponse){
+                mUsers = ((UserDataResponse) s).getUsers();
             }
         }
     }

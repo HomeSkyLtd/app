@@ -95,8 +95,8 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                         startActivityForResult(intent, REQUEST_QR_READ);
                         mRingProgressDialog = ProgressDialog.show(
                                 getActivity(),
-                                getString(R.string.controller_sending_progess_title),
-                                getString(R.string.controller_sending_progess_message),
+                                getString(R.string.controller_sending_progress_title),
+                                getString(R.string.controller_sending_progress_message),
                                 true);
                     } catch (Exception e) {
                         Uri marketUri = Uri.parse("market://details?id=com.google.zxing.client.android");
@@ -307,8 +307,8 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                     mPageState = PageState.SENDING_NEW_CONTROLLER;
                     mRingProgressDialog = ProgressDialog.show(
                             getActivity(),
-                            getString(R.string.controller_sending_progess_title),
-                            getString(R.string.controller_sending_progess_message),
+                            getString(R.string.controller_sending_progress_title),
+                            getString(R.string.controller_sending_progress_message),
                             true);
                     new AsyncRequest(ControllerFragment.this).execute(new RegisterControllerCommand(mControllerIdToAdd));
                 }
