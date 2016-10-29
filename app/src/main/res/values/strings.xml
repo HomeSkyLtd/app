@@ -92,7 +92,7 @@
 
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Associated Controllers</string>
-    <string name="controller_register_error">Error registerig controller:</string>
+    <string name="controller_register_error">Error registering controller:</string>
     <string name="controller_sending_progress_title">Please wait</string>
     <string name="controller_sending_progress_message">Registering controller…</string>
     <string name="controller_connection_error">Could not connect to server</string>

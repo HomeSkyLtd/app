@@ -1,11 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="action_search">Buscar</string>
-    <string name="controller_fragment_title">Controlador</string>
+    <string name="controller_fragment_title">Controladores associados</string>
     <string name="notification_fragment_title">Notificação</string>
     <string name="rule_fragment_title">Regras</string>
     <string name="state_fragment_title">Estado</string>
-    <string name="user_fragment_title">Usuários</string>
+    <string name="user_fragment_title">Usuários registrados</string>
     <string name="login_activity_signin_button">Cadastrar</string>
     <string name="login_activity_passwd_hint">Senha</string>
     <string name="login_fragment_empty_login">Por favor, digite seu login</string>
@@ -33,4 +33,73 @@
     <string name="send_action_dialog_out_of_bounds_value">O valor deve ser entre %1$s e %2$s</string>
     <string name="node_fragment_not_logged">Você não está logado</string>
     <string name="node_fragment_no_connection">Sem conexão com internet</string>
+
+    <!-- Rule fragment -->
+    <string name="rule_fragment_no_connection">Sem conexão à Internet</string>
+    <string name="rule_fragment_refresh_message">Sem conexão à internet. Por favor, restabeleça a conexão e atualize esta página.</string>
+
+    <!-- Rule list fragment -->
+    <string name="rule_list_or">or</string>
+    <string name="rule_list_and">and</string>
+    <string name="rule_list_set">set</string>
+    <string name="rule_list_condition">condition:</string>
+    <string name="rule_list_effect">effect:</string>
+    <string name="rule_list_sending_progress_title">Por favor, aguarde</string>
+    <string name="rule_list_sending_progress_message">Enviando regra ao servidor…</string>
+    <string name="rule_list_retry_message">Não foi possível enviar a regra</string>
+    <string name="rule_list_retry_button_text">Reenviar</string>
+    <string name="rule_list_fab_when_retry_message">Já existe um envio pendente de regra</string>
+    <string name="rule_list_fab_when_no_internet_message">Não é possível enviar nova regra sem conexão</string>
+    <string name="rule_list_connection_error">Não foi possível se conectar ao servidor</string>
+    <string name="rule_list_delete_rule_dialog_title">Remover regra</string>
+    <string name="rule_list_delete_rule_dialog_message">Você deseja remover a regra selecionada?</string>
+    <string name="rule_list_deleting_progress_message">Removendo regra…</string>
+
+    <!-- Clause fragment -->
+    <string name="clause_action_command">Comando</string>
+    <string name="clause_action_value">Valor do Comando</string>
+    <string name="clause_menu_save">Salvar</string>
+    <string name="clause_menu_cancel">Cancelar</string>
+    <string name="clause_save_error_message">Por favor, preencha todos os campos</string>
+
+    <!-- And statement fragment -->
+    <string name="and_statement_empty_message">Adicione uma expressão OR</string>
+
+    <!-- Proposition dialog fragment -->
+    <string name="proposition_dialog_lhs">LHS</string>
+    <string name="proposition_dialog_node">Nó:</string>
+    <string name="proposition_dialog_command">Comando:</string>
+    <string name="proposition_dialog_operator">Operador</string>
+    <string name="proposition_dialog_rhs">RHS</string>
+    <string name="proposition_dialog_rhs_type">Tipo:</string>
+    <string name="proposition_dialog_type_value">Valor</string>
+    <string name="proposition_dialog_type_node">Nó</string>
+    <string name="proposition_dialog_value">Valor:</string>
+    <string name="proposition_dialog_ok">OK</string>
+    <string name="proposition_dialog_cancel">Cancelar</string>
+    <string name="proposition_dialog_value_error_msg">Campo "valor" não pode ser vazio</string>
+
+    <!-- Controller fragment -->
+    <string name="controller_register_error">Erro ao registrar controlador:</string>
+    <string name="controller_sending_progress_title">Por favor, aguarde</string>
+    <string name="controller_sending_progress_message">Registrando controlador…</string>
+    <string name="controller_connection_error">Não foi possível se conectar ao servidor</string>
+    <string name="controller_retry_message">Não foi possível registrar o controlador</string>
+    <string name="controller_fab_when_retry_message">Já existe um pedido pendente de registro de controlador</string>
+
+    <!-- User fragment -->
+    <string name="user_retry_message">Não foi possível registrar novos usuários</string>
+    <string name="user_sending_progress_title">Por favor, aguarde</string>
+    <string name="user_sending_progress_message">Registrando usuário…</string>
+    <string name="user_connection_error">Não foi possível se conectar ao servidor</string>
+    <string name="user_fab_when_retry_message">Já existe um pedido pendente de registro de usuário</string>
+
+    <!-- New User Dialog fragment -->
+    <string name="new_user_fragment_username">Usuário:</string>
+    <string name="new_user_fragment_password">Senha:</string>
+    <string name="new_user_fragment_password_confirm">Confirme a senha:</string>
+    <string name="new_user_fragment_empty_field_message">Por favor, preencha todos os campos</string>
+    <string name="new_user_fragment_password_mismatch_message">Senhas fornecidas não correspondem</string>
+    <string name="new_user_fragment_send_error_message">Erro ao registrar usuário:</string>
+    <string name="new_user_fragment_dialog_title">Insira os dados do novo usuário</string>
 </resources>
