@@ -18,6 +18,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
@@ -100,7 +101,7 @@ public class NotificationFragment extends Fragment {
         private NodesResponse.Node mNode;
         private Rule mRule;
         private TextView mName;
-        private ImageButton mDeny, mAccept;
+        private ImageView mIcon;
 
         private class NodeClickListener implements View.OnClickListener {
             int mAccept;
@@ -134,8 +135,7 @@ public class NotificationFragment extends Fragment {
 
             mName = (TextView) itemView.findViewById(R.id.list_notification_node_name);
 
-            mAccept = (ImageButton) itemView.findViewById(R.id.list_notification_accept_button);
-            mDeny = (ImageButton) itemView.findViewById(R.id.list_notification_deny_button);
+            mIcon = (ImageView) itemView.findViewById(R.id.list_notification_icon);
 
             itemView.setOnClickListener(this);
         }
@@ -151,16 +151,16 @@ public class NotificationFragment extends Fragment {
                 if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR) &&
                         mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
                     str += "Sensor/Actuator";
+                    mIcon.setImageResource(R.drawable.ic_touch_app_black_24dp);
                 } else if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
                     str += "Sensor";
+                    mIcon.setImageResource(R.drawable.ic_developer_board_black_24dp);
                 } else if (mNode.getNodeClass().contains(NodeClassEnum.ACTUATOR)) {
                     str += "Actuator";
+                    mIcon.setImageResource(R.drawable.ic_touch_app_black_24dp);
                 }
 
                 mName.setText(str);
-
-                mAccept.setOnClickListener(new NodeClickListener(1));
-                mDeny.setOnClickListener(new NodeClickListener(0));
 
             } else if (o instanceof Rule) {
                 mRule = (Rule) o;
@@ -176,8 +176,7 @@ public class NotificationFragment extends Fragment {
                             String str = "New rule for " + n.getExtra().get(NODE_MAP_NAME);
                             mName.setText(str);
 
-                            mAccept.setOnClickListener(new RuleClickListener(1));
-                            mDeny.setOnClickListener(new RuleClickListener(0));
+                            mIcon.setImageResource(R.drawable.ic_library_books_black_24dp);
 
                             break;
                         }
@@ -269,15 +268,15 @@ public class NotificationFragment extends Fragment {
                 list.addAll(ruleList);
             }
 
-            if (nodeList == null || ruleList == null) {
-                mLoadingPanel.setVisibility(View.VISIBLE);
-                mRecyclerView.setVisibility(View.GONE);
-            } else {
+            if (nodeList != null && ruleList != null) {
                 mLoadingPanel.setVisibility(View.GONE);
                 mRecyclerView.setVisibility(View.VISIBLE);
 
                 mNotifications = list;
                 notifyDataSetChanged();
+            } else {
+                mLoadingPanel.setVisibility(View.VISIBLE);
+                mRecyclerView.setVisibility(View.GONE);
             }
         }
 

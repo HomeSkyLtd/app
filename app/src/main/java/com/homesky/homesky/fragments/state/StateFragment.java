@@ -23,6 +23,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -239,8 +240,8 @@ public class StateFragment extends Fragment {
 
         private static final String DIALOG_TAG = "state_holder_dialog_tag";
 
-        private TextView mNodeIdTextView;
         private TextView mNodeName;
+        private ImageView mNodeIcon;
 
         private int mNodeId;
         private String mControllerId;
@@ -248,8 +249,9 @@ public class StateFragment extends Fragment {
 
         StateHolder (View itemView) {
             super(itemView);
-            mNodeIdTextView = (TextView) itemView.findViewById(R.id.state_fragment_node_id);
             mNodeName = (TextView) itemView.findViewById(R.id.state_fragment_node_name);
+
+            mNodeIcon = (ImageView) itemView.findViewById(R.id.list_item_state_icon);
 
             itemView.setOnClickListener(this);
             itemView.setOnLongClickListener(this);
@@ -259,11 +261,15 @@ public class StateFragment extends Fragment {
             mNodeId = node.getNodeId();
             mControllerId = node.getControllerId();
 
-            String nodeTextView = "id " + mNodeId;
-            mNodeIdTextView.setText(nodeTextView);
             mNodeName.setText(node.getExtra().get("name"));
 
             mNode = node;
+
+            if (mNode.getCommandType().isEmpty()) {
+                mNodeIcon.setImageResource(R.drawable.ic_developer_board_black_24dp);
+            } else {
+                mNodeIcon.setImageResource(R.drawable.ic_touch_app_black_24dp);
+            }
         }
 
         @Override

@@ -238,12 +238,10 @@ public class RuleFragment extends Fragment implements RequestCallback {
     class RuleActuatorHolder extends RecyclerView.ViewHolder implements View.OnClickListener{
         NodesResponse.Node mActuator;
 
-        private TextView mNodeIdTextView;
         private TextView mNodeName;
 
         public RuleActuatorHolder(View itemView) {
             super(itemView);
-            mNodeIdTextView = (TextView) itemView.findViewById(R.id.state_fragment_node_id);
             mNodeName = (TextView) itemView.findViewById(R.id.state_fragment_node_name);
 
             itemView.setOnClickListener(this);
@@ -251,8 +249,6 @@ public class RuleFragment extends Fragment implements RequestCallback {
 
         public void bindRuleActuator(NodesResponse.Node n){
             mActuator = n;
-            String nodeTextView = "id " + mActuator.getNodeId();
-            mNodeIdTextView.setText(nodeTextView);
             mNodeName.setText(mActuator.getExtra().get(NODE_EXTRA_NAME));
 
         }

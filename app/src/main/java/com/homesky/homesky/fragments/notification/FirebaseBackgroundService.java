@@ -22,6 +22,7 @@ import com.homesky.homesky.MessageService;
 import com.homesky.homesky.R;
 import com.homesky.homesky.activities.MenuFragmentsActivity;
 import com.homesky.homesky.homecloud.HomecloudHolder;
+import com.homesky.homesky.request.ModelStorage;
 
 import java.util.HashMap;
 
@@ -99,11 +100,13 @@ public class FirebaseBackgroundService extends Service {
                 String str = "New nodes: " + dn.getNumberOfNodes();
                 sNotificationsString.put(NODE, str);
 
+                ModelStorage.getInstance().invalidateNodesCache();
             } else if (n instanceof LearntRulesNotification) {
                 LearntRulesNotification ln = (LearntRulesNotification) n;
                 String str = "New rules: " + ln.getNumberOfRules();
                 sNotificationsString.put(RULE, str);
 
+                ModelStorage.getInstance().invalidateLearntRulesCache();
             }
 
             NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
