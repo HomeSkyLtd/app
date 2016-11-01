@@ -35,6 +35,7 @@ import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.AcceptNodeCommand;
 import com.homesky.homesky.command.AcceptRuleCommand;
+import com.homesky.homesky.command.RemoveRuleCommand;
 import com.homesky.homesky.command.SetNodeExtraCommand;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
@@ -103,33 +104,6 @@ public class NotificationFragment extends Fragment {
         private TextView mName;
         private ImageView mIcon;
 
-        private class NodeClickListener implements View.OnClickListener {
-            int mAccept;
-            NodeClickListener(int accept) { mAccept = accept; }
-            @Override
-            public void onClick(View v) {
-                if (mAccept == 0) {
-                    new AsyncRequest(new AcceptCallback(mNode, mRule))
-                            .execute(new AcceptNodeCommand(mNode.getNodeId(), mNode.getControllerId(), mAccept));
-                } else {
-                    AskExtrasDialogFragment.newInstance(mNode, new AcceptCallback(mNode, null)).show(getFragmentManager(), DIALOG_TAG);
-                }
-            }
-        }
-
-        private class RuleClickListener implements View.OnClickListener {
-            int mAccept;
-            RuleClickListener(int accept) { mAccept = accept; }
-            @Override
-            public void onClick(View v) {
-                Rule.Command c = mRule.getCommand();
-                new AsyncRequest(new AcceptCallback(mNode, mRule))
-                        .execute(new AcceptRuleCommand(
-                                c.getNodeId(), c.getCommandId(), mNode.getControllerId(),
-                                c.getValue(), mAccept));
-            }
-        }
-
         NotificationHolder(View itemView) {
             super(itemView);
 
@@ -187,7 +161,7 @@ public class NotificationFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            ShowInfosDialogFragment.newInstance(mNode, mRule).show(getFragmentManager(), DIALOG_TAG);
+            ShowInfosDialogFragment.newInstance(mNode, mRule, new AcceptCallback(mNode, mRule), new AcceptCallback(mNode, null)).show(getFragmentManager(), DIALOG_TAG);
         }
     }
 
@@ -462,10 +436,12 @@ public class NotificationFragment extends Fragment {
 
         private NodesResponse.Node mNode;
         private Rule mRule;
+        private AcceptCallback mAcceptCallback, mDenyCallback;
 
         private TextView mTitle;
-        private TextView mControllerId;
         private TextView mNodeId;
+        private Button mAcceptButton;
+        private Button mDenyButton;
 
         private TextView mResult;
         private TextView mClause;
@@ -479,13 +455,58 @@ public class NotificationFragment extends Fragment {
             mRule = rule;
         }
 
-        static ShowInfosDialogFragment newInstance(NodesResponse.Node node, Rule rule) {
+        public void setAcceptCallback (AcceptCallback accept) {
+            mAcceptCallback = accept;
+        }
+
+        public void setDenyCallback (AcceptCallback deny) {
+            mDenyCallback = deny;
+        }
+
+        static ShowInfosDialogFragment newInstance(NodesResponse.Node node, Rule rule, AcceptCallback accept, AcceptCallback deny) {
             ShowInfosDialogFragment fragment = new ShowInfosDialogFragment();
 
             fragment.setNode(node);
             fragment.setRule(rule);
+            fragment.setAcceptCallback(accept);
+            fragment.setDenyCallback(deny);
 
             return fragment;
+        }
+
+        private class NodeClickListener implements View.OnClickListener {
+            int mAccept;
+            NodeClickListener(int accept) { mAccept = accept; }
+            @Override
+            public void onClick(View v) {
+                getDialog().cancel();
+                if (mAccept == 0) {
+                    new AsyncRequest(mDenyCallback)
+                            .execute(new AcceptNodeCommand(mNode.getNodeId(), mNode.getControllerId(), mAccept));
+                } else {
+                    AskExtrasDialogFragment.newInstance(mNode, mAcceptCallback).show(getFragmentManager(), "DIALOG_TAG");
+                }
+            }
+        }
+
+        private class RuleClickListener implements View.OnClickListener {
+            int mAccept;
+            RuleClickListener(int accept) { mAccept = accept; }
+            @Override
+            public void onClick(View v) {
+                getDialog().cancel();
+                Rule.Command c = mRule.getCommand();
+
+                if (mAccept == 1) {
+                    new AsyncRequest(mAcceptCallback)
+                            .execute(new AcceptRuleCommand(
+                                    c.getNodeId(), c.getCommandId(), mNode.getControllerId(),
+                                    c.getValue()));
+                } else if (mAccept == 0) {
+                    new AsyncRequest(mDenyCallback)
+                            .execute(new RemoveRuleCommand(mRule));
+                }
+            }
         }
 
         @Nullable
@@ -494,20 +515,35 @@ public class NotificationFragment extends Fragment {
             View view = inflater.inflate(R.layout.notification_infos_dialog_fragment, container, false);
 
             getDialog().setCanceledOnTouchOutside(true);
-            Window window  = getDialog().getWindow();
+            Window window = getDialog().getWindow();
             if (window != null) {
                 window.setBackgroundDrawableResource(R.drawable.round_dialog);
             }
 
             mTitle = (TextView) view.findViewById(R.id.notification_dialog_fragment_name);
-            mTitle.setText(mNode.getExtra().get(NODE_MAP_NAME));
 
-            mControllerId = (TextView) view.findViewById(R.id.notification_dialog_fragment_controller_id);
-            mControllerId.setText(mNode.getControllerId());
+            String title = "";
+            if (mRule == null) {
+                if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR) &&
+                        mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
+                    title = "Sensor/Actuator";
+                } else if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
+                    title = "Sensor";
+                } else if (mNode.getNodeClass().contains(NodeClassEnum.ACTUATOR)) {
+                    title = "Actuator";
+                }
+            } else {
+                title = "Rule";
+            }
+            mTitle.setText(title);
+
 
             mNodeId = (TextView) view.findViewById(R.id.notification_dialog_fragment_node_id);
             String nodeId = String.valueOf(mNode.getNodeId());
             mNodeId.setText(nodeId);
+
+            mAcceptButton = (Button) view.findViewById(R.id.notification_dialog_fragment_accept_button);
+            mDenyButton = (Button) view.findViewById(R.id.notification_dialog_fragment_deny_button);
 
             if (mRule != null) {
                 view.findViewById(R.id.clause_tablerow).setVisibility(View.VISIBLE);
@@ -517,15 +553,17 @@ public class NotificationFragment extends Fragment {
                 mResult.setText(AppStringUtils.getRuleEffectLegibleText(
                         getActivity(),
                         mRule,
-                        ModelStorage.getInstance().getNodes(null))
-                );
+                        ModelStorage.getInstance().getNodes(null)));
 
                 mClause = (TextView) view.findViewById(R.id.notification_dialog_fragment_clause_id);
                 mClause.setText(AppStringUtils.getRuleConditionLegibleText(
                         getActivity(),
                         mRule,
-                        ModelStorage.getInstance().getNodes(null))
-                );
+                        ModelStorage.getInstance().getNodes(null)));
+
+                mAcceptButton.setOnClickListener(new RuleClickListener(1));
+                mDenyButton.setOnClickListener(new RuleClickListener(0));
+
             } else {
 
                 LinearLayout ll = (LinearLayout) view.findViewById(R.id.notification_dialog_fragment_scrollview);
@@ -576,6 +614,9 @@ public class NotificationFragment extends Fragment {
 
                     ll.addView(footerView);
                 }
+
+                mAcceptButton.setOnClickListener(new NodeClickListener(1));
+                mDenyButton.setOnClickListener(new NodeClickListener(0));
             }
 
             return view;

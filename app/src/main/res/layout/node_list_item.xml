@@ -11,20 +11,22 @@
         android:layout_height="wrap_content"
         android:layout_marginStart="@dimen/activity_horizontal_margin"
         android:layout_marginTop="@dimen/activity_vertical_margin">
+        <ImageView
+            android:src="@drawable/ic_touch_app_black_24dp"
+            android:id="@+id/node_list_item_icon"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerVertical="true"
+            android:layout_alignParentStart="true"
+            android:layout_marginEnd="@dimen/activity_horizontal_margin"/>
+
         <TextView
             android:id="@+id/node_list_item_category"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_alignParentStart="true"
             android:layout_centerVertical="true"
+            android:layout_toEndOf="@id/node_list_item_icon"
             tools:text="FIRST"/>
-        <TextView
-            android:id="@+id/node_list_item_id"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_centerInParent="true"
-            android:layout_centerVertical="true"
-            tools:text="SECOND"/>
 
         <TextView
             android:id="@+id/node_list_item_value"

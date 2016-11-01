@@ -176,5 +176,7 @@
     <!-- Notification fragment -->
     <string name="notification_fragment_rule_result">Result</string>
     <string name="notification_fragment_rule_clause">When</string>
+    <string name="notification_fragment_accept">Accept</string>
+    <string name="notification_fragment_deny">Deny</string>
 
 </resources>

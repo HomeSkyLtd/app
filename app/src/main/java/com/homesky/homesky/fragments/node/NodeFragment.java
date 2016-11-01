@@ -18,6 +18,7 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.CompoundButton;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.Switch;
 import android.widget.TextView;
@@ -282,9 +283,10 @@ public class NodeFragment extends Fragment {
 
     abstract class NodeHolder extends RecyclerView.ViewHolder implements RequestCallback {
 
-        private TextView mTypeIdTextView;
         private TextView mCategory;
         RelativeLayout mProgressBar;
+        private ImageView mIcon;
+        private TextView mDiv;
 
         private View mItemView;
         BigDecimal mValue;
@@ -299,8 +301,9 @@ public class NodeFragment extends Fragment {
             mNode = node;
 
             mCategory = (TextView) itemView.findViewById(R.id.node_list_item_category);
-            mTypeIdTextView = (TextView) itemView.findViewById(R.id.node_list_item_id);
             mProgressBar = (RelativeLayout) itemView.findViewById(R.id.node_list_item_loading_panel);
+            mIcon = (ImageView) itemView.findViewById(R.id.node_list_item_icon);
+            mDiv = (TextView) itemView.findViewById(R.id.list_header_div);
 
             mItemView = itemView;
         }
@@ -318,6 +321,8 @@ public class NodeFragment extends Fragment {
                 mCategory.setText(EnumUtil.getEnumPrettyName(
                         dataType.getDataCategory().getId(), DataCategoryEnum.class));
 
+                mIcon.setVisibility(View.GONE);
+                mDiv.setVisibility(View.GONE);
 
             } else if (type instanceof NodesResponse.CommandType) {
                 NodesResponse.CommandType commandType = (NodesResponse.CommandType) type;
@@ -325,10 +330,8 @@ public class NodeFragment extends Fragment {
                 mCategory.setText(EnumUtil.getEnumPrettyName(
                         commandType.getCommandCategory().getId(), CommandCategoryEnum.class));
 
+                mIcon.setVisibility(View.VISIBLE);
             }
-
-            String str_id = "id " + mType.getId();
-            mTypeIdTextView.setText(str_id);
 
             setValue(value);
         }
