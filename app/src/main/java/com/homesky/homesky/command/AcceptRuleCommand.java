@@ -12,21 +12,19 @@ import java.math.BigDecimal;
 
 public class AcceptRuleCommand implements Command {
 
-    private int mNodeId, mCommandId, mAccepted;
+    private int mNodeId, mCommandId;
     private String mControllerId;
     private BigDecimal mValue;
 
-    public AcceptRuleCommand(int nodeId, int commandId, String controllerId, BigDecimal value, int accept) {
+    public AcceptRuleCommand(int nodeId, int commandId, String controllerId, BigDecimal value) {
         mNodeId = nodeId;
         mCommandId = commandId;
         mControllerId = controllerId;
         mValue = value;
-        mAccepted = accept;
     }
 
     @Override
     public SimpleResponse execute() throws NetworkException {
-        return HomecloudHolder.getInstance().acceptRule(
-                mAccepted, mNodeId, mCommandId, mValue, mControllerId);
+        return HomecloudHolder.getInstance().acceptRule(mNodeId, mCommandId, mValue, mControllerId);
     }
 }

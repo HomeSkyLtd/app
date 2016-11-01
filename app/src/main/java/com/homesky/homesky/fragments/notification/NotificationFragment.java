@@ -161,7 +161,7 @@ public class NotificationFragment extends Fragment {
 
         @Override
         public void onClick(View v) {
-            ShowInfosDialogFragment.newInstance(mNode, mRule, new AcceptCallback(mNode, mRule), new AcceptCallback(mNode, null)).show(getFragmentManager(), DIALOG_TAG);
+            ShowInfosDialogFragment.newInstance(mNode, mRule, new AcceptCallback(mNode, mRule)).show(getFragmentManager(), DIALOG_TAG);
         }
     }
 
@@ -436,7 +436,7 @@ public class NotificationFragment extends Fragment {
 
         private NodesResponse.Node mNode;
         private Rule mRule;
-        private AcceptCallback mAcceptCallback, mDenyCallback;
+        private AcceptCallback mAcceptCallback;
 
         private TextView mTitle;
         private TextView mNodeId;
@@ -459,17 +459,12 @@ public class NotificationFragment extends Fragment {
             mAcceptCallback = accept;
         }
 
-        public void setDenyCallback (AcceptCallback deny) {
-            mDenyCallback = deny;
-        }
-
-        static ShowInfosDialogFragment newInstance(NodesResponse.Node node, Rule rule, AcceptCallback accept, AcceptCallback deny) {
+        static ShowInfosDialogFragment newInstance(NodesResponse.Node node, Rule rule, AcceptCallback accept) {
             ShowInfosDialogFragment fragment = new ShowInfosDialogFragment();
 
             fragment.setNode(node);
             fragment.setRule(rule);
             fragment.setAcceptCallback(accept);
-            fragment.setDenyCallback(deny);
 
             return fragment;
         }
@@ -481,7 +476,7 @@ public class NotificationFragment extends Fragment {
             public void onClick(View v) {
                 getDialog().cancel();
                 if (mAccept == 0) {
-                    new AsyncRequest(mDenyCallback)
+                    new AsyncRequest(mAcceptCallback)
                             .execute(new AcceptNodeCommand(mNode.getNodeId(), mNode.getControllerId(), mAccept));
                 } else {
                     AskExtrasDialogFragment.newInstance(mNode, mAcceptCallback).show(getFragmentManager(), "DIALOG_TAG");
@@ -503,7 +498,7 @@ public class NotificationFragment extends Fragment {
                                     c.getNodeId(), c.getCommandId(), mNode.getControllerId(),
                                     c.getValue()));
                 } else if (mAccept == 0) {
-                    new AsyncRequest(mDenyCallback)
+                    new AsyncRequest(mAcceptCallback)
                             .execute(new RemoveRuleCommand(mRule));
                 }
             }
