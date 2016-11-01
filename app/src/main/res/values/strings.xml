@@ -124,6 +124,7 @@
 
     <!-- Settings fragment -->
     <string name="settings_fragment_title">Settings</string>
+    <string name="settings_fragment_logout">Logout</string>
 
     <!-- Node fragment -->
     <string name="node_fragment_title">Node information and values</string>
