@@ -196,6 +196,7 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
                         mNodes);
                 NodesResponse.DataType dt = AppFindElementUtils.findDatatypeFromId(
                         mRhsCommandSpinnerIndexToCommandId.get(i), sensor.getDataType());
+                mRhsValueEditText.setText("");
                 switch (dt.getType()){
                     case INT:
                         mRhsValueEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
@@ -203,7 +204,7 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
                         mRhsValueSwitch.setVisibility(View.GONE);
                         break;
                     case REAL:
-                        mRhsValueEditText.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                        mRhsValueEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                         mRhsValueEditText.setVisibility(View.VISIBLE);
                         mRhsValueSwitch.setVisibility(View.GONE);
                         break;
@@ -275,15 +276,26 @@ public class PropositionDialog extends DialogFragment implements RequestCallback
 
     private boolean validateFields(){
         if(mRhsRadioGroup.getCheckedRadioButtonId() == R.id.fragment_prop_dialog_rhs_value_radio_button &&
-                mRhsValueEditText.getVisibility() == View.VISIBLE && mRhsValueEditText.getText().length() == 0){
-            Toast.makeText(
-                    getActivity(),
-                    getResources().getText(R.string.proposition_dialog_value_error_msg),
-                    Toast.LENGTH_LONG).show();
+                mRhsValueEditText.getVisibility() == View.VISIBLE){
+            if(!isValidFloat(mRhsValueEditText.getText().toString())){
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getText(R.string.proposition_dialog_value_error_msg),
+                        Toast.LENGTH_LONG).show();
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private boolean isValidFloat(String s){
+        try{
+            Float.parseFloat(s);
+            return true;
+        }
+        catch(NumberFormatException e){
             return false;
         }
-        else
-            return true;
     }
 
 }

@@ -103,14 +103,17 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
             @Override
             public void onItemSelected(AdapterView<?> adapterView, View view, int i, long l) {
                 NodesResponse.CommandType ct = mCommandSpinnerIndexToCommandType.get(i);
+                mActionValueEditText.setText("");
                 switch (ct.getType()){
                     case INT:
+                        Log.d(TAG, "Changing to int");
                         mActionValueEditText.setInputType(InputType.TYPE_CLASS_NUMBER);
                         mActionValueEditText.setVisibility(View.VISIBLE);
                         mActionValueSwitch.setVisibility(View.GONE);
                         break;
                     case REAL:
-                        mActionValueEditText.setInputType(InputType.TYPE_NUMBER_FLAG_DECIMAL);
+                        Log.d(TAG, "Changing to real");
+                        mActionValueEditText.setInputType(InputType.TYPE_CLASS_NUMBER | InputType.TYPE_NUMBER_FLAG_DECIMAL);
                         mActionValueEditText.setVisibility(View.VISIBLE);
                         mActionValueSwitch.setVisibility(View.GONE);
                         break;
@@ -266,7 +269,7 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
     }
 
     private boolean validateInput(){
-        if(mActionValueEditText.getVisibility() == View.VISIBLE && mActionValueEditText.getText().length() == 0){
+        if(mActionValueEditText.getVisibility() == View.VISIBLE && !isValidFloat(mActionValueEditText.getText().toString())){
             return false;
         }
         else if(mClause.size() == 0){
@@ -274,6 +277,16 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
         }
         else{
             return true;
+        }
+    }
+
+    private boolean isValidFloat(String s){
+        try{
+            Float.parseFloat(s);
+            return true;
+        }
+        catch(NumberFormatException e){
+            return false;
         }
     }
 }

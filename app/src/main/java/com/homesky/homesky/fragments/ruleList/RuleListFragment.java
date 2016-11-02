@@ -68,7 +68,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
     private List<Rule> mRuleToSend = null;
     private PageState mPageState;
 
-    private TextView mActuatorTextView, mNoInternetTextView;
+    private TextView mActuatorTextView, mNoInternetTextView, mEmptyTextView;
     private RecyclerView mRecyclerView;
     private SwipeRefreshLayout mRuleListSwipeRefresh;
     private FloatingActionButton mFloatingActionButton;
@@ -140,6 +140,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
         mLoadingLayout = (RelativeLayout)view.findViewById(R.id.rule_list_fragment_loading_panel);
 
         mNoInternetTextView = (TextView)view.findViewById(R.id.rule_list_fragment_no_internet_text_view);
+        mEmptyTextView = (TextView)view.findViewById(R.id.rule_list_fragment_empty_text_view);
 
         mPageState = PageState.LOADING;
         mLoadingLayout.setVisibility(View.VISIBLE);
@@ -157,6 +158,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
             mActuatorTextView.setText(node.getExtra().get(NODE_EXTRA_NAME));
 
             List<Rule> filtered = AppFindElementUtils.findRulesFromNodeId(mNodeId, mControllerId, mRules);
+
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(filtered);
             } else {
@@ -167,9 +169,17 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                 }
             }
             mRecyclerView.setAdapter(mAdapter);
+            if(filtered.size() > 0 || mRuleToSend != null){
+                mEmptyTextView.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
+            }
+            else {
+                mRecyclerView.setVisibility(View.GONE);
+                mEmptyTextView.setVisibility(View.VISIBLE);
+            }
 
             mNoInternetTextView.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
+
             if(mRuleListSwipeRefresh.isRefreshing()){
                 mRuleListSwipeRefresh.setRefreshing(false);
             }
@@ -225,6 +235,8 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                     mRuleToSend = null;
                     ModelStorage.getInstance().invalidateRulesCache();
                     mRingProgressDialog.dismiss();
+                    mEmptyTextView.setVisibility(View.GONE);
+                    mRecyclerView.setVisibility(View.VISIBLE);
                     mPageState = PageState.IDLE;
                 }
                 else{
@@ -289,6 +301,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                     mRuleListSwipeRefresh.setRefreshing(false);
                     mRecyclerView.setVisibility(View.GONE);
                     mLoadingLayout.setVisibility(View.GONE);
+                    mEmptyTextView.setVisibility(View.GONE);
                     mNoInternetTextView.setVisibility(View.VISIBLE);
                 }
                 //If there was a connection error while sending the rule
@@ -298,7 +311,7 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                             getResources().getText(R.string.rule_list_connection_error),
                             Toast.LENGTH_LONG).show();
                     mAdapter.setShouldRetry(true);
-                    mAdapter.notifyDataSetChanged();
+                    updateUI();
                     mRingProgressDialog.dismiss();
                 }
                 //If there was a connection error when removing a rule

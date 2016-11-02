@@ -48,6 +48,7 @@
     <string name="rule_item_node_room">Room:</string>
     <string name="rule_fragment_no_connection">No internet connection</string>
     <string name="rule_fragment_refresh_message">No internet connection. Please, restore the connection and refresh this page.</string>
+    <string name="rule_fragment_empty_message">No actuators to show =(\n Can\'t create rules without one</string>
 
     <!-- Rule list fragment -->
     <string name="rule_list_or">or</string>
@@ -65,13 +66,15 @@
     <string name="rule_list_delete_rule_dialog_title">Delete Rule</string>
     <string name="rule_list_delete_rule_dialog_message">Do you wish to delete the selected rule?</string>
     <string name="rule_list_deleting_progress_message">Deleting rule…</string>
+    <string name="rule_list_empty_message">No rules to show =(\n Click on the button below to add a new one</string>
+
 
     <!-- Clause fragment -->
     <string name="clause_action_command">Action command</string>
     <string name="clause_action_value">Action value</string>
     <string name="clause_menu_save">Save</string>
     <string name="clause_menu_cancel">Cancel</string>
-    <string name="clause_save_error_message">Please fill in all fields</string>
+    <string name="clause_save_error_message">Please fill in all fields correctly</string>
 
     <!-- And statement fragment -->
     <string name="and_statement_empty_message">Add a new OR statement</string>
@@ -88,7 +91,7 @@
     <string name="proposition_dialog_value">Value:</string>
     <string name="proposition_dialog_ok">OK</string>
     <string name="proposition_dialog_cancel">Cancel</string>
-    <string name="proposition_dialog_value_error_msg">Value field cannot be empty</string>
+    <string name="proposition_dialog_value_error_msg">Invalid value</string>
 
     <!-- Controller fragment -->
     <string name="controller_fragment_title">Associated Controllers</string>

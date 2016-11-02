@@ -58,6 +58,14 @@
                         android:gravity="center"
                         android:text="@string/rule_fragment_refresh_message"/>
 
+                    <TextView
+                        android:id="@+id/rule_list_fragment_empty_text_view"
+                        style="@style/SecondaryTextStyle"
+                        android:layout_width="match_parent"
+                        android:layout_height="match_parent"
+                        android:gravity="center"
+                        android:text="@string/rule_list_empty_message"/>
+
                     <android.support.v7.widget.RecyclerView
                         android:id="@+id/fragment_rule_list_recycler_view"
                         android:layout_width="match_parent"

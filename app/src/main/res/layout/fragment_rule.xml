@@ -35,6 +35,15 @@
                 android:text="@string/rule_fragment_refresh_message"
                 android:gravity="center"
                 style="@style/SecondaryTextStyle"/>
+
+            <TextView
+                android:id="@+id/rule_fragment_empty_text_view"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/rule_fragment_empty_message"
+                android:gravity="center"
+                style="@style/SecondaryTextStyle"/>
+
             <android.support.v7.widget.RecyclerView
                 android:id="@+id/fragment_rule_recycler_view"
                 android:layout_width="match_parent"

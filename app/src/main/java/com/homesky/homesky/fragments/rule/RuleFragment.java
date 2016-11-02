@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ImageView;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -43,7 +44,7 @@ public class RuleFragment extends Fragment implements RequestCallback {
     private RuleAdapter mAdapter;
     private SwipeRefreshLayout mRuleActuatorSwipeRefresh;
     private RelativeLayout mLoadingLayout;
-    private TextView mNoInternetTextView;
+    private TextView mNoInternetTextView, mEmptyTextView;
 
     @Nullable
     @Override
@@ -68,6 +69,9 @@ public class RuleFragment extends Fragment implements RequestCallback {
         mNoInternetTextView = (TextView)view.findViewById(R.id.rule_fragment_no_internet_text_view);
         mNoInternetTextView.setVisibility(View.GONE);
 
+        mEmptyTextView = (TextView)view.findViewById(R.id.rule_fragment_empty_text_view);
+        mEmptyTextView.setVisibility(View.GONE);
+
         updateUI();
         return view;
     }
@@ -82,21 +86,27 @@ public class RuleFragment extends Fragment implements RequestCallback {
             List<NodesResponse.Node> actuators = getActuators(nodes);
             if (mAdapter == null) {
                 mAdapter = new RuleAdapter(actuators);
-                if(mRuleActuatorSwipeRefresh.isRefreshing())
-                    mRuleActuatorSwipeRefresh.setRefreshing(false);
-                if(mLoadingLayout.getVisibility() == View.VISIBLE)
-                    mLoadingLayout.setVisibility(View.GONE);
+
             } else {
                 mAdapter.setActuators(actuators);
                 mAdapter.notifyDataSetChanged();
-                if(mRuleActuatorSwipeRefresh.isRefreshing())
-                    mRuleActuatorSwipeRefresh.setRefreshing(false);
-                if(mLoadingLayout.getVisibility() == View.VISIBLE)
-                    mLoadingLayout.setVisibility(View.GONE);
             }
-            mNoInternetTextView.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
             mRecyclerView.setAdapter(mAdapter);
+
+            if(actuators.size() > 0) {
+                mRecyclerView.setVisibility(View.VISIBLE);
+                mEmptyTextView.setVisibility(View.GONE);
+            }
+            else {
+                mRecyclerView.setVisibility(View.GONE);
+                mEmptyTextView.setVisibility(View.VISIBLE);
+            }
+
+            if(mRuleActuatorSwipeRefresh.isRefreshing())
+                mRuleActuatorSwipeRefresh.setRefreshing(false);
+            if(mLoadingLayout.getVisibility() == View.VISIBLE)
+                mLoadingLayout.setVisibility(View.GONE);
+            mNoInternetTextView.setVisibility(View.GONE);
         }
     }
 
@@ -154,6 +164,7 @@ public class RuleFragment extends Fragment implements RequestCallback {
             mLoadingLayout.setVisibility(View.GONE);
             mRuleActuatorSwipeRefresh.setRefreshing(false);
             mNoInternetTextView.setVisibility(View.VISIBLE);
+            mEmptyTextView.setVisibility(View.GONE);
             mRecyclerView.setVisibility(View.GONE);
         }
     }
@@ -239,10 +250,13 @@ public class RuleFragment extends Fragment implements RequestCallback {
         NodesResponse.Node mActuator;
 
         private TextView mNodeName;
+        private ImageView mNodeIcon;
 
         public RuleActuatorHolder(View itemView) {
             super(itemView);
             mNodeName = (TextView) itemView.findViewById(R.id.state_fragment_node_name);
+            mNodeIcon = (ImageView) itemView.findViewById(R.id.list_item_state_icon);
+            mNodeIcon.setImageResource(R.drawable.ic_touch_app_black_24dp);
 
             itemView.setOnClickListener(this);
         }
