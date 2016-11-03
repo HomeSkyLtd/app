@@ -396,8 +396,23 @@ public class NodeFragment extends Fragment {
         }
 
         protected void setValue(BigDecimal value) {
-            String str_value = value.toEngineeringString() + " " + mType.getUnit();
-            mValueTextView.setText(str_value);
+            if (mType.getType() == TypeEnum.BOOL) {
+                int intValue = value.intValue();
+
+                switch (intValue) {
+                    case 0:
+                        mValueTextView.setText(R.string.no);
+                        break;
+                    case 1:
+                        mValueTextView.setText(R.string.yes);
+                        break;
+                }
+
+            } else {
+                String str_value = value.toEngineeringString() + " " + mType.getUnit();
+                mValueTextView.setText(str_value);
+            }
+
             mValue = value;
         }
 

@@ -10,6 +10,7 @@
         <item>Controller</item>
         <item>Notification</item>
         <item>Settings</item>
+        <item>Logout</item>
     </string-array>
 
     <string name="menu_drawer_settings">Settings</string>
@@ -32,6 +33,7 @@
     <string name="state_fragment_title">State</string>
     <string name="state_fragment_item_row">Node %1$d from Controller %2$d</string>
     <string name="state_fragment_error">Error. Try again.</string>
+    <string name="state_fragment_empty_list">No sensors nor actuators.\nTurn on some nodes =]</string>
 
     <!-- Node Infos Dialog Fragment -->
     <string name="node_infos_dialog_fragment_controller_id">Controller ID </string>

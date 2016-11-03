@@ -19,13 +19,19 @@ import android.view.View;
 import android.widget.AdapterView;
 import android.widget.ListView;
 
+import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.command.LogoutCommand;
 import com.homesky.homesky.fragments.controller.ControllerFragment;
 import com.homesky.homesky.fragments.notification.FirebaseBackgroundService;
 import com.homesky.homesky.fragments.notification.NotificationFragment;
 import com.homesky.homesky.fragments.rule.RuleFragment;
 import com.homesky.homesky.fragments.settings.SettingsFragment;
 import com.homesky.homesky.fragments.state.StateFragment;
+import com.homesky.homesky.login.LoginActivity;
+import com.homesky.homesky.request.AsyncRequest;
+import com.homesky.homesky.request.ModelStorage;
+import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.user.NewUserDialog;
 import com.homesky.homesky.user.UserFragment;
 
@@ -106,7 +112,26 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
         mDrawerList.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> adapterView, View view, int i, long l) {
-                selectFragment(i);
+                if (i == mModulesTitles.length - 1) {
+                    new AsyncRequest(new RequestCallback() {
+                        @Override
+                        public void onPostRequest(SimpleResponse s) {
+                            ModelStorage.getInstance().invalidateNodesCache();
+                            ModelStorage.getInstance().invalidateLearntRulesCache();
+                            ModelStorage.getInstance().invalidateNodeStatesCache();
+                            ModelStorage.getInstance().invalidateControllerIdsCache();
+                            ModelStorage.getInstance().invalidateRulesCache();
+                            ModelStorage.getInstance().invalidateUsersCache();
+
+
+                            startActivity(
+                                LoginActivity.newIntent(getApplicationContext(), LoginActivity.LoginAction.LOGIN)
+                            );
+                        }
+                    }).execute(new LogoutCommand());
+                } else {
+                    selectFragment(i);
+                }
             }
         });
 
@@ -164,15 +189,6 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
         int id = item.getItemId();
 
         if (mDrawerToggle.onOptionsItemSelected(item)) {
-            return true;
-        }
-
-        if (id == R.id.search_button) {
-            Snackbar.make(
-                            findViewById(R.id.menu_fragments_activity_container),
-                            "I WAS CLICKED!",
-                            Snackbar.LENGTH_SHORT
-            ).show();
             return true;
         }
 
