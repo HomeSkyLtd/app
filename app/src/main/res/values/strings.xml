@@ -10,6 +10,7 @@
         <item>Controller</item>
         <item>Notification</item>
         <item>Settings</item>
+        <item>Logout</item>
     </string-array>
 
     <string name="menu_drawer_settings">Settings</string>
