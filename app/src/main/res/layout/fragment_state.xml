@@ -21,11 +21,24 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:id="@+id/state_fragment_swipe_refresh_layout">
-        <android.support.v7.widget.RecyclerView
-            android:id="@+id/state_fragment_list_nodes"
+        <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:visibility="gone"/>
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/state_fragment_empty_list_message"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:text="@string/state_fragment_empty_list"
+                android:gravity="center"
+                android:visibility="gone"/>
+
+            <android.support.v7.widget.RecyclerView
+                android:id="@+id/state_fragment_list_nodes"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:visibility="gone"/>
+        </RelativeLayout>
     </android.support.v4.widget.SwipeRefreshLayout>
 
 </LinearLayout>

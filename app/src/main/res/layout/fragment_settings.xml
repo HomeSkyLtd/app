@@ -4,15 +4,4 @@
               android:layout_width="match_parent"
               android:layout_height="match_parent">
 
-    <Button
-        android:id="@+id/settings_fragment_button_logout"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/settings_fragment_logout"
-        android:layout_gravity="center_horizontal"
-        android:background="@drawable/round_dialog_error"
-        android:padding="@dimen/activity_vertical_margin"
-        android:layout_margin="@dimen/activity_vertical_margin"
-        android:textColor="@color/white"/>
-
 </LinearLayout>

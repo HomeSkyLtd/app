@@ -22,13 +22,11 @@ import com.homesky.homesky.request.RequestCallback;
 public class SettingsFragment extends Fragment {
     public SettingsFragment() {}
 
-    private Button mLogoutButton;
-
     @Nullable
     @Override
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_settings, container, false);
-        
+
         return view;
     }
 }

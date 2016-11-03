@@ -62,7 +62,8 @@
         android:layout_height="wrap_content"
         android:orientation="horizontal"
         android:layout_gravity="center"
-        android:layout_marginTop="@dimen/activity_vertical_margin">
+        android:layout_marginTop="@dimen/activity_vertical_margin"
+        android:visibility="gone">
         <CheckBox
             android:id="@+id/login_fragment_check_box"
             android:layout_width="wrap_content"

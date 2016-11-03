@@ -30,6 +30,7 @@ import com.homesky.homesky.fragments.settings.SettingsFragment;
 import com.homesky.homesky.fragments.state.StateFragment;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
+import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 import com.homesky.homesky.user.NewUserDialog;
 import com.homesky.homesky.user.UserFragment;
@@ -115,6 +116,14 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
                     new AsyncRequest(new RequestCallback() {
                         @Override
                         public void onPostRequest(SimpleResponse s) {
+                            ModelStorage.getInstance().invalidateNodesCache();
+                            ModelStorage.getInstance().invalidateLearntRulesCache();
+                            ModelStorage.getInstance().invalidateNodeStatesCache();
+                            ModelStorage.getInstance().invalidateControllerIdsCache();
+                            ModelStorage.getInstance().invalidateRulesCache();
+                            ModelStorage.getInstance().invalidateUsersCache();
+
+
                             startActivity(
                                 LoginActivity.newIntent(getApplicationContext(), LoginActivity.LoginAction.LOGIN)
                             );

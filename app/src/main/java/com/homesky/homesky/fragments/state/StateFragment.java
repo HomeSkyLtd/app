@@ -72,6 +72,7 @@ public class StateFragment extends Fragment {
     private StateAdapter mStateAdapter;
     private RelativeLayout mLoadingPanel;
     private SwipeRefreshLayout mStateSwipeRefresh;
+    private TextView mEmptyListMessage;
 
     public StateFragment() {}
 
@@ -80,6 +81,7 @@ public class StateFragment extends Fragment {
     public View onCreateView(LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_state, container, false);
 
+        mEmptyListMessage = (TextView) view.findViewById(R.id.state_fragment_empty_list_message);
         mLoadingPanel = (RelativeLayout) view.findViewById(R.id.state_fragment_loading_panel);
         mListOfNodes = (RecyclerView) view.findViewById(R.id.state_fragment_list_nodes);
         mListOfNodes.setLayoutManager(new LinearLayoutManager(getActivity()));
@@ -108,6 +110,12 @@ public class StateFragment extends Fragment {
             if (list != null) {
                 mLoadingPanel.setVisibility(View.GONE);
                 mListOfNodes.setVisibility(View.VISIBLE);
+
+                if (list.isEmpty()) {
+                    mEmptyListMessage.setVisibility(View.VISIBLE);
+                } else {
+                    mEmptyListMessage.setVisibility(View.GONE);
+                }
             }
 
             mStateAdapter.setNodes(list);
@@ -167,6 +175,7 @@ public class StateFragment extends Fragment {
             if (!mNodes.isEmpty()) {
                 mLoadingPanel.setVisibility(View.GONE);
                 mListOfNodes.setVisibility(View.VISIBLE);
+                mEmptyListMessage.setVisibility(GONE);
             }
         }
 
