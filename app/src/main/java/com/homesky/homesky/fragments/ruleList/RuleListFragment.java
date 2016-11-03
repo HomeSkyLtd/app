@@ -258,8 +258,8 @@ public class RuleListFragment extends Fragment implements RequestCallback{
                         getResources().getText(R.string.rule_list_retry_message) + ": " + s.getErrorMessage(),
                         Toast.LENGTH_LONG).show();
                 if(((ConflictingRuleResponse) s).getConflictingRule() != null) {
-                    mAdapter.setShouldRetry(true);
-                    mAdapter.notifyDataSetChanged();
+                    mAdapter.setShouldRetry(false);
+                    updateUI();
                 }
                 mRingProgressDialog.dismiss();
                 mPageState = PageState.IDLE;

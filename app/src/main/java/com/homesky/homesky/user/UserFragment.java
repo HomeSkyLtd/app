@@ -53,7 +53,7 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
     private FloatingActionButton mFloatingActionButton;
     private ProgressDialog mRingProgressDialog;
     private RelativeLayout mLoadingLayout;
-    private TextView mNoInternetTextView;
+    private TextView mNoInternetTextView, mEmptyTextView;
 
 
     public UserFragment() {}
@@ -82,7 +82,13 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mUserToAdd == null){
+                if(mUsers == null){
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.user_fab_when_no_internet_message),
+                            Toast.LENGTH_LONG).show();
+                }
+                else if(mUserToAdd == null){
                     NewUserDialog dialog = NewUserDialog.newInstance();
                     dialog.setStyle(DialogFragment.STYLE_NORMAL, R.style.DialogWithTitle);
                     dialog.show(getActivity().getSupportFragmentManager(), DIALOG_TAG);
@@ -99,6 +105,7 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
         mLoadingLayout = (RelativeLayout)view.findViewById(R.id.user_fragment_loading_panel);
 
         mNoInternetTextView = (TextView)view.findViewById(R.id.user_fragment_no_internet_text_view);
+        mEmptyTextView = (TextView)view.findViewById(R.id.user_fragment_empty_text_view);
 
         mPageState = PageState.LOADING;
         mLoadingLayout.setVisibility(View.VISIBLE);
@@ -121,8 +128,17 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                 }
             }
             mRecyclerView.setAdapter(mAdapter);
+
+            if(mUsers.size() > 0 || mUserToAdd != null) {
+                mRecyclerView.setVisibility(View.VISIBLE);
+                mEmptyTextView.setVisibility(View.GONE);
+            }
+            else {
+                mRecyclerView.setVisibility(View.GONE);
+                mEmptyTextView.setVisibility(View.VISIBLE);
+            }
+
             mNoInternetTextView.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
             if(mUserSwipeRefresh.isRefreshing()){
                 mUserSwipeRefresh.setRefreshing(false);
             }
@@ -151,6 +167,8 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                 mUserToAdd = null;
                 ModelStorage.getInstance().invalidateUsersCache();
                 mRingProgressDialog.dismiss();
+                mEmptyTextView.setVisibility(View.GONE);
+                mRecyclerView.setVisibility(View.VISIBLE);
                 mPageState = PageState.IDLE;
             }
             else if(s.getStatus() == 403){
@@ -164,19 +182,21 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                         getResources().getText(R.string.new_user_fragment_send_error_message) + " " + s.getErrorMessage(),
                         Toast.LENGTH_LONG).show();
                 mAdapter.setShouldRetry(false);
-                mAdapter.notifyDataSetChanged();
                 mUserToAdd = null;
                 mRingProgressDialog.dismiss();
+                updateUI();
                 mPageState = PageState.IDLE;
             }
             // This should happen if there was a connection error
             else {
                 if(mPageState.equals(PageState.LOADING)){
+                    mEmptyTextView.setVisibility(View.GONE);
                     mLoadingLayout.setVisibility(View.GONE);
                     mNoInternetTextView.setVisibility(View.VISIBLE);
                     mRecyclerView.setVisibility(View.GONE);
                 }
                 else if(mPageState.equals(PageState.REFRESHING)){
+                    mEmptyTextView.setVisibility(View.GONE);
                     mUserSwipeRefresh.setRefreshing(false);
                     mRecyclerView.setVisibility(View.GONE);
                     mLoadingLayout.setVisibility(View.GONE);
@@ -184,8 +204,8 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                 }
                 else if(mPageState.equals(PageState.SENDING_NEW_USER)){
                     mAdapter.setShouldRetry(true);
-                    mAdapter.notifyDataSetChanged();
                     mRingProgressDialog.dismiss();
+                    updateUI();
                     Toast.makeText(
                             getActivity(),
                             getResources().getText(R.string.user_connection_error),

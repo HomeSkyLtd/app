@@ -115,6 +115,8 @@
     <string name="user_sending_progress_message">Registering user…</string>
     <string name="user_connection_error">Could not connect to server</string>
     <string name="user_fab_when_retry_message">There is already a pending user registration request</string>
+    <string name="user_fab_when_no_internet_message">Can\'t register new user without internet connection</string>
+    <string name="user_empty_message">No users registered\nClick on the button below to add a new one</string>
 
     <!-- New User Dialog fragment -->
     <string name="new_user_fragment_username">Username:</string>
