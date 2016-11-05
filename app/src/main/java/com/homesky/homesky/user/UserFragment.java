@@ -175,6 +175,15 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
                 HomecloudHolder.getInstance().invalidateSession();
                 getActivity().startActivity(new Intent(getActivity(), LoginActivity.class));
             }
+            else if (s.getStatus() == 401 && mPageState.equals(PageState.SENDING_NEW_USER)){
+                Toast.makeText(
+                        getActivity(),
+                        s.getErrorMessage(),
+                        Toast.LENGTH_LONG).show();
+                mRingProgressDialog.dismiss();
+                mUserToAdd = null;
+                mPageState = PageState.IDLE;
+            }
             // This happens if new user data is invalid
             else if(s.getStatus() == 400 && mPageState.equals(PageState.SENDING_NEW_USER)){
                 Toast.makeText(
