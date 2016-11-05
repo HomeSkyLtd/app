@@ -52,7 +52,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
     private FloatingActionButton mFloatingActionButton;
     private ProgressDialog mRingProgressDialog;
     private RelativeLayout mLoadingLayout;
-    private TextView mNoInternetTextView;
+    private TextView mNoInternetTextView, mEmptyTextView;
 
 
     public ControllerFragment() {}
@@ -81,7 +81,13 @@ public class ControllerFragment extends Fragment implements RequestCallback {
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mControllerIdToAdd != null){
+                if(mControllerIds == null){
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.controller_fab_when_no_internet_message),
+                            Toast.LENGTH_LONG).show();
+                }
+                else if(mControllerIdToAdd != null){
                     Toast.makeText(
                             getActivity(),
                             getResources().getText(R.string.controller_fab_when_retry_message),
@@ -110,6 +116,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
         mLoadingLayout = (RelativeLayout)view.findViewById(R.id.controller_fragment_loading_panel);
 
         mNoInternetTextView = (TextView)view.findViewById(R.id.controller_fragment_no_internet_text_view);
+        mEmptyTextView = (TextView)view.findViewById(R.id.controller_fragment_empty_text_view);
 
         mPageState = PageState.LOADING;
         mLoadingLayout.setVisibility(View.VISIBLE);
@@ -132,8 +139,15 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 }
             }
             mRecyclerView.setAdapter(mAdapter);
+            if(mControllerIds.size() > 0 || mControllerIdToAdd != null) {
+                mRecyclerView.setVisibility(View.VISIBLE);
+                mEmptyTextView.setVisibility(View.GONE);
+            }
+            else {
+                mRecyclerView.setVisibility(View.GONE);
+                mEmptyTextView.setVisibility(View.VISIBLE);
+            }
             mNoInternetTextView.setVisibility(View.GONE);
-            mRecyclerView.setVisibility(View.VISIBLE);
             if(mControllerSwipeRefresh.isRefreshing()){
                 mControllerSwipeRefresh.setRefreshing(false);
             }
@@ -162,6 +176,8 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 ModelStorage.getInstance().invalidateControllerIdsCache();
                 mRingProgressDialog.dismiss();
                 mAdapter.setShouldRetry(false);
+                mRecyclerView.setVisibility(View.VISIBLE);
+                mEmptyTextView.setVisibility(View.GONE);
                 mPageState = PageState.IDLE;
             }
             else if(s.getStatus() == 403 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {
@@ -177,17 +193,19 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 mRingProgressDialog.dismiss();
                 mControllerIdToAdd = null;
                 mAdapter.setShouldRetry(false);
-                mAdapter.notifyDataSetChanged();
+                updateUI();
                 mPageState = PageState.IDLE;
             }
             // This should happen if there was a connection error
             else {
                 if(mPageState.equals(PageState.LOADING)){
+                    mEmptyTextView.setVisibility(View.GONE);
                     mLoadingLayout.setVisibility(View.GONE);
                     mNoInternetTextView.setVisibility(View.VISIBLE);
                     mRecyclerView.setVisibility(View.GONE);
                 }
                 else if(mPageState.equals(PageState.REFRESHING)){
+                    mEmptyTextView.setVisibility(View.GONE);
                     mControllerSwipeRefresh.setRefreshing(false);
                     mRecyclerView.setVisibility(View.GONE);
                     mLoadingLayout.setVisibility(View.GONE);
@@ -199,8 +217,8 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                             getResources().getText(R.string.controller_connection_error),
                             Toast.LENGTH_LONG).show();
                     mAdapter.setShouldRetry(true);
-                    mAdapter.notifyDataSetChanged();
                     mRingProgressDialog.dismiss();
+                    updateUI();
                 }
             }
         }

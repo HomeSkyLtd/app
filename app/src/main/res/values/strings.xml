@@ -103,7 +103,8 @@
     <string name="controller_connection_error">Could not connect to server</string>
     <string name="controller_retry_message">Could not register controller</string>
     <string name="controller_fab_when_retry_message">There is already a pending controller registration request</string>
-
+    <string name="controller_fab_when_no_internet_message">Can\'t register new controller without internet connection</string>
+    <string name="controller_empty_message">No controllers to show\nClick on the button below to scan a code</string>
 
     <!-- Notification fragment -->
     <string name="notification_fragment_title">Notification</string>
