@@ -138,7 +138,7 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
         int startingFragment = getIntent().getIntExtra(EXTRA_STARTING_FRAGMENT, 0);
         selectFragment(startingFragment);
 
-        FirebaseBackgroundService.HomeSkyBroadcastReceiver.reset();
+        FirebaseBackgroundService.getReceiver().reset();
 
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, 0, 0) {
             @Override
