@@ -10,7 +10,6 @@ import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -23,7 +22,6 @@ import com.homesky.homecloud_lib.model.response.ControllerDataResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.command.RegisterControllerCommand;
-import com.homesky.homesky.fragments.ruleList.RuleListFragment;
 import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
@@ -43,7 +41,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
     }
     private PageState mPageState;
 
-    private List<String> mControllerIds;
+    private List<ControllerDataResponse.Controller> mControllers;
     private ControllerAdapter mAdapter;
     private String mControllerIdToAdd = null;
 
@@ -70,8 +68,8 @@ public class ControllerFragment extends Fragment implements RequestCallback {
         mControllerSwipeRefresh.setOnRefreshListener(new SwipeRefreshLayout.OnRefreshListener() {
             @Override
             public void onRefresh() {
-                mControllerIds = null;
-                ModelStorage.getInstance().invalidateControllerIdsCache();
+                mControllers = null;
+                ModelStorage.getInstance().invalidateControllersCache();
                 mPageState = PageState.REFRESHING;
                 updateUI();
             }
@@ -81,7 +79,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
         mFloatingActionButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(mControllerIds == null){
+                if(mControllers == null){
                     Toast.makeText(
                             getActivity(),
                             getResources().getText(R.string.controller_fab_when_no_internet_message),
@@ -125,21 +123,21 @@ public class ControllerFragment extends Fragment implements RequestCallback {
     }
 
     public void updateUI(){
-        mControllerIds = ModelStorage.getInstance().getControllerIds(this);
-        if(mControllerIds != null) {
+        mControllers = ModelStorage.getInstance().getControllers(this);
+        if(mControllers != null) {
             if(mAdapter == null){
-                mAdapter = new ControllerAdapter(mControllerIds);
+                mAdapter = new ControllerAdapter(mControllers);
                 mNoInternetTextView.setVisibility(View.GONE);
             }
             else {
-                mAdapter.setControllerIds(mControllerIds);
+                mAdapter.setControllers(mControllers);
                 mAdapter.notifyDataSetChanged();
                 if(mRingProgressDialog != null && mRingProgressDialog.isShowing()){
                     mRingProgressDialog.dismiss();
                 }
             }
             mRecyclerView.setAdapter(mAdapter);
-            if(mControllerIds.size() > 0 || mControllerIdToAdd != null) {
+            if(mControllers.size() > 0 || mControllerIdToAdd != null) {
                 mRecyclerView.setVisibility(View.VISIBLE);
                 mEmptyTextView.setVisibility(View.GONE);
             }
@@ -170,15 +168,18 @@ public class ControllerFragment extends Fragment implements RequestCallback {
         else if(s instanceof SimpleResponse) {
             // This should happen after sending a RegisterController command
             if(s.getStatus() == 200 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {
-                mControllerIds.add(mControllerIdToAdd);
+                mControllers = null;
                 mControllerIdToAdd = null;
-                mAdapter.notifyDataSetChanged();
-                ModelStorage.getInstance().invalidateControllerIdsCache();
+                ModelStorage.getInstance().invalidateControllersCache();
                 mRingProgressDialog.dismiss();
+                mRingProgressDialog = ProgressDialog.show(
+                        getActivity(),
+                        getString(R.string.controller_sending_progress_title),
+                        getString(R.string.controller_refreshing_progress_message),
+                        true);
                 mAdapter.setShouldRetry(false);
-                mRecyclerView.setVisibility(View.VISIBLE);
-                mEmptyTextView.setVisibility(View.GONE);
-                mPageState = PageState.IDLE;
+                mPageState = PageState.REFRESHING;
+                updateUI();
             }
             else if(s.getStatus() == 403 && mPageState.equals(PageState.SENDING_NEW_CONTROLLER)) {
                 HomecloudHolder.getInstance().invalidateSession();
@@ -252,11 +253,11 @@ public class ControllerFragment extends Fragment implements RequestCallback {
     class ControllerAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
         private static final int TYPE_CONTROLLER = 1, TYPE_RETRY = 2;
 
-        List<String> mControllerIds;
+        List<ControllerDataResponse.Controller> mControllers;
         boolean mShouldRetry;
 
-        public ControllerAdapter(List<String> controllerIds) {
-            setControllerIds(controllerIds);
+        public ControllerAdapter(List<ControllerDataResponse.Controller> controllers) {
+            setControllers(controllers);
             mShouldRetry = false;
         }
 
@@ -277,20 +278,20 @@ public class ControllerFragment extends Fragment implements RequestCallback {
 
         @Override
         public void onBindViewHolder(RecyclerView.ViewHolder holder, int position) {
-            if (position < mControllerIds.size()) {
-                ((ControllerHolder) holder).bindController(mControllerIds.get(position));
+            if (position < mControllers.size()) {
+                ((ControllerHolder) holder).bindController(mControllers.get(position));
             }
         }
 
         @Override
         public int getItemCount() {
             if (!mShouldRetry)
-                return mControllerIds.size();
+                return mControllers.size();
             else
-                return mControllerIds.size() + 1;        }
+                return mControllers.size() + 1;        }
 
-        public void setControllerIds(List<String> controllerIds){
-            mControllerIds = controllerIds;
+        public void setControllers(List<ControllerDataResponse.Controller> controllerIds){
+            mControllers = controllerIds;
         }
 
         public void setShouldRetry(boolean shouldRetry) {
@@ -299,7 +300,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
 
         @Override
         public int getItemViewType(int position) {
-            if (mShouldRetry && position == mControllerIds.size()) {
+            if (mShouldRetry && position == mControllers.size()) {
                 return TYPE_RETRY;
             } else {
                 return TYPE_CONTROLLER;
@@ -309,15 +310,17 @@ public class ControllerFragment extends Fragment implements RequestCallback {
 
     class ControllerHolder extends RecyclerView.ViewHolder {
 
-        TextView mIdTextView;
+        TextView mIdTextView, mNameTextView;
 
         public ControllerHolder(View itemView) {
             super(itemView);
+            mNameTextView = (TextView)itemView.findViewById(R.id.list_controller_item_name);
             mIdTextView = (TextView)itemView.findViewById(R.id.list_controller_item_id);
         }
 
-        public void bindController(String controllerId){
-            mIdTextView.setText(controllerId);
+        public void bindController(ControllerDataResponse.Controller controller){
+            mNameTextView.setText(controller.getName());
+            mIdTextView.setText("id: " + controller.getId());
         }
     }
 

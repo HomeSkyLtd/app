@@ -30,7 +30,7 @@ public class ModelStorage implements RequestCallback{
     private List<Rule> mRules = null;
     private Map<NodesResponse.Node, StateResponse.NodeState> mNodeIdToValue;
     private List<Rule> mLearntRules;
-    private List<String> mControllerIds = null;
+    private List<ControllerDataResponse.Controller> mControllers = null;
     private List<String> mUsers = null;
 
     public static ModelStorage getInstance(){
@@ -87,9 +87,9 @@ public class ModelStorage implements RequestCallback{
         }
     }
 
-    public List<String> getControllerIds(RequestCallback source) {
-        if(mControllerIds != null) {
-            return mControllerIds;
+    public List<ControllerDataResponse.Controller> getControllers(RequestCallback source) {
+        if(mControllers != null) {
+            return mControllers;
         }
         else {
             new AsyncRequest(this, source).execute(new GetControllersCommand());
@@ -123,8 +123,8 @@ public class ModelStorage implements RequestCallback{
         mLearntRules = null;
     }
 
-    public void invalidateControllerIdsCache(){
-        mControllerIds = null;
+    public void invalidateControllersCache(){
+        mControllers = null;
     }
 
     public void invalidateUsersCache(){
@@ -163,7 +163,7 @@ public class ModelStorage implements RequestCallback{
                 mRules = ((RuleResponse) s).getRules();
             }
             else if(s instanceof ControllerDataResponse){
-                mControllerIds = ((ControllerDataResponse) s).getControllerIds();
+                mControllers = ((ControllerDataResponse) s).getControllers();
             }
             else if(s instanceof UserDataResponse){
                 mUsers = ((UserDataResponse) s).getUsers();
