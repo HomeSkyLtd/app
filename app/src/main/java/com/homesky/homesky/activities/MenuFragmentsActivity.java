@@ -119,7 +119,7 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
                             ModelStorage.getInstance().invalidateNodesCache();
                             ModelStorage.getInstance().invalidateLearntRulesCache();
                             ModelStorage.getInstance().invalidateNodeStatesCache();
-                            ModelStorage.getInstance().invalidateControllerIdsCache();
+                            ModelStorage.getInstance().invalidateControllersCache();
                             ModelStorage.getInstance().invalidateRulesCache();
                             ModelStorage.getInstance().invalidateUsersCache();
 

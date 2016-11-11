@@ -100,6 +100,7 @@
     <string name="controller_register_error">Error registering controller:</string>
     <string name="controller_sending_progress_title">Please wait</string>
     <string name="controller_sending_progress_message">Registering controller…</string>
+    <string name="controller_refreshing_progress_message">Refreshing controllers…</string>
     <string name="controller_connection_error">Could not connect to server</string>
     <string name="controller_retry_message">Could not register controller</string>
     <string name="controller_fab_when_retry_message">There is already a pending controller registration request</string>
