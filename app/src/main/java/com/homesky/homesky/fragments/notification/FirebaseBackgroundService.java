@@ -14,6 +14,7 @@ import android.support.v4.app.TaskStackBuilder;
 import android.support.v4.content.LocalBroadcastManager;
 import android.support.v4.content.res.ResourcesCompat;
 import android.support.v7.app.NotificationCompat;
+import android.util.Log;
 
 import com.homesky.homecloud_lib.model.notification.ActionResultNotification;
 import com.homesky.homecloud_lib.model.notification.DetectedNodeNotification;
@@ -26,9 +27,12 @@ import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 
+import java.io.Serializable;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.Set;
 
 import static android.support.v4.app.NotificationCompat.DEFAULT_SOUND;
 import static android.support.v4.app.NotificationCompat.DEFAULT_VIBRATE;
@@ -52,6 +56,8 @@ public class FirebaseBackgroundService extends Service {
     public void onCreate() {
         super.onCreate();
 
+        Log.d(TAG, "onCreate: I was called!");
+
         mReceiver = new HomeSkyBroadcastReceiver();
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver((mReceiver), new IntentFilter(MessageService.NOTIF_RESULT));
@@ -74,7 +80,12 @@ public class FirebaseBackgroundService extends Service {
         private HashMap<String, Item> sNotificationsString;
         private List<Runnable> mCallbacks;
 
-        private class Item {
+        public HomeSkyBroadcastReceiver() {
+            reset();
+            mCallbacks = new LinkedList<>();
+        }
+
+        private class Item implements Serializable {
             private String description;
             private Integer number;
 
@@ -100,11 +111,6 @@ public class FirebaseBackgroundService extends Service {
 
                 return str;
             }
-        }
-
-        HomeSkyBroadcastReceiver() {
-            reset();
-            mCallbacks = new LinkedList<>();
         }
 
         public void addCallback (Runnable r) {

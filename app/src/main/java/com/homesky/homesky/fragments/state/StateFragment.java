@@ -39,6 +39,7 @@ import com.homesky.homesky.command.LogoutCommand;
 import com.homesky.homesky.command.NewActionCommand;
 import com.homesky.homesky.fragments.node.NodeActivity;
 import com.homesky.homesky.fragments.node.NodeFragment;
+import com.homesky.homesky.fragments.notification.FirebaseBackgroundService;
 import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;

@@ -101,6 +101,7 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
 
         initFragments();
 
+        Log.d(TAG, "onCreate: I will call Firebase");
         Intent notificationsService = new Intent(this, FirebaseBackgroundService.class);
         startService(notificationsService);
 
@@ -138,7 +139,9 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
         int startingFragment = getIntent().getIntExtra(EXTRA_STARTING_FRAGMENT, 0);
         selectFragment(startingFragment);
 
-        FirebaseBackgroundService.getReceiver().reset();
+        if (FirebaseBackgroundService.getReceiver() != null) {
+            FirebaseBackgroundService.getReceiver().reset();
+        }
 
         mDrawerToggle = new ActionBarDrawerToggle(this, mDrawerLayout, 0, 0) {
             @Override

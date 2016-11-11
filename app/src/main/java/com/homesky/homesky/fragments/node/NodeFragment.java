@@ -34,6 +34,7 @@ import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.activities.SingleFragmentActivity;
 import com.homesky.homesky.command.NewActionCommand;
+import com.homesky.homesky.fragments.notification.FirebaseBackgroundService;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
@@ -84,6 +85,13 @@ public class NodeFragment extends Fragment {
                 ((NodeActivity) getActivity()).lockActivity(true, "Wait a second, fetching state...");
                 ModelStorage.getInstance().invalidateNodeStatesCache();
                 mAttemptsCounter = 0;
+                updateUI();
+            }
+        });
+
+        FirebaseBackgroundService.getReceiver().addCallback(new Runnable() {
+            @Override
+            public void run() {
                 updateUI();
             }
         });
