@@ -19,7 +19,9 @@ import android.util.Log;
 import com.homesky.homecloud_lib.model.notification.ActionResultNotification;
 import com.homesky.homecloud_lib.model.notification.DetectedNodeNotification;
 import com.homesky.homecloud_lib.model.notification.LearntRulesNotification;
+import com.homesky.homecloud_lib.model.notification.NewDataNotification;
 import com.homesky.homecloud_lib.model.notification.Notification;
+import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homesky.MessageService;
 import com.homesky.homesky.R;
 import com.homesky.homesky.activities.MenuFragmentsActivity;
@@ -33,6 +35,8 @@ import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static android.support.v4.app.NotificationCompat.DEFAULT_SOUND;
 import static android.support.v4.app.NotificationCompat.DEFAULT_VIBRATE;
@@ -56,8 +60,6 @@ public class FirebaseBackgroundService extends Service {
     public void onCreate() {
         super.onCreate();
 
-        Log.d(TAG, "onCreate: I was called!");
-
         mReceiver = new HomeSkyBroadcastReceiver();
         LocalBroadcastManager.getInstance(this)
                 .registerReceiver((mReceiver), new IntentFilter(MessageService.NOTIF_RESULT));
@@ -77,40 +79,12 @@ public class FirebaseBackgroundService extends Service {
 
         private static final String TAG = "HomeSkyReceiver";
         private String ACTION = "action", NODE = "node", RULE = "rule";
-        private HashMap<String, Item> sNotificationsString;
+        private HashMap<String, String> sNotificationsString;
         private List<Runnable> mCallbacks;
 
         public HomeSkyBroadcastReceiver() {
             reset();
             mCallbacks = new LinkedList<>();
-        }
-
-        private class Item implements Serializable {
-            private String description;
-            private Integer number;
-
-            Item (String description, Integer number) {
-                this.description = description;
-                this.number = number;
-            }
-
-            Item (String description) {
-                this.description = description;
-            }
-
-            int getNumber() {
-                return number;
-            }
-
-            @Override
-            public String toString() {
-                String str = description;
-
-                if (number != null)
-                    str += number;
-
-                return str;
-            }
         }
 
         public void addCallback (Runnable r) {
@@ -123,11 +97,22 @@ public class FirebaseBackgroundService extends Service {
 
         @Override
         public void onReceive(Context context, Intent intent) {
+            Log.d(TAG, "Notification received");
             notify(context, intent);
 
             for (Runnable r : mCallbacks) {
                 r.run();
             }
+        }
+
+        private int getNumber(String str) {
+            Pattern pattern = Pattern.compile("(\\d+)");
+            Matcher matcher = pattern.matcher(str);
+            if (matcher.find()) {
+                return Integer.parseInt(matcher.group(1));
+            }
+
+            return -1;
         }
 
         private void notify(Context context, Intent intent) {
@@ -144,8 +129,12 @@ public class FirebaseBackgroundService extends Service {
 
             if (n instanceof ActionResultNotification) {
                 ActionResultNotification an = (ActionResultNotification) n;
-                String str = "Sent action: value " + an.getAction().getValue() + " to node " + an.getAction().getNodeId();
-                sNotificationsString.put(ACTION, new Item(str));
+                String str = "Sent action: value " + an.getAction().getValue() + " to  ";
+                List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(null);
+                if (nodes != null) {
+                    str += nodes.get(an.getAction().getNodeId()).getExtra().get("name");
+                    sNotificationsString.put(ACTION, str);
+                }
 
             } else if (n instanceof DetectedNodeNotification) {
                 DetectedNodeNotification dn = (DetectedNodeNotification) n;
@@ -153,10 +142,12 @@ public class FirebaseBackgroundService extends Service {
                 String str = "New nodes: ";
 
                 if (sNotificationsString.containsKey(NODE)) {
-                    number += sNotificationsString.get(NODE).getNumber();
+                    int old = getNumber(sNotificationsString.get(NODE));
+                    if (old > 0)
+                        number += old;
                 }
 
-                sNotificationsString.put(NODE, new Item(str, number));
+                sNotificationsString.put(NODE, str + number);
 
                 ModelStorage.getInstance().invalidateNodesCache();
             } else if (n instanceof LearntRulesNotification) {
@@ -166,18 +157,22 @@ public class FirebaseBackgroundService extends Service {
                 String str = "New rules: ";
 
                 if (sNotificationsString.containsKey(RULE)) {
-                    number += sNotificationsString.get(RULE).getNumber();
+                    int old = getNumber(sNotificationsString.get(RULE));
+                    if (old > 0)
+                        number += old;
                 }
 
-                sNotificationsString.put(RULE, new Item(str, number));
+                sNotificationsString.put(RULE, str + number);
 
                 ModelStorage.getInstance().invalidateLearntRulesCache();
+            } else {
+                return;
             }
 
             NotificationCompat.InboxStyle style = new NotificationCompat.InboxStyle()
                     .setSummaryText(HomecloudHolder.getInstance().getUsername());
-            for (Item i : sNotificationsString.values()) {
-                style.addLine(i.toString());
+            for (String str : sNotificationsString.values()) {
+                style.addLine(str);
             }
 
             builder.setStyle(style);
