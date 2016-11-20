@@ -6,6 +6,7 @@ import android.os.Bundle;
 import android.support.annotation.NonNull;
 import android.support.annotation.Nullable;
 import android.support.design.widget.Snackbar;
+import android.support.design.widget.TabLayout;
 import android.support.v4.app.DialogFragment;
 import android.support.v4.app.Fragment;
 import android.support.v4.widget.SwipeRefreshLayout;
@@ -34,6 +35,7 @@ import com.homesky.homecloud_lib.model.response.StateResponse;
 import com.homesky.homesky.R;
 import com.homesky.homesky.activities.SingleFragmentActivity;
 import com.homesky.homesky.command.NewActionCommand;
+import com.homesky.homesky.fragments.notification.FirebaseBackgroundService;
 import com.homesky.homesky.login.LoginActivity;
 import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
@@ -84,6 +86,15 @@ public class NodeFragment extends Fragment {
                 ((NodeActivity) getActivity()).lockActivity(true, "Wait a second, fetching state...");
                 ModelStorage.getInstance().invalidateNodeStatesCache();
                 mAttemptsCounter = 0;
+                updateUI();
+            }
+        });
+
+        FirebaseBackgroundService.getReceiver().addCallback(new Runnable() {
+            @Override
+            public void run() {
+                Log.d(TAG, "run: I am running");
+                ModelStorage.getInstance().invalidateNodeStatesCache();
                 updateUI();
             }
         });
@@ -150,9 +161,12 @@ public class NodeFragment extends Fragment {
                 getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             }else {
                 setNodeAndState(true);
-                updateUI();
-                mNodeSwipeRefresh.setRefreshing(false);
-                ((NodeActivity) getActivity()).lockActivity(false, null);
+
+                if (getActivity() != null) {
+                    updateUI();
+                    mNodeSwipeRefresh.setRefreshing(false);
+                    ((NodeActivity) getActivity()).lockActivity(false, null);
+                }
             }
         }
     }
@@ -192,13 +206,13 @@ public class NodeFragment extends Fragment {
             if (nodeState != null) {
                 mMiddle = 1;
 
-                if (!nodeState.getData().isEmpty()) {
+                if (!nodeState.getData().isEmpty() && getActivity() != null) {
                     mNodeList.add(getActivity().getResources().getString(R.string.node_fragment_list_div_sensor));
                     mNodeList.addAll(nodeState.getData().entrySet());
                     mMiddle = 1 + nodeState.getData().size();
                 }
 
-                if (!nodeState.getCommand().isEmpty()) {
+                if (!nodeState.getCommand().isEmpty() && getActivity() != null) {
                     mNodeList.add(getActivity().getResources().getString(R.string.node_fragment_list_div_actuator));
                     mNodeList.addAll(nodeState.getCommand().entrySet());
                 }

@@ -1,6 +1,7 @@
 package com.homesky.homesky;
 
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.support.v4.content.LocalBroadcastManager;
 import android.util.Log;
 
@@ -10,6 +11,8 @@ import com.homesky.homecloud_lib.model.Constants;
 import com.homesky.homecloud_lib.model.notification.ActionResultNotification;
 import com.homesky.homecloud_lib.model.notification.DetectedNodeNotification;
 import com.homesky.homecloud_lib.model.notification.LearntRulesNotification;
+import com.homesky.homecloud_lib.model.notification.NewCommandNotification;
+import com.homesky.homecloud_lib.model.notification.NewDataNotification;
 
 import org.json.JSONException;
 import org.json.JSONObject;
@@ -72,6 +75,27 @@ public class MessageService extends FirebaseMessagingService {
                         mBroadcaster.sendBroadcast(i);
                     }
                     break;
+                }
+                case Constants.Values.Notifications.NEW_DATA: {
+                    Intent i = new Intent(NOTIF_RESULT);
+                    NewDataNotification notification = NewDataNotification.from(jsonStr);
+                    if (notification == null) {
+                        Log.e(TAG, "New data notification in invalid format");
+                    } else {
+                        i.putExtra(NOTIF_MESSAGE, notification);
+                        mBroadcaster.sendBroadcast(i);
+                    }
+                    break;
+                }
+                case Constants.Values.Notifications.NEW_COMMAND: {
+                    Intent i = new Intent(NOTIF_RESULT);
+                    NewCommandNotification notification = NewCommandNotification.from(jsonStr);
+                    if (notification == null) {
+                        Log.e(TAG, "New command notification in invalid format");
+                    } else {
+                        i.putExtra(NOTIF_MESSAGE, notification);
+                        mBroadcaster.sendBroadcast(i);
+                    }
                 }
                 default:
                     Log.e(TAG, "Invalid notification received");

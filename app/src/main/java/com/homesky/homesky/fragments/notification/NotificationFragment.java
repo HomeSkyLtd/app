@@ -84,6 +84,16 @@ public class NotificationFragment extends Fragment {
             }
         });
 
+        FirebaseBackgroundService.getReceiver().addCallback(new Runnable() {
+            @Override
+            public void run() {
+                ModelStorage.getInstance().invalidateNodesCache();
+                ModelStorage.getInstance().invalidateLearntRulesCache();
+                updateUI();
+                mStateSwipeRefresh.setRefreshing(false);
+            }
+        });
+
         updateUI();
 
         return view;
