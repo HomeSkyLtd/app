@@ -81,6 +81,8 @@ public class AppEnumUtils {
                 return c.getString(R.string.TEMPERATURE);
             case TOGGLE:
                 return c.getString(R.string.TOGGLE);
+            case CHANNEL:
+                return c.getString(R.string.CHANNEL);
         }
         return "Not found";
     }

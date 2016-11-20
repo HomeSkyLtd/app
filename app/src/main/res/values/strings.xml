@@ -182,6 +182,7 @@
     <string name="LIGHT_SWITCH">light switch</string>
     <string name="TEMPERATURE">temperature</string>
     <string name="TOGGLE">toggle</string>
+    <string name="CHANNEL">channel</string>
 
     <!-- Notification fragment -->
     <string name="notification_fragment_rule_result">Result</string>
