@@ -9,6 +9,9 @@ import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -21,9 +24,11 @@ import com.homesky.homecloud_lib.model.enums.NodeClassEnum;
 import com.homesky.homecloud_lib.model.response.NodesResponse;
 import com.homesky.homecloud_lib.model.response.SimpleResponse;
 import com.homesky.homesky.R;
+import com.homesky.homesky.command.ForceRuleLearningCommand;
 import com.homesky.homesky.fragments.ruleList.RuleListActivity;
 import com.homesky.homesky.homecloud.HomecloudHolder;
 import com.homesky.homesky.login.LoginActivity;
+import com.homesky.homesky.request.AsyncRequest;
 import com.homesky.homesky.request.ModelStorage;
 import com.homesky.homesky.request.RequestCallback;
 
@@ -40,11 +45,22 @@ public class RuleFragment extends Fragment implements RequestCallback {
     private final String NODE_EXTRA_NAME = "name";
     private final String NODE_EXTRA_ROOM = "room";
 
+    enum PageState {
+        LOADING, REFRESHING, REQUESTING_LEARN, IDLE
+    }
+    private PageState mPageState;
+
     private RecyclerView mRecyclerView;
     private RuleAdapter mAdapter;
     private SwipeRefreshLayout mRuleActuatorSwipeRefresh;
     private RelativeLayout mLoadingLayout;
     private TextView mNoInternetTextView, mEmptyTextView;
+
+    @Override
+    public void onCreate(@Nullable Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+    }
 
     @Nullable
     @Override
@@ -58,8 +74,8 @@ public class RuleFragment extends Fragment implements RequestCallback {
             public void onRefresh() {
                 ModelStorage.getInstance().invalidateNodesCache();
                 ModelStorage.getInstance().invalidateRulesCache();
+                mPageState = PageState.REFRESHING;
                 updateUI();
-
             }
         });
 
@@ -72,8 +88,30 @@ public class RuleFragment extends Fragment implements RequestCallback {
         mEmptyTextView = (TextView)view.findViewById(R.id.rule_fragment_empty_text_view);
         mEmptyTextView.setVisibility(View.GONE);
 
+        mPageState = PageState.LOADING;
         updateUI();
         return view;
+    }
+
+    @Override
+    public void onCreateOptionsMenu(Menu menu, MenuInflater inflater) {
+        inflater.inflate(R.menu.menu_rule, menu);
+        super.onCreateOptionsMenu(menu, inflater);
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        int id = item.getItemId();
+
+        switch(id){
+            case R.id.menu_learn_rule:
+                mPageState = PageState.REQUESTING_LEARN;
+                new AsyncRequest(this).execute(new ForceRuleLearningCommand());
+                return true;
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+
     }
 
     private void updateUI(){
@@ -107,6 +145,8 @@ public class RuleFragment extends Fragment implements RequestCallback {
             if(mLoadingLayout.getVisibility() == View.VISIBLE)
                 mLoadingLayout.setVisibility(View.GONE);
             mNoInternetTextView.setVisibility(View.GONE);
+
+            mPageState = PageState.IDLE;
         }
     }
 
@@ -148,9 +188,17 @@ public class RuleFragment extends Fragment implements RequestCallback {
                     getActivity(),
                     getResources().getText(R.string.login_fragment_server_offline),
                     Toast.LENGTH_LONG).show();
+            mPageState = PageState.IDLE;
         }
-        else if(s.getStatus() == 200) {
+        else if(s.getStatus() == 200 && (mPageState == PageState.LOADING || mPageState == PageState.REFRESHING)) {
             updateUI();
+        }
+        else if(s.getStatus() == 200 && mPageState == PageState.REQUESTING_LEARN){
+            Toast.makeText(
+                    getActivity(),
+                    getResources().getText(R.string.rule_fragment_learn_request_sent),
+                    Toast.LENGTH_LONG).show();
+            mPageState = PageState.IDLE;
         }
         else if(s.getStatus() == 403) {
             HomecloudHolder.getInstance().invalidateSession();
@@ -166,6 +214,8 @@ public class RuleFragment extends Fragment implements RequestCallback {
             mNoInternetTextView.setVisibility(View.VISIBLE);
             mEmptyTextView.setVisibility(View.GONE);
             mRecyclerView.setVisibility(View.GONE);
+
+            mPageState = PageState.IDLE;
         }
     }
 

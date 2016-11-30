@@ -51,6 +51,7 @@
     <string name="rule_fragment_no_connection">No internet connection</string>
     <string name="rule_fragment_refresh_message">No internet connection. Please, restore the connection and refresh this page.</string>
     <string name="rule_fragment_empty_message">No actuators to show =(\n Can\'t create rules without one</string>
+    <string name="rule_fragment_learn_request_sent">Rule learning request sent!</string>
 
     <!-- Rule list fragment -->
     <string name="rule_list_or">or</string>

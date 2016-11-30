@@ -117,6 +117,7 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
                     new AsyncRequest(new RequestCallback() {
                         @Override
                         public void onPostRequest(SimpleResponse s) {
+                            Log.d(TAG, "Trying to log out");
                             ModelStorage.getInstance().invalidateNodesCache();
                             ModelStorage.getInstance().invalidateLearntRulesCache();
                             ModelStorage.getInstance().invalidateNodeStatesCache();
