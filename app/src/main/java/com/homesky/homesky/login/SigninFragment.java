@@ -83,6 +83,8 @@ public class SigninFragment extends Fragment implements View.OnClickListener {
                     errorMsg,
                     Snackbar.LENGTH_SHORT
             ).show();
+            mButtonOk.setEnabled(true);
+            mButtonCancel.setEnabled(true);
         }
     }
 
