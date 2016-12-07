@@ -120,6 +120,8 @@ public class NodeFragment extends Fragment {
     }
 
     private void updateUI() {
+        if(getActivity() == null) return;
+
         if (mAttemptsCounter > sNumberOfAttempts) {
             mAttemptsCounter = 0;
             mLoadingPanel.setVisibility(View.GONE);
