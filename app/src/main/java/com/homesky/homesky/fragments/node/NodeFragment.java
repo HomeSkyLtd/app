@@ -61,7 +61,7 @@ public class NodeFragment extends Fragment {
     private RelativeLayout mLoadingPanel;
 
     private int mAttemptsCounter = 0;
-    private static final int sNumberOfAttempts = 5;
+    private static final int sNumberOfAttempts = 3;
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
@@ -86,15 +86,6 @@ public class NodeFragment extends Fragment {
                 ((NodeActivity) getActivity()).lockActivity(true, "Wait a second, fetching state...");
                 ModelStorage.getInstance().invalidateNodeStatesCache();
                 mAttemptsCounter = 0;
-                updateUI();
-            }
-        });
-
-        FirebaseBackgroundService.getReceiver().addCallback(new Runnable() {
-            @Override
-            public void run() {
-                Log.d(TAG, "run: I am running");
-                ModelStorage.getInstance().invalidateNodeStatesCache();
                 updateUI();
             }
         });
@@ -159,9 +150,9 @@ public class NodeFragment extends Fragment {
                         getActivity(),
                         getResources().getText(R.string.state_fragment_error),
                         Toast.LENGTH_LONG).show();
-            }  else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
+            } else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
                 getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
-            }else {
+            } else {
                 setNodeAndState(true);
 
                 if (getActivity() != null) {
@@ -364,6 +355,8 @@ public class NodeFragment extends Fragment {
         }
 
         void setValueLoading(BigDecimal value) {
+            if (value == null) return;
+
             mOldValue = mValue;
             mValue = value;
             mProgressBar.setVisibility(View.VISIBLE);
@@ -373,8 +366,10 @@ public class NodeFragment extends Fragment {
 
         @Override
         public void onPostRequest(SimpleResponse s) {
+            Log.d(TAG, s.getStatus() + "");
+
             if (s.getStatus() != 200) {
-                String msg = getActivity().getResources().getString(R.string.login_fragment_server_offline);
+                String msg = getActivity().getResources().getString(R.string.login_fragment_connection_failed);
 
                 if (s.getStatus() == 403) {
                     msg = getActivity().getResources().getString(R.string.node_fragment_not_logged);
@@ -412,6 +407,8 @@ public class NodeFragment extends Fragment {
         }
 
         protected void setValue(BigDecimal value) {
+            if (value == null) return;
+
             if (mType.getType() == TypeEnum.BOOL) {
                 int intValue = value.intValue();
 
@@ -449,7 +446,7 @@ public class NodeFragment extends Fragment {
         }
     }
 
-    class SwitchHolder extends NodeHolder implements CompoundButton.OnCheckedChangeListener {
+    class SwitchHolder extends NodeHolder implements View.OnClickListener {
 
         private Switch mSwitch;
 
@@ -458,10 +455,12 @@ public class NodeFragment extends Fragment {
 
             mSwitch = (Switch) itemView.findViewById(R.id.node_list_switch);
             mSwitch.setVisibility(View.VISIBLE);
-            mSwitch.setOnCheckedChangeListener(this);
+            mSwitch.setOnClickListener(this);
         }
 
         protected void setValue(BigDecimal value) {
+            if (value == null) return;
+
             mValue = value;
             mSwitch.setChecked(value.intValue() == 1);
         }
@@ -475,10 +474,13 @@ public class NodeFragment extends Fragment {
             }
         }
 
+
+
         @Override
-        public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
-            BigDecimal value = new BigDecimal(isChecked ? 1 : 0);
+        public void onClick(View v) {
+            BigDecimal value = new BigDecimal(mSwitch.isChecked() ? 1 : 0);
             setValue(value);
+
             new AsyncRequest(this).execute(new NewActionCommand(mNodeId, mControllerId, mType.getId(), value));
         }
     }

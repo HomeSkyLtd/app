@@ -84,6 +84,8 @@ public class NotificationFragment extends Fragment {
             }
         });
 
+        FirebaseBackgroundService.HomeSkyBroadcastReceiver.reset();
+
         FirebaseBackgroundService.getReceiver().addCallback(new Runnable() {
             @Override
             public void run() {
@@ -100,9 +102,13 @@ public class NotificationFragment extends Fragment {
     }
 
     private void updateUI() {
-        mAdapter = new NotificationAdapter();
+        if (mAdapter == null) {
+            mAdapter = new NotificationAdapter();
+        }
+
         mRecyclerView.setAdapter(mAdapter);
         mAdapter.setNodes();
+        mAdapter.notifyDataSetChanged();
     }
 
     private class NotificationHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -133,7 +139,7 @@ public class NotificationFragment extends Fragment {
                 String str = "New device detected: ";
 
                 if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR) &&
-                        mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
+                        mNode.getNodeClass().contains(NodeClassEnum.ACTUATOR)) {
                     str += "Sensor/Actuator";
                     mIcon.setImageResource(R.drawable.ic_touch_app_black_24dp);
                 } else if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
@@ -307,7 +313,9 @@ public class NotificationFragment extends Fragment {
             super.onResume();
             int width = getResources().getDimensionPixelSize(R.dimen.dialog_width);
             int height = getResources().getDimensionPixelSize(R.dimen.dialog_height);
-            getDialog().getWindow().setLayout(width, height);
+            Window window = getDialog().getWindow();
+            if (window != null)
+                window.setLayout(width, height);
         }
 
         @NonNull
@@ -530,7 +538,7 @@ public class NotificationFragment extends Fragment {
             String title = "";
             if (mRule == null) {
                 if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR) &&
-                        mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
+                        mNode.getNodeClass().contains(NodeClassEnum.ACTUATOR)) {
                     title = "Sensor/Actuator";
                 } else if (mNode.getNodeClass().contains(NodeClassEnum.SENSOR)) {
                     title = "Sensor";

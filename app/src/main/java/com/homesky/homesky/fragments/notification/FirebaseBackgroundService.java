@@ -79,7 +79,7 @@ public class FirebaseBackgroundService extends Service {
 
         private static final String TAG = "HomeSkyReceiver";
         private String ACTION = "action", NODE = "node", RULE = "rule";
-        private HashMap<String, String> sNotificationsString;
+        private static HashMap<String, String> sNotificationsString;
         private List<Runnable> mCallbacks;
 
         public HomeSkyBroadcastReceiver() {
@@ -91,7 +91,7 @@ public class FirebaseBackgroundService extends Service {
             mCallbacks.add(r);
         }
 
-        public void reset() {
+        public static void reset() {
             sNotificationsString = new HashMap<>(3);
         }
 
@@ -132,7 +132,13 @@ public class FirebaseBackgroundService extends Service {
                 String str = "Sent action: value " + an.getAction().getValue() + " to  ";
                 List<NodesResponse.Node> nodes = ModelStorage.getInstance().getNodes(null);
                 if (nodes != null) {
-                    str += nodes.get(an.getAction().getNodeId()).getExtra().get("name");
+                    for (NodesResponse.Node node : nodes) {
+                        if (an.getAction().getControllerId().equals(node.getControllerId()) &&
+                                node.getNodeId() == an.getAction().getNodeId()) {
+                            str += node.getExtra().get("name");
+                            break;
+                        }
+                    }
                     sNotificationsString.put(ACTION, str);
                 }
 

@@ -75,6 +75,9 @@ public class StateFragment extends Fragment {
     private SwipeRefreshLayout mStateSwipeRefresh;
     private TextView mEmptyListMessage;
 
+    private int mAttemptsCounter = 0;
+    private static final int sNumberOfAttempts = 3;
+
     public StateFragment() {}
 
     @Nullable
@@ -92,6 +95,7 @@ public class StateFragment extends Fragment {
             @Override
             public void onRefresh() {
                 ModelStorage.getInstance().invalidateNodesCache();
+                mAttemptsCounter = 0;
                 updateUI();
                 mStateSwipeRefresh.setRefreshing(false);
             }
@@ -103,6 +107,20 @@ public class StateFragment extends Fragment {
     }
 
     private void updateUI() {
+        if (getActivity() == null) return;
+
+        if (mAttemptsCounter > sNumberOfAttempts) {
+            mAttemptsCounter = 0;
+            mLoadingPanel.setVisibility(View.GONE);
+            mStateSwipeRefresh.setRefreshing(false);
+            ((NodeActivity) getActivity()).lockActivity(false, null);
+            Snackbar.make(
+                    getActivity().findViewById(R.id.fragment_container),
+                    getActivity().getResources().getText(R.string.node_fragment_no_connection),
+                    Snackbar.LENGTH_LONG).show();
+            return;
+        }
+
         if (mStateAdapter == null) {
             mStateAdapter = new StateAdapter();
         } else {
@@ -136,6 +154,11 @@ public class StateFragment extends Fragment {
                         Toast.LENGTH_LONG).show();
             } else if (s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
                 getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
+            } else if (s.getStatus() == 0) {
+                Toast.makeText(
+                        getActivity(),
+                        getResources().getText(R.string.login_fragment_connection_failed),
+                        Toast.LENGTH_LONG).show();
             } else if (s.getStatus() == 403){
                 HomecloudHolder.getInstance().invalidateSession();
                 getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));

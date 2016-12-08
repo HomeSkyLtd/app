@@ -22,6 +22,7 @@
     <string name="login_fragment_empty_login">Please, type your Login</string>
     <string name="login_fragment_empty_passwd">Please, type your Password</string>
     <string name="login_fragment_server_offline">This is embarrassing…Server is offline =(</string>
+    <string name="login_fragment_connection_failed">Connection failed =(</string>
     <string name="login_fragment_error">Login error: </string>
     <string name="login_fragment_server_already_logged">Already logged</string>
     <string name="login_fragment_remember_me">Remember me</string>
