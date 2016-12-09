@@ -193,6 +193,7 @@ public class NotificationFragment extends Fragment {
 
         @Override
         public void onPostRequest(SimpleResponse s) {
+            if(!NotificationFragment.this.isAdded()) return;
             if (s == null || s.getStatus() != 200) {
                 Snackbar.make(
                         getActivity().findViewById(R.id.menu_fragments_activity_container),
@@ -292,6 +293,7 @@ public class NotificationFragment extends Fragment {
     class GetInfosRequest implements RequestCallback {
         @Override
         public void onPostRequest(SimpleResponse s) {
+            if(!NotificationFragment.this.isAdded()) return;
             if (s != null && s.getStatus() == 0 && s.getErrorMessage().equals(AsyncRequest.NOT_CREDENTIALS_ERROR)) {
                 getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.LOGIN));
             } else if (s == null || s.getStatus() != 200) {
@@ -420,6 +422,7 @@ public class NotificationFragment extends Fragment {
 
             @Override
             public void onPostRequest(SimpleResponse s) {
+                if(!AskExtrasDialogFragment.this.isAdded()) return;
                 if (s == null || s.getStatus() != 200) {
                     Snackbar.make(
                             getActivity().findViewById(R.id.menu_fragments_activity_container),
@@ -438,6 +441,7 @@ public class NotificationFragment extends Fragment {
             private class AcceptExtraCallback implements RequestCallback {
                 @Override
                 public void onPostRequest(SimpleResponse s) {
+                    if(!AskExtrasDialogFragment.this.isAdded()) return;
                     if (s == null || s.getStatus() != 200) {
                         new AsyncRequest(new AcceptExtraCallback())
                                 .execute(new SetNodeExtraCommand(mMap, mNode.getNodeId(), mNode.getControllerId()));
