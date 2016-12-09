@@ -145,6 +145,9 @@ public class NodeFragment extends Fragment {
     class GetHouseStateRequest implements RequestCallback {
         @Override
         public void onPostRequest(SimpleResponse s) {
+            if(!NodeFragment.this.isAdded()) return;
+
+
             if (s == null) {
                 Toast.makeText(
                         getActivity(),
@@ -366,6 +369,8 @@ public class NodeFragment extends Fragment {
 
         @Override
         public void onPostRequest(SimpleResponse s) {
+            if(!NodeFragment.this.isAdded()) return;
+
             Log.d(TAG, s.getStatus() + "");
 
             if (s.getStatus() != 200) {

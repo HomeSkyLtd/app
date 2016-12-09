@@ -183,6 +183,8 @@ public class RuleFragment extends Fragment implements RequestCallback {
 
     @Override
     public void onPostRequest(SimpleResponse s) {
+        if(!RuleFragment.this.isAdded()) return;
+
         if (s == null) {
             Toast.makeText(
                     getActivity(),

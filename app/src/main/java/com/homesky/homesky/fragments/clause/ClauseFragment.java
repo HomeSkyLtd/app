@@ -251,6 +251,8 @@ public class ClauseFragment extends Fragment implements RequestCallback, Proposi
 
     @Override
     public void onPostRequest(SimpleResponse s) {
+        if(!ClauseFragment.this.isAdded()) return;
+
         if(s instanceof NodesResponse)
             updateUI();
     }

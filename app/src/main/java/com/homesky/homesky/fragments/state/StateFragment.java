@@ -147,6 +147,8 @@ public class StateFragment extends Fragment {
     class GetNodesInfoRequest implements RequestCallback {
         @Override
         public void onPostRequest(SimpleResponse s) {
+            if(!StateFragment.this.isAdded()) return;
+
             if (s == null) {
                 Toast.makeText(
                         getActivity(),

@@ -156,6 +156,8 @@ public class ControllerFragment extends Fragment implements RequestCallback {
 
     @Override
     public void onPostRequest(SimpleResponse s) {
+        if(!ControllerFragment.this.isAdded()) return;
+
         if(s instanceof ControllerDataResponse) {
             if(s.getStatus() == 200)
                 updateUI();

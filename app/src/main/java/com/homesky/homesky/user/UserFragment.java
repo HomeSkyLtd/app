@@ -149,6 +149,8 @@ public class UserFragment extends Fragment implements RequestCallback, NewUserDi
 
     @Override
     public void onPostRequest(SimpleResponse s) {
+        if(!UserFragment.this.isAdded()) return;
+
         if(s instanceof UserDataResponse){
             if(s.getStatus() == 200){
                 updateUI();
