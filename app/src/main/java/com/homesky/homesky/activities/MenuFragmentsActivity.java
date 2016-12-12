@@ -125,10 +125,10 @@ public class MenuFragmentsActivity extends AppCompatActivity implements NewUserD
                             ModelStorage.getInstance().invalidateRulesCache();
                             ModelStorage.getInstance().invalidateUsersCache();
 
-
-                            startActivity(
-                                LoginActivity.newIntent(getApplicationContext(), LoginActivity.LoginAction.LOGIN)
-                            );
+                            Intent intent = LoginActivity.newIntent(getApplicationContext(), LoginActivity.LoginAction.LOGIN);
+                            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+                            startActivity(intent);
+                            finish();
                         }
                     }).execute(new LogoutCommand());
                 } else {
