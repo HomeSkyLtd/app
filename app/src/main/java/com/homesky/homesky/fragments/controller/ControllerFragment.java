@@ -106,6 +106,7 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                         Uri marketUri = Uri.parse("market://details?id=com.google.zxing.client.android");
                         Intent marketIntent = new Intent(Intent.ACTION_VIEW, marketUri);
                         startActivity(marketIntent);
+                        mPageState = PageState.IDLE;
                     }
                 }
             }
@@ -244,7 +245,8 @@ public class ControllerFragment extends Fragment implements RequestCallback {
                 new AsyncRequest(this).execute(new RegisterControllerCommand(mControllerIdToAdd));
             }
             if(resultCode == getActivity().RESULT_CANCELED){
-                mRingProgressDialog.dismiss();
+                if(mRingProgressDialog != null)
+                    mRingProgressDialog.dismiss();
             }
         }
         else{
