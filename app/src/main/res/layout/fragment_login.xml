@@ -14,6 +14,31 @@
         android:textSize="@dimen/title_text_size"
         android:layout_gravity="center_horizontal"/>
 
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginTop="12dp">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/login_fragment_select_server"/>
+
+        <Spinner
+            android:id="@+id/login_fragment_server_spinner"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content" />
+
+    </LinearLayout>
+
+    <EditText
+        android:id="@+id/login_fragment_server_address_edit_text"
+        android:layout_width="@dimen/edit_text_width"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:hint="@string/login_fragment_server_hint"/>
+
     <EditText
         android:id="@+id/login_fragment_edit_login"
         android:layout_width="@dimen/edit_text_width"

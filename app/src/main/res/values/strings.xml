@@ -29,6 +29,14 @@
     <string name="login_fragment_remember_me_key" translatable="false">com.homesky.homesky.login.remembermekey</string>
     <string name="login_fragment_remember_me_user" translatable="false">com.homesky.homesky.login.remembermekey</string>
     <string name="login_fragment_remember_me_passwd" translatable="false">com.homesky.homesky.login.remembermekey</string>
+    <string name="login_fragment_select_server">Select server: </string>
+    <string name="login_fragment_server_hint">Type server address</string>
+    <string-array name="server_options">
+        <item>AWS Fabio</item>
+        <item>AWS Ricardo</item>
+        <item>Custom</item>
+    </string-array>
+    <string name="login_fragment_address_format_error">Invalid address format (perhaps forgot leading \"http\"?)</string>
 
     <!-- State fragment -->
     <string name="state_fragment_title">State</string>
