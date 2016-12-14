@@ -71,16 +71,6 @@ public class LoginFragment extends Fragment implements RequestCallback {
             startActivity(MenuFragmentsActivity.newIntent(getActivity()));
         }
 
-        view.findViewById(R.id.login_fragment_title).setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                HomecloudHolder.getInstance().setUsername("admin1");
-                HomecloudHolder.getInstance().setPassword("mypass");
-                Toast.makeText(getActivity(), "Logging in...", Toast.LENGTH_SHORT).show();
-                new AsyncRequest(null, LoginFragment.this).execute(new LoginCommand());
-            }
-        });
-
         mEditTextLogin = (EditText) view.findViewById(R.id.login_fragment_edit_login);
         mEditTextPassword = (EditText) view.findViewById(R.id.login_fragment_edit_passwd);
 
