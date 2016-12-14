@@ -157,6 +157,19 @@ public class LoginFragment extends Fragment implements RequestCallback {
         mSigninButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(mServerAddressEditText.getVisibility() == View.VISIBLE)
+                    mSelectedAddress = mServerAddressEditText.getText().toString();
+
+                if (mSelectedAddress.length() == 0 || !mSelectedAddress.startsWith("http://")) {
+                    Toast.makeText(
+                            getActivity(),
+                            getResources().getText(R.string.login_fragment_address_format_error),
+                            Toast.LENGTH_LONG).show();
+                    return;
+                }
+
+                HomecloudHolder.getInstance().setUrl(mSelectedAddress);
+
                 getActivity().startActivity(LoginActivity.newIntent(getActivity(), LoginActivity.LoginAction.SIGNIN));
             }
         });
